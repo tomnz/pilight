@@ -1,8 +1,7 @@
 from celery import task
-from home.models import CurrentLight, CurrentTransform, Transform, TransformField
+from home.models import CurrentLight, TransformInstance, Transform, TransformField
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
-from copy import deepcopy
 import time
 from pilight.classes import Color
 from pilight.light.transforms import AVAILABLE_TRANSFORMS
@@ -17,18 +16,16 @@ def run_lights():
 
     # Grab the simulation parameters
     current_lights_db = CurrentLight.objects.all().order_by('index')
-    current_lights = dict()
+    current_lights = []
 
     for i in range(settings.LIGHTS_NUM_LEDS):
         try:
-            current_lights[i] = Color.from_hex(current_lights_db.get(index=i).color)
+            current_lights.append(Color.from_hex(current_lights_db.get(index=i).color))
         except (ObjectDoesNotExist, MultipleObjectsReturned):
-            current_lights[i] = Color(0.5, 1, 1)
-
-    flattened_lights = current_lights.values()
+            current_lights.append(Color(0.5, 1, 1))
 
     # Initiate transform objects
-    transform_items = CurrentTransform.objects.all().order_by('order')
+    transform_items = TransformInstance.objects.all().order_by('order')
     current_transforms = []
 
     for transform_item in transform_items:
@@ -43,14 +40,24 @@ def run_lights():
         elapsed_time = current_time - start_time
 
         # Determine the value to print to each LED
+        lights = current_lights
+        next_lights = []
+
+        # Perform each transform step
+        for transform_item, transform_obj in current_transforms:
+            # Transform each light
+            for i in range(settings.LIGHTS_NUM_LEDS):
+                color = transform_obj.transform(elapsed_time, i, settings.LIGHTS_NUM_LEDS, lights[i], lights)
+                next_lights.append(color)
+
+            # Save lights for next transform
+            lights = next_lights
+            next_lights = []
+
+        # Prepare the final data
         raw_data = bytearray(settings.LIGHTS_NUM_LEDS * 3)
-        for i in range(settings.LIGHTS_NUM_LEDS):
-            color = deepcopy(current_lights[i])
-
-            for transform_item, transform_obj in current_transforms:
-                color = transform_obj.transform(elapsed_time, i, settings.LIGHTS_NUM_LEDS, color, flattened_lights)
-
-            raw_data[i*3:] = color.to_raw()
+        for light in lights:
+            raw_data[i*3:] = light.to_raw()
 
         # Write the data
         #spidev.write(raw_data)
