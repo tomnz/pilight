@@ -1,5 +1,8 @@
 # Django settings for pilight project.
 
+import djcelery
+djcelery.setup_loader()
+
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
@@ -118,8 +121,9 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.admin',
-    'kombu.transport.django',
+    'djcelery',
     'south',
+    'bootstrap3',
     'home',
 )
 
@@ -153,3 +157,6 @@ LOGGING = {
         },
     }
 }
+
+# Django-celery config
+BROKER_URL = 'django://'
