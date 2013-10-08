@@ -18,7 +18,7 @@ class Transform(models.Model):
     description = models.TextField(blank=True, null=True)
 
 
-class CurrentTransform(models.Model):
+class TransformInstance(models.Model):
 
     transform = models.ForeignKey(Transform)
     order = models.IntegerField()
