@@ -1,0 +1,24 @@
+{% include 'base.html' %}
+
+{% block head %}
+    <title>PiLight Alpha</title>
+{% endblock %}
+
+{% block body %}
+    <h1>PiLight Alpha</h1>
+    <p><a href="#" id="start-link">Start</a></p>
+    <p><a href="#" id="stop-link">Stop</a></p>
+{% endblock %}
+
+{% block js %}
+    <script>
+        $(document).ready(function() {
+            $("a#start-link").click(function() {
+                $.get("/start");
+            });
+            $("a#stop-link").click(function() {
+                $.get("/stop")
+            });
+        });
+    </script>
+{% endblock %}

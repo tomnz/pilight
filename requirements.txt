@@ -1,3 +1,5 @@
 django
 celery
+django-celery
 south
+django-bootstrap3
