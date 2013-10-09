@@ -1,6 +1,3 @@
-# Django settings for pilight project.
-
-
 ############
 # App config
 
@@ -21,9 +18,7 @@ LIGHTS_DEV_NAME = '/dev/spidev0.0'
 
 
 ###################
-# Celery initiation
-import djcelery
-djcelery.setup_loader()
+# RabbitMQ setup
 
 
 ######################
@@ -157,7 +152,6 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.admin',
-    'djcelery',
     'south',
     'bootstrap3',
     'home',
@@ -193,6 +187,3 @@ LOGGING = {
         },
     }
 }
-
-# Django-celery config
-BROKER_URL = 'django://'

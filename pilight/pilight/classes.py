@@ -1,7 +1,17 @@
-import math
 import struct
-import sys
 import pickle
+import pika
+
+
+class PikaConnection(object):
+    connection_obj = None
+
+    @staticmethod
+    def get_connection():
+        if not PikaConnection.connection_obj:
+            print "Spawning connection"
+            PikaConnection.connection_obj = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
+        return PikaConnection.connection_obj
 
 
 def dec2hex(d):
