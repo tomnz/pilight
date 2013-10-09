@@ -176,11 +176,16 @@ def add_transform(request):
     return HttpResponse(json.dumps(result), content_type='application/json')
 
 
-def start(request):
+def start_driver(request):
     run_lights.apply_async(task_id='run_lights')
     return HttpResponse()
 
 
-def stop(request):
+def stop_driver(request):
+    current_app.control.revoke('run_lights', terminate=True)
+    return HttpResponse()
+
+
+def restart_driver(request):
     current_app.control.revoke('run_lights', terminate=True)
     return HttpResponse()

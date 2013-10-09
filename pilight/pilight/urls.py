@@ -8,8 +8,9 @@ admin.autodiscover()
 urlpatterns = patterns(
     'home.views',
     url(r'^/?$', 'index', name='index'),
-    url(r'^start/?$', 'start', name='start'),
-    url(r'^stop/?$', 'stop', name='stop'),
+    url(r'^driver/start/?$', 'start_driver', name='start_driver'),
+    url(r'^driver/stop/?$', 'stop_driver', name='stop_driver'),
+    url(r'^driver/restart/?$', 'restart_driver', name='restart_driver'),
     url(r'^light/render_snippet/?$', 'render_lights_snippet', name='render_lights_snippet'),
     url(r'^light/apply_tool/?$', 'apply_light_tool', name='apply_light_tool'),
     url(r'^transform/render_snippet/?$', 'render_transforms_snippet', name='render_transforms_snippet'),

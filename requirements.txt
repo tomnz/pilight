@@ -1,5 +1,5 @@
 django
-celery
-django-celery
+pika
+psycopg2
 south
 django-bootstrap3

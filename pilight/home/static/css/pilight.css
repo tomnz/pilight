@@ -1,7 +1,13 @@
+.btn-light {
+    width: 40px;
+}
 div.row.pad-bottom {
     padding-bottom: 20px;
 }
 input.slider-control {
     margin-left: 20px;
     margin-right: 20px;
+}
+div#header-buttons {
+    padding-top: 20px;
 }

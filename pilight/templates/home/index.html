@@ -8,22 +8,29 @@
 {% endblock %}
 
 {% block body %}
-    <div class="row pad-bottom">
-        <div class="col-md-12">
+    <div class="row">
+        <div class="col-md-9">
             <h1>{{ INSTALLATION_NAME }}</h1>
+        </div>
+        <div class="col-md-3" id="header-buttons">
+            <div class="btn-group">
+                <button class="btn btn-primary" id="btn-refresh">Refresh</button>
+                <button class="btn btn-success" id="btn-start">Start</button>
+                <button class="btn btn-danger" id="btn-stop">Stop</button>
+            </div>
         </div>
     </div>
     <section id="current-lights">
         <div class="row">
             <div class="col-md-12">
                 <h3>Default Colors</h3>
-                <p><small>Specify what base colors are applied to each LED, prior to transforms taking effect. Use the Solid/Smooth tool and pick a color, then click on an LED.</small></p>
+                <p class="hidden-xs"><small>Specify what base colors are applied to each LED, prior to transforms taking effect. Use the Solid/Smooth tool and pick a color, then click on an LED.</small></p>
             </div>
         </div>
         <div class="row pad-bottom">
-            <div class="col-md-10">
+            <div class="col-md-12">
                 <div class="row pad-bottom">
-                    <div class="col-md-10">
+                    <div class="col-md-12">
                         <div class="btn-group" data-toggle="buttons">
                             <label class="btn btn-default">
                                 <input type="radio" name="tool" id="tool-solid" value="solid"> Solid
@@ -42,9 +49,13 @@
                             Opacity
                             <input type="text" id="slider-opacity" name="slider-opacity" class="form-control slider-control" value="100" data-slider-min="1" data-slider-max="100" data-slider-step="1" data-slider-value="100">
                         </label>
-                    </div>
-                    <div class="col-md-2">
-                        <input type="text" class="form-control" value="#FF0000" readonly id="color-control" />
+                        &nbsp;&nbsp;
+                        <div style="width: 100px; display: inline">
+                            <label>
+                                Color
+                                <input type="text" class="form-control" value="#FF0000" readonly id="color-control" />
+                            </label>
+                        </div>
                     </div>
                 </div>
                 <div class="row">
@@ -53,16 +64,13 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-2">
-                <button class="btn btn-sm btn-primary" id="btn-refresh">Refresh</button>
-            </div>
         </div>
     </section>
     <section id="available-transforms">
         <div class="row">
             <div class="col-md-12">
                 <h3>Available Transforms</h3>
-                <p><small>All the available types of transforms that can be applied. Activate one by clicking Add.</small></p>
+                <p class="hidden-xs"><small>All the available types of transforms that can be applied. Activate one by clicking Add.</small></p>
             </div>
         </div>
         <div class="row">
@@ -88,7 +96,7 @@
         <div class="row">
             <div class="col-md-12">
                 <h3>Active Transforms</h3>
-                <p><small>All currently active transforms. Set parameters for each transform and specify which order they should run in.</small></p>
+                <p class="hidden-xs"><small>All currently active transforms. Set parameters for each transform and specify which order they should run in.</small></p>
             </div>
         </div>
         <div class="row">
@@ -118,6 +126,10 @@
                 $("div#current-transforms-content").html(data);
                 bindTransforms();
             }, "html");
+        }
+
+        function restartDriver() {
+            $.post("{% url 'home.views.restart_driver' %}");
         }
 
         function bindLights() {
@@ -217,8 +229,15 @@
             $('input.slider-control').slider();
             $('input#color-control').colorpicker();
             $('button#btn-refresh').click(function() {
+                restartDriver();
                 refreshLights();
                 refreshTransforms();
+            });
+            $('button#btn-start').click(function() {
+                $.post("{% url 'home.views.start_driver' %}");
+            });
+            $('button#btn-stop').click(function() {
+                $.post("{% url 'home.views.stop_driver' %}");
             });
             $('button.btn-transform-add').click(function() {
                 // Add a new transform

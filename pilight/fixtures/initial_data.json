@@ -1,0 +1,92 @@
+[
+{
+    "pk": 1, 
+    "model": "home.transform", 
+    "fields": {
+        "long_name": "Flash", 
+        "name": "flash", 
+        "description": "Flashes all lights between two brightness percentages, at the given rate. Can produce either a sine wave (smooth) effect, or triangle wave effect."
+    }
+},
+{
+    "pk": 2, 
+    "model": "home.transform", 
+    "fields": {
+        "long_name": "Scroll", 
+        "name": "scroll", 
+        "description": "Scrolls all the lights at the given rate. Can be reversed."
+    }
+},
+{
+    "pk": 1, 
+    "model": "home.transformfield", 
+    "fields": {
+        "default_value": "0.5", 
+        "field_type": "float", 
+        "description": "How many times per second to flash", 
+        "transform": 1, 
+        "long_name": "Rate", 
+        "name": "rate"
+    }
+},
+{
+    "pk": 2, 
+    "model": "home.transformfield", 
+    "fields": {
+        "default_value": "1", 
+        "field_type": "percentage", 
+        "description": "Percentage brightness for start of animation", 
+        "transform": 1, 
+        "long_name": "Start Value", 
+        "name": "start_value"
+    }
+},
+{
+    "pk": 3, 
+    "model": "home.transformfield", 
+    "fields": {
+        "default_value": "0.5", 
+        "field_type": "float", 
+        "description": "Percentage brightness for end of animation", 
+        "transform": 1, 
+        "long_name": "End Value", 
+        "name": "end_value"
+    }
+},
+{
+    "pk": 4, 
+    "model": "home.transformfield", 
+    "fields": {
+        "default_value": "True", 
+        "field_type": "boolean", 
+        "description": "Select this option for a smoother animation", 
+        "transform": 1, 
+        "long_name": "Sine Wave", 
+        "name": "sine"
+    }
+},
+{
+    "pk": 5, 
+    "model": "home.transformfield", 
+    "fields": {
+        "default_value": "0.1", 
+        "field_type": "float", 
+        "description": "How many times per second to scroll the entire set of lights", 
+        "transform": 2, 
+        "long_name": "Rate", 
+        "name": "rate"
+    }
+},
+{
+    "pk": 6, 
+    "model": "home.transformfield", 
+    "fields": {
+        "default_value": "False", 
+        "field_type": "boolean", 
+        "description": "", 
+        "transform": 2, 
+        "long_name": "Reverse", 
+        "name": "reverse"
+    }
+}
+]
