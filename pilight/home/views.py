@@ -39,6 +39,12 @@ def index(request):
     current_transforms = TransformInstance.objects.get_current()
     transforms = Transform.objects.all()
 
+    # Find average light color to use as default for paintbrush
+    tool_color = Color(0, 0, 0)
+    for light in current_lights:
+        tool_color += light.color
+    tool_color /= len(current_lights)
+
     return render_to_response(
         'home/index.html',
         {
@@ -46,6 +52,7 @@ def index(request):
             'current_lights': current_lights,
             'transforms': transforms,
             'current_transforms': current_transforms,
+            'tool_color': tool_color.to_hex_web(),
         },
         context_instance=RequestContext(request)
     )
