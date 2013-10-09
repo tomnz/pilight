@@ -35,6 +35,7 @@ Setup the database:
     python manage.py syncdb
     python manage.py migrate
     python manage.py loaddata fixtures/initial_data.json
+    python manage.py createcachetable pilight_cache
 
 
 Launch PiLight
@@ -48,9 +49,9 @@ First, ensure that RabbitMQ and your DBMS are running. Then, run the following c
 
 And
 
-    python manage.py runserver
+    python manage.py runserver 0.0.0.0:8000
 
-> Note: `lightdriver` and `runserver` are both blocking commands that run until stopped, which is why they must be in separate console windows. `lightdriver` performs the actual running of the lights, and `runserver` serves the configuration UI.
+> Note: `lightdriver` and `runserver` are both blocking commands that run until stopped, which is why they must be in separate console windows. We bind `runserver` to 0.0.0.0:8000 so that it can be accessed from other devices on the network, not just localhost. This is useful for controlling PiLight from your phone or computer.
 
 That's it! You should now be able to access the interface to control the lights by accessing [http://localhost:8000/](http://localhost:8000/).
 

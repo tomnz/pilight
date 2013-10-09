@@ -10,7 +10,6 @@ class PikaConnection(object):
     @staticmethod
     def get_connection():
         if not PikaConnection.connection_obj:
-            print "Spawning connection"
             PikaConnection.connection_obj = pika.BlockingConnection(
                 pika.ConnectionParameters(host=settings.PIKA_HOST_NAME)
             )
@@ -68,6 +67,12 @@ class Color(object):
         else:
             return NotImplemented
 
+    def __div__(self, other):
+        if isinstance(other, (int, long, float)):
+            return Color(self.r / other, self.g / other, self.b / other)
+        else:
+            return NotImplemented
+
     def __rmul__(self, other):
         if isinstance(other, (int, long, float)):
             return Color(self.r * other, self.g * other, self.b * other)
@@ -81,6 +86,12 @@ class Color(object):
             return Color(self.r * other, self.g * other, self.b * other)
         elif isinstance(other, Color):
             return Color(self.r * other.r, self.g * other.g, self.b * other.b)
+        else:
+            return NotImplemented
+
+    def __idiv__(self, other):
+        if isinstance(other, (int, long, float)):
+            return Color(self.r / other, self.g / other, self.b / other)
         else:
             return NotImplemented
 
@@ -106,11 +117,11 @@ class Color(object):
         return dec2hex(self.safe_r()*255) + dec2hex(self.safe_g()*255) + dec2hex(self.safe_b()*255)
 
     def to_hex_web(self):
-        return '#%s' % self.to_hex()
+        return ('#%s' % self.to_hex()).lower()
 
     def to_raw(self):
         return (
-            struct.pack('B', int(self.safe_r() * (2 ** 8))),
-            struct.pack('B', int(self.safe_g() * (2 ** 8))),
-            struct.pack('B', int(self.safe_b() * (2 ** 8))),
+            struct.pack('B', int(self.safe_r() * (2 ** 8 - 1))),
+            struct.pack('B', int(self.safe_g() * (2 ** 8 - 1))),
+            struct.pack('B', int(self.safe_b() * (2 ** 8 - 1))),
         )
