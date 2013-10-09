@@ -14,6 +14,12 @@
         </div>
     </div>
     <section id="current-lights">
+        <div class="row">
+            <div class="col-md-12">
+                <h3>Default Colors</h3>
+                <p><small>Specify what base colors are applied to each LED, prior to transforms taking effect. Use the Solid/Smooth tool and pick a color, then click on an LED.</small></p>
+            </div>
+        </div>
         <div class="row pad-bottom">
             <div class="col-md-10">
                 <div class="row pad-bottom">
@@ -53,7 +59,13 @@
         </div>
     </section>
     <section id="available-transforms">
-        <div class="row pad-bottom">
+        <div class="row">
+            <div class="col-md-12">
+                <h3>Available Transforms</h3>
+                <p><small>All the available types of transforms that can be applied. Activate one by clicking Add.</small></p>
+            </div>
+        </div>
+        <div class="row">
             <div class="col-md-10">
                 <table class="table table-hover table-condensed table-bordered">
                     <tr>
@@ -73,7 +85,13 @@
         </div>
     </section>
     <section id="current-transforms">
-        <div class="row pad-bottom">
+        <div class="row">
+            <div class="col-md-12">
+                <h3>Active Transforms</h3>
+                <p><small>All currently active transforms. Set parameters for each transform and specify which order they should run in.</small></p>
+            </div>
+        </div>
+        <div class="row">
             <div class="col-md-10" id="current-transforms-content">
                 {% include "home/snippets/transforms.html" %}
             </div>
