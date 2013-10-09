@@ -48,7 +48,7 @@
                 </div>
             </div>
             <div class="col-md-2">
-                <a class="btn btn-sm btn-primary" href="#" id="refresh-lights">Refresh</a>
+                <button class="btn btn-sm btn-primary" id="btn-refresh">Refresh</button>
             </div>
         </div>
     </section>
@@ -65,7 +65,7 @@
                         <tr>
                             <td>{{ transform.long_name }}</td>
                             <td>{{ transform.description }}</td>
-                            <td><button class="btn btn-xs btn-primary">Add</button></td>
+                            <td><button class="btn btn-xs btn-primary btn-transform-add" id="transform-add-{{ transform.id }}">Add</button></td>
                         </tr>
                     {% endfor %}
                 </table>
@@ -95,6 +95,13 @@
             }, "html");
         }
 
+        function refreshTransforms() {
+            $.post("{% url 'home.views.render_transforms_snippet' %}", null, function(data) {
+                $("div#current-transforms-content").html(data);
+                bindTransforms();
+            }, "html");
+        }
+
         function bindLights() {
             $('button.btn-light').click(function(){
                 // Run the selected tool on the clicked light
@@ -121,6 +128,38 @@
                     if (data.success) {
                         // Success - refresh lights
                         refreshLights();
+                    }
+                }, "json");
+            });
+        }
+
+        function bindTransforms() {
+            $('button.btn-transform-save').click(function() {
+                // Post back the params
+                var index = parseInt(this.id.substr(15))
+                if (isNaN(index)) {
+                    return;
+                }
+                var params = $('input#transform-params-'+index).val();
+
+                var post_data = {transform_id:index,params:params};
+                $.post("{% url 'home.views.update_transform_params' %}", post_data, function(data) {
+                    if (data.success) {
+                        refreshTransforms();
+                    }
+                }, "json");
+            });
+            $('button.btn-transform-delete').click(function() {
+                // Delete the transform
+                var index = parseInt(this.id.substr(17))
+                if (isNaN(index)) {
+                    return;
+                }
+
+                var post_data = {transform_id:index};
+                $.post("{% url 'home.views.delete_transform' %}", post_data, function(data) {
+                    if (data.success) {
+                        refreshTransforms();
                     }
                 }, "json");
             });
@@ -159,7 +198,26 @@
         $(document).ready(function() {
             $('input.slider-control').slider();
             $('input#color-control').colorpicker();
+            $('button#btn-refresh').click(function() {
+                refreshLights();
+                refreshTransforms();
+            });
+            $('button.btn-transform-add').click(function() {
+                // Add a new transform
+                var index = parseInt(this.id.substr(14))
+                if (isNaN(index)) {
+                    return;
+                }
+
+                var post_data = {transform_id:index};
+                $.post("{% url 'home.views.add_transform' %}", post_data, function(data) {
+                    if (data.success) {
+                        refreshTransforms();
+                    }
+                }, "json");
+            });
             bindLights();
+            bindTransforms();
         });
     </script>
 {% endblock %}
