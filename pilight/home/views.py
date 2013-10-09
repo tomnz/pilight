@@ -43,14 +43,20 @@ def render_lights_snippet(request):
     )
 
 
+def render_transforms_snippet(request):
+    current_transforms = TransformInstance.objects.get_current()
+
+    return render_to_response(
+        'home/snippets/transforms.html',
+        {'current_transforms': current_transforms},
+        context_instance=RequestContext(request)
+    )
+
+
 def apply_light_tool(request):
     """
     Complex function that applies a "tool" across several lights
     """
-
-    # Always "reset" the lights - will fill out the correct number if it's wrong
-    Light.objects.reset()
-    current_lights = list(Light.objects.get_current())
 
     result = {}
 
@@ -60,6 +66,10 @@ def apply_light_tool(request):
                 'radius' in request.POST and \
                 'opacity' in request.POST and \
                 'color' in request.POST:
+            # Always "reset" the lights - will fill out the correct number if it's wrong
+            Light.objects.reset()
+            current_lights = list(Light.objects.get_current())
+
             tool = request.POST['tool']
             index = int(request.POST['index'])
             radius = int(request.POST['radius'])
@@ -91,6 +101,70 @@ def apply_light_tool(request):
                     light.color = (light.color * (1.0 - strength)) + (color * strength)
                     light.save()
 
+                result['success'] = True
+            else:
+                result['success'] = False
+        else:
+            result['success'] = False
+    else:
+        result['success'] = False
+
+    return HttpResponse(json.dumps(result), content_type='application/json')
+
+
+def delete_transform(request):
+    result = {}
+
+    if request.method == 'POST':
+        if 'transform_id' in request.POST:
+            transforms = TransformInstance.objects.filter(id=int(request.POST['transform_id'])).filter(store=None)
+            if len(transforms) == 1:
+                transforms.delete()
+                result['success'] = True
+            else:
+                result['success'] = False
+        else:
+            result['success'] = False
+    else:
+        result['success'] = False
+
+    return HttpResponse(json.dumps(result), content_type='application/json')
+
+
+def update_transform_params(request):
+    result = {}
+
+    if request.method == 'POST':
+        if 'transform_id' in request.POST and\
+                'params' in request.POST:
+            transforms = TransformInstance.objects.filter(id=int(request.POST['transform_id'])).filter(store=None)
+            if len(transforms) == 1:
+                transforms[0].params = request.POST['params']
+                transforms[0].save()
+                result['success'] = True
+            else:
+                result['success'] = False
+        else:
+            result['success'] = False
+    else:
+        result['success'] = False
+
+    return HttpResponse(json.dumps(result), content_type='application/json')
+
+
+
+def add_transform(request):
+    result = {}
+
+    if request.method == 'POST':
+        if 'transform_id' in request.POST:
+            transform = Transform.objects.filter(id=int(request.POST['transform_id']))
+            if len(transform) == 1:
+                transform_instance = TransformInstance()
+                transform_instance.transform = transform[0]
+                transform_instance.params = ''
+                transform_instance.order = 0
+                transform_instance.save()
                 result['success'] = True
             else:
                 result['success'] = False

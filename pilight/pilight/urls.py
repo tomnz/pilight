@@ -10,8 +10,12 @@ urlpatterns = patterns(
     url(r'^/?$', 'index', name='index'),
     url(r'^start/?$', 'start', name='start'),
     url(r'^stop/?$', 'stop', name='stop'),
-    url(r'^lights/render/?$', 'render_lights_snippet', name='render_lights'),
-    url(r'^lights/apply_tool/?$', 'apply_light_tool', name='apply_light_tool'),
+    url(r'^light/render_snippet/?$', 'render_lights_snippet', name='render_lights_snippet'),
+    url(r'^light/apply_tool/?$', 'apply_light_tool', name='apply_light_tool'),
+    url(r'^transform/render_snippet/?$', 'render_transforms_snippet', name='render_transforms_snippet'),
+    url(r'^transform/add/?$', 'add_transform', name='add_transform'),
+    url(r'^transform/delete/?$', 'delete_transform', name='delete_transform'),
+    url(r'^transform/updateparams/?$', 'update_transform_params', name='update_transform_params'),
 )
 
 # Admin
