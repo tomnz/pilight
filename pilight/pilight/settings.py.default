@@ -1,8 +1,33 @@
 # Django settings for pilight project.
 
+
+############
+# App config
+
+# Installation name
+# Can be anything you like - shown on the web UI
+LIGHTS_INSTALLATION_NAME = "PiLight Alpha"
+
+# Number of LEDs in the string
+LIGHTS_NUM_LEDS = 25
+
+# Microcontroller type used on the LED string
+# Known values:
+#  - 'ws2801'
+LIGHTS_MICROCONTROLLER = 'ws2801'
+
+# Device name for the SPI output
+LIGHTS_DEV_NAME = '/dev/spidev0.0'
+
+
+###################
+# Celery initiation
 import djcelery
 djcelery.setup_loader()
 
+
+######################
+# Django core settings
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
@@ -93,6 +118,17 @@ TEMPLATE_LOADERS = (
     'django.template.loaders.filesystem.Loader',
     'django.template.loaders.app_directories.Loader',
 #     'django.template.loaders.eggs.Loader',
+)
+
+TEMPLATE_CONTEXT_PROCESSORS = (
+    'django.contrib.auth.context_processors.auth',
+    'django.core.context_processors.debug',
+    'django.core.context_processors.i18n',
+    'django.core.context_processors.media',
+    'django.core.context_processors.static',
+    'django.core.context_processors.tz',
+    'django.contrib.messages.context_processors.messages',
+    'pilight.context_processors.extra_settings',
 )
 
 MIDDLEWARE_CLASSES = (

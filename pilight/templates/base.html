@@ -1,9 +1,16 @@
 {% load bootstrap3 %}
+{% load static from staticfiles %}
 
 <!DOCTYPE html>
 <html>
 <head>
+    {% if title %}
+        <title>{{ INSTALLATION_NAME }} - {{ title }}</title>
+    {% else %}
+        <title>{{ INSTALLATION_NAME }}</title>
+    {% endif %}
     {% bootstrap_css %}
+    <link href="{% static "css/pilight.css" %}" rel="stylesheet" type="text/css" />
     {% block head %}
     {% endblock %}
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -18,8 +25,7 @@
         {% block body %}
         {% endblock %}
     </div>
-    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
-    {% bootstrap_javascript %}
+    {% bootstrap_javascript True %}
     {% block js %}
     {% endblock %}
 </body>
