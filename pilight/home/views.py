@@ -1,14 +1,34 @@
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.http import HttpResponse
-from tasks import run_lights
-from celery import current_app
 from models import Transform, Light, TransformInstance
-from pilight.classes import Color
+from pilight.classes import Color, PikaConnection
 import json
 from django.views.decorators.csrf import ensure_csrf_cookie
 
 
+# Pika message passing setup
+# Helper functions for controlling the light driver
+def publish_message(msg):
+    connection = PikaConnection.get_connection()
+    channel = connection.channel()
+    channel.queue_declare(queue='pilight-queue', auto_delete=False, durable=True)
+    channel.basic_publish(exchange='', routing_key='pilight_queue', body=msg)
+
+
+def message_start_driver():
+    publish_message('start')
+
+
+def message_stop_driver():
+    publish_message('stop')
+
+
+def message_restart_driver():
+    publish_message('restart')
+
+
+# Views
 @ensure_csrf_cookie
 def index(request):
     # Always "reset" the lights - will fill out the correct number if it's wrong
@@ -58,7 +78,7 @@ def apply_light_tool(request):
     Complex function that applies a "tool" across several lights
     """
 
-    result = {}
+    result = False
 
     if request.method == 'POST':
         if 'tool' in request.POST and \
@@ -86,7 +106,7 @@ def apply_light_tool(request):
                     light.color = (light.color * (1.0 - opacity)) + (color * opacity)
                     light.save()
 
-                result['success'] = True
+                result = True
             elif tool == 'smooth':
                 # Apply the color at the given opacity and radius, with falloff
                 min_idx = max(0, index - radius)
@@ -101,38 +121,44 @@ def apply_light_tool(request):
                     light.color = (light.color * (1.0 - strength)) + (color * strength)
                     light.save()
 
-                result['success'] = True
+                result = True
             else:
-                result['success'] = False
+                result = False
         else:
-            result['success'] = False
+            result = False
     else:
-        result['success'] = False
+        result = False
 
-    return HttpResponse(json.dumps(result), content_type='application/json')
+    if result:
+        message_restart_driver()
+
+    return HttpResponse(json.dumps({'success': result}), content_type='application/json')
 
 
 def delete_transform(request):
-    result = {}
+    result = False
 
     if request.method == 'POST':
         if 'transform_id' in request.POST:
             transforms = TransformInstance.objects.filter(id=int(request.POST['transform_id'])).filter(store=None)
             if len(transforms) == 1:
                 transforms.delete()
-                result['success'] = True
+                result = True
             else:
-                result['success'] = False
+                result = False
         else:
-            result['success'] = False
+            result = False
     else:
-        result['success'] = False
+        result = False
 
-    return HttpResponse(json.dumps(result), content_type='application/json')
+    if result:
+        message_restart_driver()
+
+    return HttpResponse(json.dumps({'success': result}), content_type='application/json')
 
 
 def update_transform_params(request):
-    result = {}
+    result = False
 
     if request.method == 'POST':
         if 'transform_id' in request.POST and\
@@ -141,20 +167,22 @@ def update_transform_params(request):
             if len(transforms) == 1:
                 transforms[0].params = request.POST['params']
                 transforms[0].save()
-                result['success'] = True
+                result = True
             else:
-                result['success'] = False
+                result = False
         else:
-            result['success'] = False
+            result = False
     else:
-        result['success'] = False
+        result = False
 
-    return HttpResponse(json.dumps(result), content_type='application/json')
+    if result:
+        message_restart_driver()
 
+    return HttpResponse(json.dumps({'success': result}), content_type='application/json')
 
 
 def add_transform(request):
-    result = {}
+    result = False
 
     if request.method == 'POST':
         if 'transform_id' in request.POST:
@@ -165,27 +193,30 @@ def add_transform(request):
                 transform_instance.params = ''
                 transform_instance.order = 0
                 transform_instance.save()
-                result['success'] = True
+                result = True
             else:
-                result['success'] = False
+                result = False
         else:
-            result['success'] = False
+            result = False
     else:
-        result['success'] = False
+        result = False
 
-    return HttpResponse(json.dumps(result), content_type='application/json')
+    if result:
+        message_restart_driver()
+
+    return HttpResponse(json.dumps({'success': result}), content_type='application/json')
 
 
 def start_driver(request):
-    run_lights.apply_async(task_id='run_lights')
+    message_start_driver()
     return HttpResponse()
 
 
 def stop_driver(request):
-    current_app.control.revoke('run_lights', terminate=True)
+    message_stop_driver()
     return HttpResponse()
 
 
 def restart_driver(request):
-    current_app.control.revoke('run_lights', terminate=True)
+    message_restart_driver()
     return HttpResponse()

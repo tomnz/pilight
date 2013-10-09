@@ -1,9 +1,10 @@
 from home.models import Light, TransformInstance, Transform, TransformField
 from django.conf import settings
 import time
-from pilight.classes import Color
+from pilight.classes import PikaConnection
 from pilight.light.transforms import AVAILABLE_TRANSFORMS
 from django.core.management.base import BaseCommand
+import pika
 import traceback
 import sys
 
@@ -14,38 +15,84 @@ class Command(BaseCommand):
     help = 'Starts the light driver to await commands'
 
     def handle(self, *args, **options):
+        # Setup the output device
+        #spidev = file(settings.LIGHTS_DEV_NAME, 'wb')
+
         driver = LightDriver()
         try:
-            driver.run_lights()
-        # The catch-all here is bad, but manage.py commands usually don't print
-        # a stack trace, which is not very helpful for finding bugs
+            driver.wait(spidev=None)
+        except KeyboardInterrupt:
+            # The user has interrupted execution - close our resources
+            print '* Cleaning up...'
+            #spidev.close()
+            pass
         except:
+            # The catch-all here is bad, but manage.py commands usually don't print
+            # a stack trace, which is not very helpful for finding bugs
             print 'Exception while running light driver!'
             traceback.print_exc(file=sys.stdout)
 
 
 class LightDriver(object):
 
-    def __init__(self):
-        self.should_run = False
+    def pop_message(self):
+        connection = PikaConnection.get_connection()
+        channel = connection.channel()
+        channel.queue_declare('pilight_queue')
+        method, properties, body = channel.basic_get('pilight_queue', no_ack=True)
+        if method:
+            return body
+        else:
+            return None
 
-    def wait(self):
+    def wait(self, spidev):
         """
         Main entry point that waits for a start signal before running
         the actual light driver
         """
-        self.run_lights()
 
-    def run_lights(self):
+        # Basically run this loop forever until interrupted
+        running = True
+
+        connection = PikaConnection.get_connection()
+        channel = connection.channel()
+        channel.queue_declare('pilight_queue')
+
+        while running:
+            # First wait for a "start" or "restart" command
+            # "consume" is a blocking method that will wait for the first message to come in
+            body = None
+            print '* Light driver idle...'
+            for method, properties, body in channel.consume('pilight_queue'):
+                channel.basic_ack(method.delivery_tag)
+                # Just break out after reading the first message
+                break
+
+            channel.cancel()
+
+            # Note: right now we ignore 'restart' and 'stop' commands if they come in
+            # In future we may want to also handle a 'restart' command here
+            if body == 'start':
+                # We received a start command!
+                print '    Starting'
+                restart = True
+                while restart:
+                    # Actually run the light driver
+                    # Note that run_lights can return true to request that it be restarted
+                    restart = self.run_lights(spidev)
+
+    def clear_lights(self, spidev):
+        raw_data = [0x00 for x in range(settings.LIGHTS_NUM_LEDS * 3)]
+        #spidev.write(raw_data)
+        #spidev.flush()
+
+    def run_lights(self, spidev):
         """
         Drives the actual lights in a continuous loop until receiving
         a stop signal
         """
 
-        self.should_run = True
-
-        # Setup the output device
-        #spidev = file(settings.LIGHTS_DEV_NAME, 'wb')
+        print '* Light driver running...'
 
         # Grab the simulation parameters
         Light.objects.reset()
@@ -69,7 +116,18 @@ class LightDriver(object):
 
         # Run the simulation
         start_time = time.time()
-        for i in range(20):
+        running = True
+        while running:
+            # Check for messages
+            msg = self.pop_message()
+            if msg:
+                if msg == 'stop':
+                    print '    Stopping'
+                    return False
+                elif msg == 'restart':
+                    print '    Restarting'
+                    return True
+
             # Setup the current iteration
             current_time = time.time()
             elapsed_time = current_time - start_time
@@ -99,4 +157,5 @@ class LightDriver(object):
             #spidev.write(raw_data)
             #spidev.flush()
             time.sleep(1)
-            print len(raw_data)
+
+        return False
