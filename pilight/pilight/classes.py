@@ -1,3 +1,4 @@
+from django.conf import settings
 import struct
 import pickle
 import pika
@@ -10,7 +11,11 @@ class PikaConnection(object):
     def get_connection():
         if not PikaConnection.connection_obj:
             print "Spawning connection"
-            PikaConnection.connection_obj = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
+            PikaConnection.connection_obj = pika.BlockingConnection(
+                pika.ConnectionParameters(host=settings.PIKA_HOST_NAME)
+            )
+        if not PikaConnection.connection_obj.is_open:
+            PikaConnection.connection_obj.connect()
         return PikaConnection.connection_obj
 
 

@@ -16,11 +16,13 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         # Setup the output device
-        #spidev = file(settings.LIGHTS_DEV_NAME, 'wb')
+        spidev = None
+        if not settings.LIGHTS_NOOP:
+            spidev = file(settings.LIGHTS_DEV_NAME, 'wb')
 
         driver = LightDriver()
         try:
-            driver.wait(spidev=None)
+            driver.wait(spidev)
         except KeyboardInterrupt:
             # The user has interrupted execution - close our resources
             print '* Cleaning up...'
@@ -81,10 +83,14 @@ class LightDriver(object):
                     # Note that run_lights can return true to request that it be restarted
                     restart = self.run_lights(spidev)
 
+                # Clear the lights to black since we're no longer running
+                self.clear_lights(spidev)
+
     def clear_lights(self, spidev):
         raw_data = [0x00 for x in range(settings.LIGHTS_NUM_LEDS * 3)]
-        #spidev.write(raw_data)
-        #spidev.flush()
+        if not settings.LIGHTS_NOOP:
+            spidev.write(raw_data)
+            spidev.flush()
 
     def run_lights(self, spidev):
         """
@@ -154,8 +160,9 @@ class LightDriver(object):
                 raw_data[i*3:] = light.to_raw()
 
             # Write the data
-            #spidev.write(raw_data)
-            #spidev.flush()
+            if not settings.LIGHTS_NOOP:
+                spidev.write(raw_data)
+                spidev.flush()
             time.sleep(1)
 
         return False

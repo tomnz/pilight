@@ -1,6 +1,12 @@
 ############
 # App config
 
+# THIS MUST BE SET TO FALSE BEFORE LIGHTS WILL ACTUALLY WORK!
+# If this parameter is true, then the light driver will not attempt
+# to actually write any color data to the LEDs. This is primarily
+# used for testing/debugging purposes!
+LIGHTS_NOOP = True
+
 # Installation name
 # Can be anything you like - shown on the web UI
 LIGHTS_INSTALLATION_NAME = "PiLight Alpha"
@@ -11,14 +17,16 @@ LIGHTS_NUM_LEDS = 25
 # Microcontroller type used on the LED string
 # Known values:
 #  - 'ws2801'
+# (Currently not used - placeholder for future extension)
 LIGHTS_MICROCONTROLLER = 'ws2801'
 
-# Device name for the SPI output
+# Device name for the SPI output in your Occidentals installation
 LIGHTS_DEV_NAME = '/dev/spidev0.0'
 
 
-###################
-# RabbitMQ setup
+############
+# Pika setup
+PIKA_HOST_NAME = 'localhost'
 
 
 ######################
