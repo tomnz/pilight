@@ -10,6 +10,8 @@ urlpatterns = patterns(
     url(r'^/?$', 'index', name='index'),
     url(r'^start/?$', 'start', name='start'),
     url(r'^stop/?$', 'stop', name='stop'),
+    url(r'^lights/render/?$', 'render_lights_snippet', name='render_lights'),
+    url(r'^lights/apply_tool/?$', 'apply_light_tool', name='apply_light_tool'),
 )
 
 # Admin

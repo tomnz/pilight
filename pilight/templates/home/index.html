@@ -1,24 +1,165 @@
-{% include 'base.html' %}
+{% extends 'base.html' %}
+{% load pilight_extras %}
+{% load static from staticfiles %}
 
 {% block head %}
-    <title>PiLight Alpha</title>
+    <link href="{% static "css/slider.css" %}" rel="stylesheet" type="text/css" />
+    <link href="{% static "css/colorpicker.css" %}" rel="stylesheet" type="text/css" />
 {% endblock %}
 
 {% block body %}
-    <h1>PiLight Alpha</h1>
-    <p><a href="#" id="start-link">Start</a></p>
-    <p><a href="#" id="stop-link">Stop</a></p>
+    <div class="row pad-bottom">
+        <div class="col-md-12">
+            <h1>{{ INSTALLATION_NAME }}</h1>
+        </div>
+    </div>
+    <section id="current-lights">
+        <div class="row pad-bottom">
+            <div class="col-md-10">
+                <div class="row pad-bottom">
+                    <div class="col-md-10">
+                        <div class="btn-group" data-toggle="buttons">
+                            <label class="btn btn-default">
+                                <input type="radio" name="tool" id="tool-solid" value="solid"> Solid
+                            </label>
+                            <label class="btn btn-default">
+                                <input type="radio" name="tool" id="tool-smooth" value="smooth"> Smooth
+                            </label>
+                        </div>
+                        &nbsp;&nbsp;
+                        <label>
+                            Radius
+                            <input type="text" id="slider-radius" name="slider-radius" class="form-control slider-control" value="2" data-slider-min="0" data-slider-max="30" data-slider-step="1" data-slider-value="2">
+                        </label>
+                        &nbsp;&nbsp;
+                        <label>
+                            Opacity
+                            <input type="text" id="slider-opacity" name="slider-opacity" class="form-control slider-control" value="100" data-slider-min="1" data-slider-max="100" data-slider-step="1" data-slider-value="100">
+                        </label>
+                    </div>
+                    <div class="col-md-2">
+                        <input type="text" class="form-control" value="#FF0000" readonly id="color-control" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12" id="current-lights-content">
+                    {% include "home/snippets/lights.html" %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <a class="btn btn-sm btn-primary" href="#" id="refresh-lights">Refresh</a>
+            </div>
+        </div>
+    </section>
+    <section id="available-transforms">
+        <div class="row pad-bottom">
+            <div class="col-md-10">
+                <table class="table table-hover table-condensed table-bordered">
+                    <tr>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th></th>
+                    </tr>
+                    {% for transform in transforms %}
+                        <tr>
+                            <td>{{ transform.long_name }}</td>
+                            <td>{{ transform.description }}</td>
+                            <td><button class="btn btn-xs btn-primary">Add</button></td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+    </section>
+    <section id="current-transforms">
+        <div class="row pad-bottom">
+            <div class="col-md-10" id="current-transforms-content">
+                {% include "home/snippets/transforms.html" %}
+            </div>
+            <div class="col-md-2">
+
+            </div>
+        </div>
+    </section>
 {% endblock %}
 
 {% block js %}
-    <script>
+    <script src="{% static "js/bootstrap-slider.js" %}"></script>
+    <script src="{% static "js/bootstrap-colorpicker.js" %}"></script>
+    <script type="text/javascript">
+        function refreshLights() {
+            $.post("{% url 'home.views.render_lights_snippet' %}", null, function(data) {
+                $("div#current-lights-content").html(data);
+                bindLights();
+            }, "html");
+        }
+
+        function bindLights() {
+            $('button.btn-light').click(function(){
+                // Run the selected tool on the clicked light
+                var tool = $("input:radio[name=tool]:checked").val();
+                if (!tool) {
+                    // We don't actually have a tool
+                    return;
+                }
+                var index = parseInt(this.id.substr(6));
+                if (isNaN(index)) {
+                    // Invalid index
+                    return;
+                }
+                var radius = parseInt($('input#slider-radius').val());
+                var opacity = parseInt($('input#slider-opacity').val());
+                if (isNaN(radius) || isNaN(opacity)) {
+                    // Invalid tool params
+                    return;
+                }
+                var color = $('input#color-control').val();
+
+                var post_data = {index:index, radius:radius, opacity:opacity, tool:tool, color:color};
+                $.post("{% url 'home.views.apply_light_tool' %}", post_data, function(data) {
+                    if (data.success) {
+                        // Success - refresh lights
+                        refreshLights();
+                    }
+                }, "json");
+            });
+        }
+
+        // using jQuery
+        function getCookie(name) {
+            var cookieValue = null;
+            if (document.cookie && document.cookie != '') {
+                var cookies = document.cookie.split(';');
+                for (var i = 0; i < cookies.length; i++) {
+                    var cookie = jQuery.trim(cookies[i]);
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        var csrftoken = getCookie('csrftoken');
+        function csrfSafeMethod(method) {
+            // these HTTP methods do not require CSRF protection
+            return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+        }
+        $.ajaxSetup({
+            crossDomain: false, // obviates need for sameOrigin test
+            beforeSend: function(xhr, settings) {
+                if (!csrfSafeMethod(settings.type)) {
+                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                }
+            }
+        });
+
         $(document).ready(function() {
-            $("a#start-link").click(function() {
-                $.get("/start");
-            });
-            $("a#stop-link").click(function() {
-                $.get("/stop")
-            });
+            $('input.slider-control').slider();
+            $('input#color-control').colorpicker();
+            bindLights();
         });
     </script>
 {% endblock %}

@@ -24,7 +24,7 @@ class TransformBase(object):
 class FlashTransform(TransformBase):
 
     def __init__(self, params):
-        super(FlashTransform, self).__init__()
+        super(FlashTransform, self).__init__(params)
 
         param_vals = json.loads(params)
         self.rate = float(param_vals['rate'])
@@ -64,11 +64,11 @@ class FlashTransform(TransformBase):
 class ScrollTransform(TransformBase):
 
     def __init__(self, params):
-        super(ScrollTransform, self).__init__()
+        super(ScrollTransform, self).__init__(params)
 
         param_vals = json.loads(params)
         self.rate = float(param_vals['rate'])
-        self.reverse = float(param_vals['reverse'])
+        self.reverse = bool(param_vals['reverse'])
 
     def transform(self, time, position, num_positions, start_color, all_colors):
         # Transform time/rate into a percentage
@@ -78,18 +78,19 @@ class ScrollTransform(TransformBase):
         # Calculate offset to source from
         offset = progress * num_positions
         source_position = (int(offset) + position) % num_positions
+        next_position = (source_position + 1) % num_positions
         percent = offset % 1
 
         # Compute the blended color
         if percent == 0:
             return all_colors[source_position].clone()
         else:
-            return all_colors[source_position].scale(percent) + all_colors[source_position + 1].scale(1 - percent)
+            return all_colors[source_position].scale(percent) + all_colors[next_position].scale(1 - percent)
 
     def serialize_params(self):
         params = dict()
         params['rate'] = self.rate
-        params['reverse'] = self.reverse
+        params['reverse'] = str(self.reverse)
         return json.dumps(params)
 
 

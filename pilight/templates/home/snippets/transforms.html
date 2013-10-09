@@ -1,0 +1,12 @@
+<table class="table table-hover table-condensed table-bordered">
+    <tr>
+        <th>Name</th>
+        <th>Params</th>
+    </tr>
+    {% for transform in current_transforms %}
+        <tr>
+            <td>{{ transform.transform.long_name }}</td>
+            <td>{{ transform.params }}</td>
+        </tr>
+    {% endfor %}
+</table>
