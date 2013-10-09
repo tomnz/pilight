@@ -1,5 +1,17 @@
 PiLight
 
+MESSAGE QUEUE:
+
+Ditch Celery?!?
+Instead run the task file as a standalone thing
+Take messages for start, stop, and refresh
+
+
+DUMPING INITIAL DATA:
+
+python manage.py dumpdata home --exclude home.Light --exclude home.TransformInstance --index 4 > fixtures\initial_data.json
+
+
 IDEAS:
 
 - Have a basic color setting, for setting each individual LED

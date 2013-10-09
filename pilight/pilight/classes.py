@@ -95,7 +95,7 @@ class Color(object):
 
     def to_raw(self):
         return (
-            struct.pack('B', self.safe_r() * (2 ** 8)),
-            struct.pack('B', self.safe_g() * (2 ** 8)),
-            struct.pack('B', self.safe_b() * (2 ** 8)),
+            struct.pack('B', int(self.safe_r() * (2 ** 8))),
+            struct.pack('B', int(self.safe_g() * (2 ** 8))),
+            struct.pack('B', int(self.safe_b() * (2 ** 8))),
         )
