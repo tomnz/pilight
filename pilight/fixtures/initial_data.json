@@ -45,6 +45,15 @@
     }
 },
 {
+    "pk": 6, 
+    "model": "home.transform", 
+    "fields": {
+        "long_name": "Brightness", 
+        "name": "brightness", 
+        "description": "Scales the brightness of each light. Use a number greater than one to increase brightness, or a fraction to decrease."
+    }
+},
+{
     "pk": 1, 
     "model": "home.transformfield", 
     "fields": {
@@ -198,6 +207,18 @@
         "transform": 5, 
         "long_name": "Standard Deviation", 
         "name": "standarddev"
+    }
+},
+{
+    "pk": 14, 
+    "model": "home.transformfield", 
+    "fields": {
+        "default_value": "1.0", 
+        "field_type": "float", 
+        "description": "", 
+        "transform": 6, 
+        "long_name": "Brightness", 
+        "name": "brightness"
     }
 }
 ]

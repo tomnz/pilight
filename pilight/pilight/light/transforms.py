@@ -145,10 +145,17 @@ class GaussianBlurTransform(TransformBase):
         return result
 
 
+class BrightnessTransform(TransformBase):
+
+    def transform(self, time, position, num_positions, start_color, all_colors):
+        return start_color * self.params['brightness']
+
+
 AVAILABLE_TRANSFORMS = {
     'flash': FlashTransform,
     'scroll': ScrollTransform,
     'colorflash': ColorFlashTransform,
     'rotatehue': RotateHueTransform,
     'gaussian': GaussianBlurTransform,
+    'brightness': BrightnessTransform,
 }
