@@ -60,6 +60,7 @@ class Command(BaseCommand):
                     # Ugly catch-all...
                     print 'Exception opening SPI device!'
                     traceback.print_exc(file=sys.stdout)
+                    return
 
             driver = LightDriver()
             try:
@@ -76,7 +77,7 @@ class Command(BaseCommand):
                 traceback.print_exc(file=sys.stdout)
             finally:
                 # Clean up resources
-                if not settings.LIGHTS_NOOP:
+                if not settings.LIGHTS_NOOP and spidev:
                     spidev.close()
 
                 # Only release lock if it was ours to begin with (i.e. don't release if
