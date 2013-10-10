@@ -16,7 +16,7 @@ Install all prerequisites first:
 
 Download the source to a desired location:
 
-    hg pull https://bitbucket.org/tomnz/pilight
+    hg clone https://bitbucket.org/tomnz/pilight
 
 Install the Python dependencies:
 

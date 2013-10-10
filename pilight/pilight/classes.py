@@ -5,6 +5,11 @@ import pika
 
 
 class PikaConnection(object):
+    """
+    Encapsulates a Pika connection, ensuring we resuse the connection
+    as much as possible
+    """
+
     connection_obj = None
 
     @staticmethod
@@ -23,6 +28,14 @@ def dec2hex(d):
 
 
 class Color(object):
+    """
+    Helper class that stores an RGB color and provides many utility
+    methods. This is the class that gets stored in the database to
+    represent a light's color.
+    Each color value (r, g, b) is a floating point value between 0
+    and 1 - however, values can be greater than 1 or less than 0 in
+    order to support HDR operations. This can be very powerful.
+    """
 
     # Constructor
     def __init__(self, r, g, b):

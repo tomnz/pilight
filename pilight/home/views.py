@@ -197,7 +197,7 @@ def add_transform(request):
             if len(transform) == 1:
                 transform_instance = TransformInstance()
                 transform_instance.transform = transform[0]
-                transform_instance.params = ''
+                transform_instance.params = json.dumps(transform[0].default_params)
                 transform_instance.order = 0
                 transform_instance.save()
                 result = True
