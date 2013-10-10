@@ -9,7 +9,7 @@ LIGHTS_NOOP = True
 
 # Installation name
 # Can be anything you like - shown on the web UI
-LIGHTS_INSTALLATION_NAME = "PiLight Alpha"
+LIGHTS_INSTALLATION_NAME = "PiLight"
 
 # Number of LEDs in the string
 LIGHTS_NUM_LEDS = 50
@@ -22,6 +22,10 @@ LIGHTS_MICROCONTROLLER = 'ws2801'
 
 # Device name for the SPI output in your Occidentals installation
 LIGHTS_DEV_NAME = '/dev/spidev0.0'
+
+# Time between message polls that the driver should use
+# Recommend leaving this greater than 1.0
+LIGHTS_MESSAGE_CHECK_INTERVAL = 2.0
 
 
 ############
