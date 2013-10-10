@@ -7,6 +7,9 @@ from pilight.classes import PikaConnection
 
 class LightDriver(object):
 
+    def __init__(self):
+        self.start_time = None
+
     def pop_message(self):
         """
         Grabs the latest message from Pika, if one is waiting
@@ -64,6 +67,9 @@ class LightDriver(object):
                 # Clear the lights to black since we're no longer running
                 self.clear_lights(spidev)
 
+                # Reset start_time so that we start over on the next run
+                self.start_time = None
+
     def clear_lights(self, spidev):
         if not settings.LIGHTS_NOOP:
             raw_data = bytearray(settings.LIGHTS_NUM_LEDS * 3)
@@ -88,7 +94,9 @@ class LightDriver(object):
             return False
 
         # Run the simulation
-        start_time = time.time()
+        if not self.start_time:
+            self.start_time = time.time()
+
         running = True
         while running:
             # Check for messages
@@ -103,7 +111,7 @@ class LightDriver(object):
 
             # Setup the current iteration
             current_time = time.time()
-            elapsed_time = current_time - start_time
+            elapsed_time = current_time - self.start_time
 
             # Note that we always start from the same base lights on each iteration
             # The previous iteration has no effect on the current iteration
