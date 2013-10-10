@@ -59,13 +59,29 @@ That's it! You should now be able to access the interface to control the lights 
 Guide
 -----
 
+### Introduction
+
 PiLight is designed around a simple "Colors" + "Transformations" system. You specify both parts in the configuration interface.
 
 * Colors define the "initial" or "base" states for each individual LED. Using the PiLight interface, you can "paint" colors onto the LEDs. Specify a tool (solid/smooth), tool radius and opacity, and a color. Then, click individual lights to start painting. The lights will refresh after each click.
 * Transformations get applied in real time when the light driver is running. They modify the base colors based on a variety of input parameters, and usually a "time" component. Typically they will produce an animation effect, such as flashing or scrolling. Transformations can be added to a "active" stack. Each transformation is applied in sequence, for each "frame" that gets sent to the LEDs. Multiple transformations of the same type can be stacked; for example, to have a slow flash, with faster small fluctuations.
 
-Changes in the configuration interface are instantly sent to the light driver if it's running. You can also use the buttons at the top right to control the driver:
+> Note: Currently parameters for transforms are not editable via nice controls. However, when adding a transform, sensible defaults will be applied, and you can edit the parameter string by hand. This should be fairly self-explanatory.
+
+You can view a 10-second preview of what the lights will look like after animations are applied (animated in-browser) by hitting the Preview button.
+
+### Running the light driver
+
+Changes in the configuration interface are instantly sent to the light driver if it's currently active. You can also use the buttons at the top right to control the driver:
 
 * Refresh will force the light driver to reload its configuration (if it's running), as well as refresh the configuration page for any changes
-* Start will start the light driver
-* Stop will stop the light driver
+* Start will start the light driver so that it powers the lights and runs transforms
+* Stop will stop the light driver and power off the lights - then await a new Start command
+
+> Note: These buttons all have no effect if the driver is not started. Remember to start it with `python manage.py lightdriver`.
+
+### Loading and saving
+
+You can save the current configuration by typing a name in the text box at top right, and hitting Save. You can also load past configurations with the Load button.
+
+> Note: If you load a configuration, changes you make are NOT automatically saved back to that configuration. Make sure you hit Save again when you're done. This will overwrite previous settings, if a configuration already exists with the same name.

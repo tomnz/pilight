@@ -12,12 +12,31 @@
         <div class="col-md-8">
             <h1>{{ INSTALLATION_NAME }}</h1>
         </div>
-        <div class="col-md-4" id="header-buttons">
-            <div class="btn-group">
-                <button class="btn btn-primary" id="btn-refresh">Refresh</button>
-                <button class="btn btn-success" id="btn-start">Start</button>
-                <button class="btn btn-danger" id="btn-stop">Stop</button>
-                <button class="btn btn-info" id="btn-simulate">Preview</button>
+        <div class="col-md-4">
+            <div class="row">
+                <div class="col-md-12 header-buttons">
+                    <div class="btn-group">
+                        <button class="btn btn-success" id="btn-start">Start</button>
+                        <button class="btn btn-danger" id="btn-stop">Stop</button>
+                        <button class="btn btn-primary" id="btn-refresh">Refresh</button>
+                    </div>
+                    &nbsp;
+                    <button class="btn btn-info" id="btn-simulate">Preview</button>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12 header-buttons" style="width: 302px">
+                    <div class="input-group">
+                        <input class="form-control input-sm" type="text" id="store-name" placeholder="Save as..." />
+                        <div class="input-group-btn btn-group-sm">
+                            <button class="btn btn-success" id="btn-save">Save</button>
+                            <button class="btn btn-primary dropdown-toggle" data-toggle="dropdown" id="btn-load">Load <span class="caret"></span></button>
+                            <ul class="dropdown-menu" role="menu" id="store-list-content">
+                                {% include 'home/snippets/stores-list.html' %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -31,7 +50,7 @@
         <div class="row pad-bottom">
             <div class="col-md-12">
                 <div class="row pad-bottom">
-                    <div class="col-md-12">
+                    <div class="col-md-8">
                         <div class="btn-group" data-toggle="buttons">
                             <label class="btn btn-default">
                                 <input type="radio" name="tool" id="tool-solid" value="solid"> Solid
@@ -50,12 +69,11 @@
                             Opacity
                             <input type="text" id="slider-opacity" name="slider-opacity" class="form-control slider-control" value="100" data-slider-min="1" data-slider-max="100" data-slider-step="1" data-slider-value="100">
                         </label>
-                        &nbsp;&nbsp;
-                        <div style="width: 100px; display: inline">
-                            <label>
-                                Color
-                                <input type="text" class="form-control" value="{{ tool_color }}" readonly id="color-control" />
-                            </label>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="input-group colorpicker-component" id="color-control" data-color="{{ tool_color }}" style="width: 130px;">
+                            <input type="text" class="form-control" value="{{ tool_color }}" readonly id="color-value" />
+                            <span class="input-group-addon"><i style="background-color: {{ tool_color }}"></i></span>
                         </div>
                     </div>
                 </div>
@@ -137,6 +155,13 @@
             }, "html");
         }
 
+        function refreshStores() {
+            $.post("{% url 'home.views.render_stores_snippet' %}", null, function(data) {
+                $("ul#store-list-content").html(data);
+                bindStores();
+            }, "html");
+        }
+
         function restartDriver() {
             $.post("{% url 'home.views.restart_driver' %}");
         }
@@ -160,7 +185,7 @@
                     // Invalid tool params
                     return;
                 }
-                var color = $('input#color-control').val();
+                var color = $('input#color-value').val();
 
                 var post_data = {index:index, radius:radius, opacity:opacity, tool:tool, color:color};
                 $.post("{% url 'home.views.apply_light_tool' %}", post_data, function(data) {
@@ -199,6 +224,31 @@
                 $.post("{% url 'home.views.delete_transform' %}", post_data, function(data) {
                     if (data.success) {
                         refreshTransforms();
+                    }
+                }, "json");
+            });
+        }
+
+        function bindStores() {
+            $('a.store-load').click(function() {
+                // Load the given store
+                var index = parseInt(this.id.substr(11));
+                if (isNaN(index)) {
+                    return;
+                }
+
+                var store_name = $(this).html();
+
+                // Disable the load button temporarily
+                $('button#btn-load').prop('disabled', true);
+
+                var post_data = {store_id:index};
+                $.post("{% url 'home.views.load_store' %}", post_data, function(data) {
+                    if (data.success) {
+                        $('input#store-name').val(store_name);
+                        refreshLights();
+                        refreshTransforms();
+                        $('button#btn-load').prop('disabled', false);
                     }
                 }, "json");
             });
@@ -307,8 +357,25 @@
                     }
                 }, "json");
             });
+            $('button#btn-save').click(function() {
+                var store_name = $('input#store-name').val();
+                if (!store_name || store_name.length === 0) {
+                    return;
+                }
+                // Disable the button while we save
+                $('button#btn-save').prop('disabled', true);
+
+                var post_data = {store_name:store_name};
+                $.post("{% url 'home.views.save_store' %}", post_data, function(data) {
+                    if (data.success) {
+                        refreshStores();
+                        $('button#btn-save').prop('disabled', false);
+                    }
+                }, "json");
+            });
             bindLights();
             bindTransforms();
+            bindStores();
         });
     </script>
 {% endblock %}

@@ -18,6 +18,9 @@ urlpatterns = patterns(
     url(r'^transform/add/?$', 'add_transform', name='add_transform'),
     url(r'^transform/delete/?$', 'delete_transform', name='delete_transform'),
     url(r'^transform/updateparams/?$', 'update_transform_params', name='update_transform_params'),
+    url(r'^store/load/?$', 'load_store', name='load_store'),
+    url(r'^store/render_snippet/?$', 'render_stores_snippet', name='render_stores_snippet'),
+    url(r'^store/save/?$', 'save_store', name='save_store'),
 )
 
 # Admin
