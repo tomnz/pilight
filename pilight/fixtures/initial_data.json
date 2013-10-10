@@ -36,6 +36,15 @@
     }
 },
 {
+    "pk": 5, 
+    "model": "home.transform", 
+    "fields": {
+        "long_name": "Gaussian Blur", 
+        "name": "gaussian", 
+        "description": "Applies a gaussian blur across the entire set of lights, with the given standard deviation."
+    }
+},
+{
     "pk": 1, 
     "model": "home.transformfield", 
     "fields": {
@@ -177,6 +186,18 @@
         "transform": 4, 
         "long_name": "Length", 
         "name": "length"
+    }
+},
+{
+    "pk": 13, 
+    "model": "home.transformfield", 
+    "fields": {
+        "default_value": "1.0", 
+        "field_type": "float", 
+        "description": "Standard deviation to be applied in the Gaussian blur computation", 
+        "transform": 5, 
+        "long_name": "Standard Deviation", 
+        "name": "standarddev"
     }
 }
 ]

@@ -110,9 +110,45 @@ class RotateHueTransform(TransformBase):
         return Color.from_hsv(h, s, v)
 
 
+class GaussianBlurTransform(TransformBase):
+
+    def gaussian(self, x, sd):
+        sd = float(sd)
+        x = float(x)
+        return (1 / (math.sqrt(2 * math.pi) * sd)) * math.exp(-1 * x * x / (2 * sd * sd))
+
+    def transform(self, time, position, num_positions, start_color, all_colors):
+        # Algorithm here:
+        # http://homepages.inf.ed.ac.uk/rbf/HIPR2/gsmooth.htm (1-D case)
+        sd = self.params['standarddev']
+
+        radius = int(sd * 3)
+        min_position = position - radius
+        max_position = position + radius
+
+        # Because the Gaussian distribution is asymptotic, if we use the
+        # raw values then the integral will be <1 - thus we want to
+        # grab the total and scale by the inverse of that amount
+        gaussians = {}
+        total = 0
+        for i in range(-radius, radius):
+            gaussians[i] = self.gaussian(i, sd)
+            total += gaussians[i]
+
+        # Build the new color
+        result = Color(0, 0, 0)
+
+        for i in range(min_position, max_position):
+            current_position = i % num_positions
+            result += all_colors[current_position] * (gaussians[i - position] / total)
+
+        return result
+
+
 AVAILABLE_TRANSFORMS = {
     'flash': FlashTransform,
     'scroll': ScrollTransform,
     'colorflash': ColorFlashTransform,
     'rotatehue': RotateHueTransform,
+    'gaussian': GaussianBlurTransform,
 }

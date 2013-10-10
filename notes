@@ -9,7 +9,7 @@ Take messages for start, stop, and refresh
 
 DUMPING INITIAL DATA:
 
-python manage.py dumpdata --exclude home.Light --exclude home.TransformInstance --indent 4 home > fixtures\initial_data.json
+python manage.py dumpdata --exclude home.Light --exclude home.TransformInstance --exclude home.Store --indent 4 home > fixtures\initial_data.json
 
 
 IDEAS:
