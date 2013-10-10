@@ -65,6 +65,28 @@ class Transform(models.Model):
     def __unicode__(self):
         return self.long_name
 
+    @property
+    def default_params(self):
+        """
+        Builds a parameter string based on the fields assigned
+        to this transform type, and their defaults
+        """
+
+        params = {}
+
+        for transformfield in self.transformfield_set.all():
+            if transformfield.field_type == 'boolean':
+                default_value = bool(transformfield.default_value)
+            elif transformfield.field_type == 'long':
+                default_value = long(transformfield.default_value)
+            elif transformfield.field_type in ('float', 'percentage'):
+                default_value = float(transformfield.default_value)
+            else:
+                default_value = transformfield.default_value
+            params[transformfield.name] = default_value
+
+        return params
+
 
 # Stores information about a given transform instance
 class TransformInstanceManager(models.Manager):
