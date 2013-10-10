@@ -32,7 +32,7 @@ class ColorFlashTransform(TransformBase):
 
         # Optional: Transform here to a sine wave
         if self.params['sine']:
-            progress = math.cos(progress * 2 * math.pi)
+            progress = -1 * math.cos(progress * 2 * math.pi)
         else:
             # Otherwise transform to straight -1, 1, -1 sawtooth
             progress = 1 - (2 * abs(progress * 2 - 1))
@@ -59,7 +59,7 @@ class FlashTransform(TransformBase):
 
         # Optional: Transform here to a sine wave
         if self.params['sine']:
-            progress = math.cos(progress * 2 * math.pi)
+            progress = -1 * math.cos(progress * 2 * math.pi)
         else:
             # Otherwise transform to straight -1, 1, -1 sawtooth
             progress = 1 - (2 * abs(progress * 2 - 1))
@@ -90,7 +90,7 @@ class ScrollTransform(TransformBase):
         if percent == 0 or not self.params['blend']:
             return all_colors[source_position].clone()
         else:
-            return all_colors[source_position].scale(percent) + all_colors[next_position].scale(1 - percent)
+            return all_colors[source_position] * (1 - percent) + all_colors[next_position] * percent
 
 
 class RotateHueTransform(TransformBase):

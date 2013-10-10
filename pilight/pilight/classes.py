@@ -127,7 +127,7 @@ class Color(object):
         return max(min(self.b, 1), 0)
 
     def as_safe(self):
-        return Color(self.safe_r(), self.safe_b(), self.safe_g())
+        return Color(self.safe_r(), self.safe_g(), self.safe_b())
 
     def to_hex(self):
         return dec2hex(self.safe_r()*255) + dec2hex(self.safe_g()*255) + dec2hex(self.safe_b()*255)
