@@ -66,6 +66,7 @@ class Command(BaseCommand):
 
             driver = LightDriver()
             try:
+                # Run the actual driver loop
                 driver.wait(spidev)
             except KeyboardInterrupt:
                 # The user has interrupted execution - close our resources
@@ -177,7 +178,7 @@ class LightDriver(object):
         current_transforms = []
 
         for transform_item in transform_items:
-            transform_obj = AVAILABLE_TRANSFORMS[transform_item.transform.name](transform_item.params)
+            transform_obj = AVAILABLE_TRANSFORMS[transform_item.transform.name](transform_item)
 
             current_transforms.append(transform_obj)
 

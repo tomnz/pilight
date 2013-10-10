@@ -2,6 +2,7 @@ from django.db import models
 from django.conf import settings
 from pilight.classes import Color
 from pilight.fields import ColorField
+import json
 
 
 # Stores metadata information about saved configurations
@@ -75,14 +76,7 @@ class Transform(models.Model):
         params = {}
 
         for transformfield in self.transformfield_set.all():
-            if transformfield.field_type == 'boolean':
-                default_value = bool(transformfield.default_value)
-            elif transformfield.field_type == 'long':
-                default_value = long(transformfield.default_value)
-            elif transformfield.field_type in ('float', 'percentage'):
-                default_value = float(transformfield.default_value)
-            else:
-                default_value = transformfield.default_value
+            default_value = transformfield.format_value(transformfield.default_value)
             params[transformfield.name] = default_value
 
         return params
@@ -108,6 +102,29 @@ class TransformInstance(models.Model):
     def __unicode__(self):
         return self.transform.long_name
 
+    @property
+    def decoded_params(self):
+        """
+        Decodes the params field and returns an object
+        containing
+        """
+
+        decoded_params = {}
+
+        try:
+            params = json.loads(self.params)
+        except ValueError:
+            params = {}
+
+        for transformfield in self.transform.transformfield_set.all():
+            field_name = transformfield.name
+            if field_name in params.keys():
+                decoded_params[field_name] = transformfield.format_value(params[field_name])
+            else:
+                decoded_params[field_name] = transformfield.format_value(transformfield.default_value)
+
+        return decoded_params
+
 
 FIELD_TYPE_CHOICES = (
     ('boolean', 'True/False'),
@@ -129,3 +146,16 @@ class TransformField(models.Model):
 
     def __unicode__(self):
         return u'%s - %s' % (self.transform.long_name, self.long_name)
+
+    def format_value(self, value):
+        if self.field_type == 'boolean':
+            if str(value).lower() == 'false':
+                return False
+            else:
+                return bool(value)
+        elif self.field_type == 'long':
+            return long(value)
+        elif self.field_type in ('float', 'percentage'):
+            return float(value)
+        else:
+            return value

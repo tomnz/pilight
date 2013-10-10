@@ -126,6 +126,9 @@ class Color(object):
     def safe_b(self):
         return max(min(self.b, 1), 0)
 
+    def as_safe(self):
+        return Color(self.safe_r(), self.safe_b(), self.safe_g())
+
     def to_hex(self):
         return dec2hex(self.safe_r()*255) + dec2hex(self.safe_g()*255) + dec2hex(self.safe_b()*255)
 
@@ -138,3 +141,61 @@ class Color(object):
             struct.pack('B', int(self.safe_g() * (2 ** 8 - 1))),
             struct.pack('B', int(self.safe_b() * (2 ** 8 - 1))),
         )
+
+    # Conversion
+    def to_hsv(self):
+        # Algorithm from:
+        # http://www.cs.rit.edu/~ncs/color/t_convert.html
+        safe_color = self.as_safe()
+        min_val = min(safe_color.r, safe_color.g, safe_color.b)
+        max_val = max(safe_color.r, safe_color.g, safe_color.b)
+        v = max_val
+
+        delta = max_val - min_val
+
+        if max_val != 0:
+            s = delta / max_val
+        else:
+            s = 0
+            h = -1
+            return h, s, v
+
+        if safe_color.r == max_val:
+            h = (safe_color.g - safe_color.b) / delta
+        elif safe_color.g == max_val:
+            h = 2 + (safe_color.b - safe_color.r) / delta
+        else:
+            h = 4 + (safe_color.r - safe_color.g) / delta
+
+        h *= 60
+        if h < 0:
+            h += 360
+
+        return h, s, v
+
+    @classmethod
+    def from_hsv(cls, h, s, v):
+        # Algorithm from:
+        # http://www.cs.rit.edu/~ncs/color/t_convert.html
+        if s == 0:
+            return Color(v, v, v)
+
+        h /= 60
+        i = int(h)
+        f = h - i
+        p = v * (1 - s)
+        q = v * (1 - s * f)
+        t = v * (1 - s * (1 - f))
+
+        if i == 0:
+            return Color(v, t, p)
+        elif i == 1:
+            return Color(q, v, p)
+        elif i == 2:
+            return Color(p, v, t)
+        elif i == 3:
+            return Color(p, q, v)
+        elif i == 4:
+            return Color(t, p, v)
+        else:
+            return Color(v, p, q)

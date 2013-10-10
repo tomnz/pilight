@@ -43,7 +43,7 @@ Launch PiLight
 
 Once you've gone through all the installation steps, you're ready to run PiLight!
 
-First, ensure that RabbitMQ and your DBMS are running. Then, run the following commands in separate console windows (or use screen):
+First, ensure that RabbitMQ and your DBMS are running. Then, run the following commands in separate console windows (or use `screen`):
 
     python manage.py lightdriver
 

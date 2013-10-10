@@ -5,7 +5,7 @@
     "fields": {
         "long_name": "Flash", 
         "name": "flash", 
-        "description": "Flashes all lights between two brightness percentages, at the given rate. Can produce either a sine wave (smooth) effect, or triangle wave effect."
+        "description": "Flashes all lights between two brightness percentages, over the given time period. Can produce either a sine wave (smooth) effect, or triangle wave effect."
     }
 },
 {
@@ -14,19 +14,37 @@
     "fields": {
         "long_name": "Scroll", 
         "name": "scroll", 
-        "description": "Scrolls all the lights at the given rate. Can be reversed."
+        "description": "Scrolls all the lights over the given time period. Can be reversed."
+    }
+},
+{
+    "pk": 3, 
+    "model": "home.transform", 
+    "fields": {
+        "long_name": "Color Flash", 
+        "name": "colorflash", 
+        "description": "Alternates between two colors, over the given time period, blending into the base color. Can produce either a sine wave (smooth) effect, or triangle wave effect."
+    }
+},
+{
+    "pk": 4, 
+    "model": "home.transform", 
+    "fields": {
+        "long_name": "Rotate Hue", 
+        "name": "rotatehue", 
+        "description": "Rotates hue through the full set of colors over the given time period."
     }
 },
 {
     "pk": 1, 
     "model": "home.transformfield", 
     "fields": {
-        "default_value": "0.5", 
+        "default_value": "2", 
         "field_type": "float", 
-        "description": "How many times per second to flash", 
+        "description": "Time in seconds per cycle", 
         "transform": 1, 
-        "long_name": "Rate", 
-        "name": "rate"
+        "long_name": "Length", 
+        "name": "length"
     }
 },
 {
@@ -69,12 +87,12 @@
     "pk": 5, 
     "model": "home.transformfield", 
     "fields": {
-        "default_value": "0.1", 
+        "default_value": "10", 
         "field_type": "float", 
-        "description": "How many times per second to scroll the entire set of lights", 
+        "description": "Time in seconds per cycle", 
         "transform": 2, 
-        "long_name": "Rate", 
-        "name": "rate"
+        "long_name": "Length", 
+        "name": "length"
     }
 },
 {
@@ -87,6 +105,78 @@
         "transform": 2, 
         "long_name": "Reverse", 
         "name": "reverse"
+    }
+},
+{
+    "pk": 7, 
+    "model": "home.transformfield", 
+    "fields": {
+        "default_value": "True", 
+        "field_type": "boolean", 
+        "description": "Whether to smoothly blend the scroll effect", 
+        "transform": 2, 
+        "long_name": "Blend", 
+        "name": "blend"
+    }
+},
+{
+    "pk": 8, 
+    "model": "home.transformfield", 
+    "fields": {
+        "default_value": "2", 
+        "field_type": "float", 
+        "description": "Time in seconds per cycle", 
+        "transform": 3, 
+        "long_name": "Length", 
+        "name": "length"
+    }
+},
+{
+    "pk": 9, 
+    "model": "home.transformfield", 
+    "fields": {
+        "default_value": "True", 
+        "field_type": "boolean", 
+        "description": "Select this option for a smoother animation", 
+        "transform": 3, 
+        "long_name": "Sine Wave", 
+        "name": "sine"
+    }
+},
+{
+    "pk": 10, 
+    "model": "home.transformfield", 
+    "fields": {
+        "default_value": "#ffffff", 
+        "field_type": "color", 
+        "description": "Color to use for start of animation", 
+        "transform": 3, 
+        "long_name": "Start Color", 
+        "name": "start_color"
+    }
+},
+{
+    "pk": 11, 
+    "model": "home.transformfield", 
+    "fields": {
+        "default_value": "#aaaaaa", 
+        "field_type": "color", 
+        "description": "Color to use for end of animation", 
+        "transform": 3, 
+        "long_name": "End Color", 
+        "name": "end_color"
+    }
+},
+{
+    "pk": 12, 
+    "model": "home.transformfield", 
+    "fields": {
+        "default_value": "10", 
+        "field_type": "float", 
+        "description": "Time in seconds per cycle", 
+        "transform": 4, 
+        "long_name": "Length", 
+        "name": "length"
     }
 }
 ]
