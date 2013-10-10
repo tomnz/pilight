@@ -65,8 +65,10 @@ class LightDriver(object):
                 self.clear_lights(spidev)
 
     def clear_lights(self, spidev):
-        raw_data = [0x00 for x in range(settings.LIGHTS_NUM_LEDS * 3)]
         if not settings.LIGHTS_NOOP:
+            raw_data = bytearray(settings.LIGHTS_NUM_LEDS * 3)
+            for i in range(settings.LIGHTS_NUM_LEDS * 3):
+                raw_data[i] = 0x00
             spidev.write(raw_data)
             spidev.flush()
 
