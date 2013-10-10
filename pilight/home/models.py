@@ -43,9 +43,9 @@ class Light(models.Model):
 
     def __unicode__(self):
         if self.store:
-            return u'%s - %s - %s' % (self.store.name, unicode(self.index), self.color_hex())
+            return u'%s - %s - %s' % (self.store.name, unicode(self.index), self.color_hex)
         else:
-            return u'%s - %s' % (unicode(self.index), self.color_hex())
+            return u'%s - %s' % (unicode(self.index), self.color_hex)
 
     @property
     def color_hex(self):

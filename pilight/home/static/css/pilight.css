@@ -8,6 +8,6 @@ input.slider-control {
     margin-left: 20px;
     margin-right: 20px;
 }
-div#header-buttons {
-    padding-top: 20px;
+div.header-buttons {
+    padding-top: 15px;
 }

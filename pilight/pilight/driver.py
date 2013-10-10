@@ -2,6 +2,7 @@ from home.models import Light, TransformInstance
 import time
 from pilight.light.transforms import AVAILABLE_TRANSFORMS
 from django.conf import settings
+from pilight.classes import PikaConnection
 
 
 class LightDriver(object):
@@ -33,6 +34,9 @@ class LightDriver(object):
         connection = PikaConnection.get_connection()
         channel = connection.channel()
         channel.queue_declare('pilight_queue')
+
+        # Purge all existing events
+        channel.queue_purge('pilight_queue')
 
         while running:
             # First wait for a "start" or "restart" command
@@ -114,6 +118,8 @@ class LightDriver(object):
             if not settings.LIGHTS_NOOP:
                 spidev.write(raw_data)
                 spidev.flush()
+
+            # TODO: How do we limit the rate here?
             time.sleep(1)
 
         return False

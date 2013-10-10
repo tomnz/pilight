@@ -1,7 +1,7 @@
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.http import HttpResponse
-from models import Transform, Light, TransformInstance
+from models import Transform, Light, TransformInstance, Store
 from pilight.classes import Color, PikaConnection
 from pilight.driver import LightDriver
 import json
@@ -39,6 +39,7 @@ def index(request):
     current_lights = Light.objects.get_current()
     current_transforms = TransformInstance.objects.get_current()
     transforms = Transform.objects.all()
+    stores = Store.objects.all().order_by('name')
 
     # Find average light color to use as default for paintbrush
     tool_color = Color(0, 0, 0)
@@ -54,6 +55,7 @@ def index(request):
             'transforms': transforms,
             'current_transforms': current_transforms,
             'tool_color': tool_color.to_hex_web(),
+            'stores': stores,
         },
         context_instance=RequestContext(request)
     )
@@ -81,6 +83,103 @@ def render_transforms_snippet(request):
     )
 
 
+def render_stores_snippet(request):
+    stores = Store.objects.all().order_by('name')
+
+    return render_to_response(
+        'home/snippets/stores-list.html',
+        {'stores': stores},
+        context_instance=RequestContext(request)
+    )
+
+
+def save_store(request):
+
+    if request.method == 'POST':
+        if 'store_name' in request.POST:
+            # First see if the store already exists
+            store_name = (request.POST['store_name'])[0:29]
+            stores = Store.objects.filter(name=store_name)
+            if len(stores) >= 1:
+                store = stores[0]
+                # Remove existing lights/transforms
+                store.light_set.all().delete()
+                store.transforminstance_set.all().delete()
+            else:
+                # Create new store
+                store = Store()
+                store.name = store_name
+                store.save()
+
+            # Copy all of the current lights and transforms to the given store
+            current_lights = Light.objects.get_current()
+            current_transforms = TransformInstance.objects.get_current()
+
+            for light in current_lights:
+                # By setting primary key to none, we ensure a copy of
+                # the object is made
+                light.pk = None
+                # Set the store to None so that it's part of the "current"
+                # setup
+                light.store = store
+                light.save()
+
+            for transforminstance in current_transforms:
+                transforminstance.pk = None
+                transforminstance.store = store
+                transforminstance.save()
+
+            result = True
+        else:
+            result = False
+    else:
+        result = False
+
+    if result:
+        message_restart_driver()
+
+    return HttpResponse(json.dumps({'success': result}), content_type='application/json')
+
+
+def load_store(request):
+
+    if request.method == 'POST':
+        if 'store_id' in request.POST:
+            stores = Store.objects.filter(id=int(request.POST['store_id']))
+            if len(stores) == 1:
+                # Found the store - load its lights and transforms
+                # First clear out existing "current" items
+                Light.objects.get_current().delete()
+                TransformInstance.objects.get_current().delete()
+
+                for light in stores[0].light_set.all():
+                    # By setting primary key to none, we ensure a copy of
+                    # the object is made
+                    light.pk = None
+                    # Set the store to None so that it's part of the "current"
+                    # setup
+                    light.store = None
+                    light.save()
+
+                for transforminstance in stores[0].transforminstance_set.all():
+                    transforminstance.pk = None
+                    transforminstance.store = None
+                    transforminstance.save()
+
+                result = True
+            else:
+                result = False
+        else:
+            result = False
+    else:
+        result = False
+
+    if result:
+        message_restart_driver()
+
+    return HttpResponse(json.dumps({'success': result}), content_type='application/json')
+
+
 def run_simulation(request):
     # To do this, we call into the driver class to simulate running
     # the actual driver
@@ -98,8 +197,6 @@ def apply_light_tool(request):
     """
     Complex function that applies a "tool" across several lights
     """
-
-    result = False
 
     if request.method == 'POST':
         if 'tool' in request.POST and \
@@ -157,7 +254,6 @@ def apply_light_tool(request):
 
 
 def delete_transform(request):
-    result = False
 
     if request.method == 'POST':
         if 'transform_id' in request.POST:
@@ -179,7 +275,6 @@ def delete_transform(request):
 
 
 def update_transform_params(request):
-    result = False
 
     if request.method == 'POST':
         if 'transform_id' in request.POST and\
@@ -203,7 +298,6 @@ def update_transform_params(request):
 
 
 def add_transform(request):
-    result = False
 
     if request.method == 'POST':
         if 'transform_id' in request.POST:
