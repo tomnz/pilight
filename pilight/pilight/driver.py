@@ -96,22 +96,27 @@ class LightDriver(object):
         # Run the simulation
         if not self.start_time:
             self.start_time = time.time()
+        last_message_check = time.time()
 
         running = True
         while running:
-            # Check for messages
-            msg = self.pop_message()
-            if msg:
-                if msg == 'stop':
-                    print '    Stopping'
-                    return False
-                elif msg == 'restart':
-                    print '    Restarting'
-                    return True
-
             # Setup the current iteration
             current_time = time.time()
             elapsed_time = current_time - self.start_time
+
+            # Check for messages only once couple of seconds
+            # Slight optimization to stop rabbitmq being hammered
+            # on Raspberry Pi devices
+            if current_time - last_message_check > settings.LIGHTS_MESSAGE_CHECK_INTERVAL:
+                msg = self.pop_message()
+                last_message_check = current_time
+                if msg:
+                    if msg == 'stop':
+                        print '    Stopping'
+                        return False
+                    elif msg == 'restart':
+                        print '    Restarting'
+                        return True
 
             # Note that we always start from the same base lights on each iteration
             # The previous iteration has no effect on the current iteration
@@ -129,8 +134,9 @@ class LightDriver(object):
                 spidev.write(raw_data)
                 spidev.flush()
 
-            # TODO: How do we limit the rate here?
-            time.sleep(1)
+            # Rate limit if we're not running for real
+            if settings.LIGHTS_NOOP:
+                time.sleep(1)
 
         return False
 
