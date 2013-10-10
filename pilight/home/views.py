@@ -135,9 +135,6 @@ def save_store(request):
     else:
         result = False
 
-    if result:
-        message_restart_driver()
-
     return HttpResponse(json.dumps({'success': result}), content_type='application/json')
 
 
