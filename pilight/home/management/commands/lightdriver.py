@@ -78,6 +78,7 @@ class Command(BaseCommand):
             finally:
                 # Clean up resources
                 if not settings.LIGHTS_NOOP and spidev:
+                    driver.clear_lights(spidev)
                     spidev.close()
 
                 # Only release lock if it was ours to begin with (i.e. don't release if
