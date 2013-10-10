@@ -3,6 +3,7 @@ from django.template import RequestContext
 from django.http import HttpResponse
 from models import Transform, Light, TransformInstance
 from pilight.classes import Color, PikaConnection
+from pilight.driver import LightDriver
 import json
 from django.views.decorators.csrf import ensure_csrf_cookie
 
@@ -78,6 +79,19 @@ def render_transforms_snippet(request):
         {'current_transforms': current_transforms},
         context_instance=RequestContext(request)
     )
+
+
+def run_simulation(request):
+    # To do this, we call into the driver class to simulate running
+    # the actual driver
+    driver = LightDriver()
+    colors = driver.run_simulation(0.1, 100)
+    hex_colors = []
+
+    for color in colors:
+        hex_colors.append([x.to_hex_web() for x in color])
+
+    return HttpResponse(json.dumps(hex_colors), content_type='application/json')
 
 
 def apply_light_tool(request):

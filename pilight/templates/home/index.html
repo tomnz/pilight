@@ -9,14 +9,15 @@
 
 {% block body %}
     <div class="row">
-        <div class="col-md-9">
+        <div class="col-md-8">
             <h1>{{ INSTALLATION_NAME }}</h1>
         </div>
-        <div class="col-md-3" id="header-buttons">
+        <div class="col-md-4" id="header-buttons">
             <div class="btn-group">
                 <button class="btn btn-primary" id="btn-refresh">Refresh</button>
                 <button class="btn btn-success" id="btn-start">Start</button>
                 <button class="btn btn-danger" id="btn-stop">Stop</button>
+                <button class="btn btn-info" id="btn-simulate">Preview</button>
             </div>
         </div>
     </div>
@@ -115,6 +116,13 @@
     <script src="{% static "js/bootstrap-slider.js" %}"></script>
     <script src="{% static "js/bootstrap-colorpicker.min.js" %}"></script>
     <script type="text/javascript">
+        // Array Remove - By John Resig (MIT Licensed)
+        Array.prototype.remove = function(from, to) {
+            var rest = this.slice((to || from) + 1 || this.length);
+            this.length = from < 0 ? this.length + from : from;
+            return this.push.apply(this, rest);
+        };
+
         function refreshLights() {
             $.post("{% url 'home.views.render_lights_snippet' %}", null, function(data) {
                 $("div#current-lights-content").html(data);
@@ -196,6 +204,46 @@
             });
         }
 
+        var simData = null;
+
+        function startSimulation(data) {
+            if (data.length < 2) {
+                // Don't bother trying to run this animation
+                return;
+            }
+
+            // Disable all light buttons and refresh button
+            $('button.btn-light').unbind('click');
+            $('button#btn-simulate').prop('disabled', true);
+
+            // Set the data and start the animation
+            simData = data;
+            window.setTimeout(doSimulation, 100);
+        }
+
+        function doSimulation() {
+            // Has this animation finished?
+            if (simData == null || simData.length <= 0) {
+                simData = null;
+                $('button#btn-simulate').prop('disabled', false);
+                refreshLights();
+                return;
+            }
+
+            // Basically just pop the first item from data, and
+            // apply it to our light buttons
+            var currentColors = simData[0];
+            for (var i = 0; i < currentColors.length; i++) {
+                $('button#light-'+i).css('background-color', currentColors[i]);
+            }
+
+            // Remove the current color set
+            simData.remove(0);
+
+            // Queue up the next step
+            window.setTimeout(doSimulation, 100);
+        }
+
         // using jQuery
         function getCookie(name) {
             var cookieValue = null;
@@ -240,9 +288,14 @@
             $('button#btn-stop').click(function() {
                 $.post("{% url 'home.views.stop_driver' %}");
             });
+            $('button#btn-simulate').click(function() {
+                $.post("{% url 'home.views.run_simulation' %}", null, function(data) {
+                    startSimulation(data);
+                }, "json");
+            });
             $('button.btn-transform-add').click(function() {
                 // Add a new transform
-                var index = parseInt(this.id.substr(14))
+                var index = parseInt(this.id.substr(14));
                 if (isNaN(index)) {
                     return;
                 }
