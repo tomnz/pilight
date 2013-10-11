@@ -10,6 +10,7 @@ class LightDriver(object):
 
     def __init__(self):
         self.start_time = None
+        self.messages_since_last_queue_check = 0
 
     def pop_message(self):
         """
@@ -28,9 +29,28 @@ class LightDriver(object):
         Publishes the color data to a Pika queue for ingestion
         by a client - usually pilight-client
         """
-        data = base64.b64encode(raw_data)
         channel = PikaConnection.get_channel()
+
+        # Check for excessive messages in queue - and drop them if
+        # there are too many. This is useful if the light driver is
+        # running but no client is taking the messages, to save
+        # on memory.
+        if self.messages_since_last_queue_check > 5000:
+            self.messages_since_last_queue_check = 0
+            result = channel.queue_declare(
+                queue=settings.PIKA_QUEUE_NAME_COLORS,
+                auto_delete=False,
+                durable=True,
+                passive=True
+            )
+            if result.method.message_count > 4000:
+                channel.queue_purge(settings.PIKA_QUEUE_NAME_COLORS)
+
+        # Encode the raw data to base64 for transmission
+        data = base64.b64encode(raw_data)
         channel.basic_publish(exchange='', routing_key=settings.PIKA_QUEUE_NAME_COLORS, body=data)
+
+        self.messages_since_last_queue_check += 1
 
     def wait(self, spidev):
         """
