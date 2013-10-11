@@ -1,5 +1,6 @@
 import json
 import math
+import random
 from pilight.classes import Color
 
 
@@ -145,6 +146,55 @@ class GaussianBlurTransform(TransformBase):
         return result
 
 
+class BurstTransform(TransformBase):
+
+    def __init__(self, transforminstance):
+        super(BurstTransform, self).__init__(transforminstance)
+
+        self.sparks = {}
+        self.brightnesses = []
+        self.last_time = 0
+
+    def transform(self, time, position, num_positions, start_color, all_colors):
+        # Do we need to animate sparks?
+        if self.last_time != time or len(self.brightnesses) == 0:
+            if self.last_time == 0:
+                self.last_time = time
+
+            # Advance existing sparks
+            elapsed_time = time - self.last_time
+            for i in self.sparks.keys():
+                self.sparks[i] += elapsed_time / self.params['burst_length']
+                if self.sparks[i] >= 1:
+                    del self.sparks[i]
+
+            # Determine probability of making a spark
+            chance = elapsed_time * self.params['burst_rate'] / num_positions
+
+            # Spawn new sparks
+            for i in range(num_positions):
+                if random.random() < chance and not i in self.sparks.keys():
+                    self.sparks[i] = 0
+
+            # Determine brightnesses
+            self.brightnesses = [0] * num_positions
+            radius = self.params['burst_radius']
+            for index, progress in self.sparks.iteritems():
+                spark_strength = 1 - abs((progress - 0.5) * 2)
+                min_index = int(max(0, index - radius))
+                max_index = int(min(num_positions, index + radius + 1))
+                for i in range(min_index, max_index):
+                    distance = abs(index - i)
+                    # TODO: Better falloff function
+                    self.brightnesses[i] += (1.0 - (float(distance) / radius)) * spark_strength
+
+            # Save this time for the next iteration
+            self.last_time = time
+
+        # Apply the saved brightnesses
+        return start_color * self.brightnesses[position]
+
+
 class BrightnessTransform(TransformBase):
 
     def transform(self, time, position, num_positions, start_color, all_colors):
@@ -158,4 +208,5 @@ AVAILABLE_TRANSFORMS = {
     'rotatehue': RotateHueTransform,
     'gaussian': GaussianBlurTransform,
     'brightness': BrightnessTransform,
+    'burst': BurstTransform,
 }
