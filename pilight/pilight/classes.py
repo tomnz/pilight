@@ -11,16 +11,32 @@ class PikaConnection(object):
     """
 
     connection_obj = None
+    channel_obj = None
 
     @staticmethod
-    def get_connection():
+    def get_channel():
         if not PikaConnection.connection_obj:
+            # Connect
             PikaConnection.connection_obj = pika.BlockingConnection(
                 pika.ConnectionParameters(host=settings.PIKA_HOST_NAME)
             )
+            # Open our queues
+            PikaConnection.connection_obj.channel().queue_declare(
+                queue=settings.PIKA_QUEUE_NAME,
+                auto_delete=False,
+                durable=True
+            )
+            if settings.LIGHTS_DRIVER_MODE == 'server':
+                PikaConnection.connection_obj.channel().queue_declare(
+                    queue=settings.PIKA_QUEUE_NAME_COLORS,
+                    auto_delete=False,
+                    durable=True
+                )
         if not PikaConnection.connection_obj.is_open:
             PikaConnection.connection_obj.connect()
-        return PikaConnection.connection_obj
+        if not PikaConnection.channel_obj:
+            PikaConnection.channel_obj = PikaConnection.connection_obj.channel()
+        return PikaConnection.channel_obj
 
 
 def dec2hex(d):

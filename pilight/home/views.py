@@ -4,6 +4,7 @@ from django.http import HttpResponse
 from models import Transform, Light, TransformInstance, Store
 from pilight.classes import Color, PikaConnection
 from pilight.driver import LightDriver
+from django.conf import settings
 import json
 from django.views.decorators.csrf import ensure_csrf_cookie
 
@@ -11,10 +12,8 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 # Pika message passing setup
 # Helper functions for controlling the light driver
 def publish_message(msg):
-    connection = PikaConnection.get_connection()
-    channel = connection.channel()
-    channel.queue_declare(queue='pilight-queue', auto_delete=False, durable=True)
-    channel.basic_publish(exchange='', routing_key='pilight_queue', body=msg)
+    channel = PikaConnection.get_channel()
+    channel.basic_publish(exchange='', routing_key=settings.PIKA_QUEUE_NAME, body=msg)
 
 
 def message_start_driver():
@@ -239,6 +238,28 @@ def apply_light_tool(request):
                 result = True
             else:
                 result = False
+        else:
+            result = False
+    else:
+        result = False
+
+    if result:
+        message_restart_driver()
+
+    return HttpResponse(json.dumps({'success': result}), content_type='application/json')
+
+
+def fill_color(request):
+
+    if request.method == 'POST':
+        if 'color' in request.POST:
+            color = Color.from_hex(request.POST['color'])
+
+            for light in Light.objects.get_current():
+                light.color = color
+                light.save()
+
+            result = True
         else:
             result = False
     else:

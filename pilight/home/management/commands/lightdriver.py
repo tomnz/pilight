@@ -53,7 +53,7 @@ class Command(BaseCommand):
         if got_lock or options['force_run']:
             # Setup the output device
             spidev = None
-            if not settings.LIGHTS_NOOP:
+            if settings.LIGHTS_DRIVER_MODE == 'standalone':
                 try:
                     spidev = file(settings.LIGHTS_DEV_NAME, 'wb')
                 except:
@@ -77,7 +77,7 @@ class Command(BaseCommand):
                 traceback.print_exc(file=sys.stdout)
             finally:
                 # Clean up resources
-                if not settings.LIGHTS_NOOP and spidev:
+                if settings.LIGHTS_DRIVER_MODE == 'standalone' and spidev:
                     driver.clear_lights(spidev)
                     spidev.close()
 

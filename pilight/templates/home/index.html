@@ -70,11 +70,14 @@
                             <input type="text" id="slider-opacity" name="slider-opacity" class="form-control slider-control" value="100" data-slider-min="1" data-slider-max="100" data-slider-step="1" data-slider-value="100">
                         </label>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-2">
                         <div class="input-group colorpicker-component" id="color-control" data-color="{{ tool_color }}" style="width: 130px;">
                             <input type="text" class="form-control" value="{{ tool_color }}" readonly id="color-value" />
                             <span class="input-group-addon"><i style="background-color: {{ tool_color }}"></i></span>
                         </div>
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-default" id="btn-fill">Fill</button>
                     </div>
                 </div>
                 <div class="row">
@@ -354,6 +357,17 @@
                 $.post("{% url 'home.views.add_transform' %}", post_data, function(data) {
                     if (data.success) {
                         refreshTransforms();
+                    }
+                }, "json");
+            });
+            $('button#btn-fill').click(function() {
+                var color = $('input#color-value').val();
+
+                var post_data = {color:color};
+                $.post("{% url 'home.views.fill_color' %}", post_data, function(data) {
+                    if (data.success) {
+                        // Success - refresh lights
+                        refreshLights();
                     }
                 }, "json");
             });
