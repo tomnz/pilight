@@ -136,11 +136,20 @@ class Color(object):
     def safe_r(self):
         return max(min(self.r, 1), 0)
 
+    def safe_corrected_r(self):
+        return max(min(self.r / 1.1, 1), 0)
+
     def safe_g(self):
         return max(min(self.g, 1), 0)
 
+    def safe_corrected_g(self):
+        return max(min(self.g / 1.1, 1), 0)
+
     def safe_b(self):
         return max(min(self.b, 1), 0)
+
+    def safe_corrected_b(self):
+        return max(min(self.b / 1.3, 1), 0)
 
     def as_safe(self):
         return Color(self.safe_r(), self.safe_g(), self.safe_b())
@@ -156,6 +165,13 @@ class Color(object):
             struct.pack('B', int(self.safe_r() * (2 ** 8 - 1))),
             struct.pack('B', int(self.safe_g() * (2 ** 8 - 1))),
             struct.pack('B', int(self.safe_b() * (2 ** 8 - 1))),
+        )
+
+    def to_raw_corrected(self):
+        return (
+            struct.pack('B', int(self.safe_corrected_r() * (2 ** 8 - 1))),
+            struct.pack('B', int(self.safe_corrected_g() * (2 ** 8 - 1))),
+            struct.pack('B', int(self.safe_corrected_b() * (2 ** 8 - 1))),
         )
 
     # Conversion

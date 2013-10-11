@@ -23,6 +23,13 @@ class TransformBase(object):
         """
         return json.dumps(self.params)
 
+    def is_animated(self):
+        """
+        This is used by the driver to optimize - if all transforms are
+        static (not animated), then the update rate can be much lower
+        """
+        return True
+
 
 class ColorFlashTransform(TransformBase):
 
@@ -113,6 +120,9 @@ class RotateHueTransform(TransformBase):
 
 class GaussianBlurTransform(TransformBase):
 
+    def is_animated(self):
+        return False
+
     def gaussian(self, x, sd):
         sd = float(sd)
         x = float(x)
@@ -196,6 +206,9 @@ class BurstTransform(TransformBase):
 
 
 class BrightnessTransform(TransformBase):
+
+    def is_animated(self):
+        return False
 
     def transform(self, time, position, num_positions, start_color, all_colors):
         return start_color * self.params['brightness']
