@@ -54,6 +54,15 @@
     }
 },
 {
+    "pk": 7, 
+    "model": "home.transform", 
+    "fields": {
+        "long_name": "Burst", 
+        "name": "burst", 
+        "description": "Generates \"bursts\" of light, at the given rate, with a given radius and length of time that each burst lasts."
+    }
+},
+{
     "pk": 1, 
     "model": "home.transformfield", 
     "fields": {
@@ -219,6 +228,42 @@
         "transform": 6, 
         "long_name": "Brightness", 
         "name": "brightness"
+    }
+},
+{
+    "pk": 15, 
+    "model": "home.transformfield", 
+    "fields": {
+        "default_value": "4.0", 
+        "field_type": "float", 
+        "description": "Number of bursts to spawn per second, on average", 
+        "transform": 7, 
+        "long_name": "Burst Rate", 
+        "name": "burst_rate"
+    }
+},
+{
+    "pk": 16, 
+    "model": "home.transformfield", 
+    "fields": {
+        "default_value": "1.0", 
+        "field_type": "float", 
+        "description": "Length in seconds that each burst will last", 
+        "transform": 7, 
+        "long_name": "Burst Length", 
+        "name": "burst_length"
+    }
+},
+{
+    "pk": 17, 
+    "model": "home.transformfield", 
+    "fields": {
+        "default_value": "3.0", 
+        "field_type": "float", 
+        "description": "Size of each burst", 
+        "transform": 7, 
+        "long_name": "Burst Radius", 
+        "name": "burst_radius"
     }
 }
 ]

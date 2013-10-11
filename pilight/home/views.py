@@ -213,7 +213,7 @@ def apply_light_tool(request):
             if tool == 'solid':
                 # Apply the color at the given opacity and radius
                 min_idx = max(0, index - radius)
-                max_idx = min(len(current_lights), index + radius)
+                max_idx = min(len(current_lights), index + radius + 1)
 
                 for i in range(min_idx, max_idx):
                     light = current_lights[i]
@@ -224,7 +224,7 @@ def apply_light_tool(request):
             elif tool == 'smooth':
                 # Apply the color at the given opacity and radius, with falloff
                 min_idx = max(0, index - radius)
-                max_idx = min(len(current_lights), index + radius)
+                max_idx = min(len(current_lights), index + radius + 1)
 
                 for i in range(min_idx, max_idx):
                     distance = abs(index - i)
