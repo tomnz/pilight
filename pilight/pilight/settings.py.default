@@ -1,11 +1,15 @@
 ############
 # App config
 
-# THIS MUST BE SET TO FALSE BEFORE LIGHTS WILL ACTUALLY WORK!
-# If this parameter is true, then the light driver will not attempt
-# to actually write any color data to the LEDs. This is primarily
-# used for testing/debugging purposes!
-LIGHTS_NOOP = True
+# Mode that the driver runs in:
+#   noop = The driver does not make any attempt to
+#          output its colors - useful for development
+#   standalone = The driver outputs color data directly to
+#                the device specified by LIGHTS_DEV_NAME
+#   server = The driver pushes its color data to a
+#            message queue. Intended for use with
+#            pilight-client
+LIGHTS_DRIVER_MODE = 'standalone'
 
 # Installation name
 # Can be anything you like - shown on the web UI
@@ -13,6 +17,21 @@ LIGHTS_INSTALLATION_NAME = "PiLight"
 
 # Number of LEDs in the string
 LIGHTS_NUM_LEDS = 50
+
+# Minimum amount of time that must pass before another
+# set of color data is computed by the driver (secs)
+# Sets an effective refresh rate throttle. Note that
+# on slow devices (such as Raspberry Pi), adding several
+# transforms means that your "frame time" may be longer
+# than this value anyway, in which case it has no effect
+#
+# Suggested values:
+#    - High performance machine: 0.03
+#    - Mid performance machine: 0.06
+#    - Low performance machine: 0.1
+# It is not recommended that you set this to a lower
+# value than 0.03
+LIGHTS_UPDATE_INTERVAL = 0.03
 
 # Microcontroller type used on the LED string
 # Known values:
@@ -23,7 +42,7 @@ LIGHTS_MICROCONTROLLER = 'ws2801'
 # Device name for the SPI output in your Occidentals installation
 LIGHTS_DEV_NAME = '/dev/spidev0.0'
 
-# Time between message polls that the driver should use
+# Time between message polls that the driver should use (secs)
 # Recommend leaving this greater than 1.0
 LIGHTS_MESSAGE_CHECK_INTERVAL = 2.0
 
@@ -31,6 +50,8 @@ LIGHTS_MESSAGE_CHECK_INTERVAL = 2.0
 ############
 # Pika setup
 PIKA_HOST_NAME = 'localhost'
+PIKA_QUEUE_NAME = 'pilight-queue'
+PIKA_QUEUE_NAME_COLORS = 'pilight-colors'
 
 
 ######################

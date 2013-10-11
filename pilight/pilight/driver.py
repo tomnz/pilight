@@ -3,6 +3,7 @@ import time
 from pilight.light.transforms import AVAILABLE_TRANSFORMS
 from django.conf import settings
 from pilight.classes import PikaConnection
+import base64
 
 
 class LightDriver(object):
@@ -15,15 +16,21 @@ class LightDriver(object):
         Grabs the latest message from Pika, if one is waiting
         Returns the body of the message if present, otherwise None
         """
-
-        connection = PikaConnection.get_connection()
-        channel = connection.channel()
-        channel.queue_declare('pilight_queue')
-        method, properties, body = channel.basic_get('pilight_queue', no_ack=True)
+        channel = PikaConnection.get_channel()
+        method, properties, body = channel.basic_get(settings.PIKA_QUEUE_NAME, no_ack=True)
         if method:
             return body
         else:
             return None
+
+    def publish_colors(self, raw_data):
+        """
+        Publishes the color data to a Pika queue for ingestion
+        by a client - usually pilight-client
+        """
+        data = base64.b64encode(raw_data)
+        channel = PikaConnection.get_channel()
+        channel.basic_publish(exchange='', routing_key=settings.PIKA_QUEUE_NAME_COLORS, body=data)
 
     def wait(self, spidev):
         """
@@ -34,19 +41,16 @@ class LightDriver(object):
         # Basically run this loop forever until interrupted
         running = True
 
-        connection = PikaConnection.get_connection()
-        channel = connection.channel()
-        channel.queue_declare('pilight_queue')
-
         # Purge all existing events
-        channel.queue_purge('pilight_queue')
+        channel = PikaConnection.get_channel()
+        channel.queue_purge(settings.PIKA_QUEUE_NAME)
 
         while running:
             # First wait for a "start" or "restart" command
             # "consume" is a blocking method that will wait for the first message to come in
             body = None
             print '* Light driver idle...'
-            for method, properties, body in channel.consume('pilight_queue'):
+            for method, properties, body in channel.consume(settings.PIKA_QUEUE_NAME):
                 channel.basic_ack(method.delivery_tag)
                 # Just break out after reading the first message
                 break
@@ -70,13 +74,21 @@ class LightDriver(object):
                 # Reset start_time so that we start over on the next run
                 self.start_time = None
 
+    def write_data(self, spidev, raw_data):
+        if settings.LIGHTS_DRIVER_MODE == 'standalone':
+            # Write directly to the SPI device
+            spidev.write(raw_data)
+            spidev.flush()
+        elif settings.LIGHTS_DRIVER_MODE == 'server':
+            # Pass the data to the message queue
+            self.publish_colors(raw_data)
+
     def clear_lights(self, spidev):
-        if not settings.LIGHTS_NOOP:
+        if settings.LIGHTS_DRIVER_MODE in ('standalone', 'server'):
             raw_data = bytearray(settings.LIGHTS_NUM_LEDS * 3)
             for i in range(settings.LIGHTS_NUM_LEDS * 3):
                 raw_data[i] = 0x00
-            spidev.write(raw_data)
-            spidev.flush()
+            self.write_data(spidev, raw_data)
 
     def run_lights(self, spidev):
         """
@@ -130,13 +142,13 @@ class LightDriver(object):
                 pos += 1
 
             # Write the data
-            if not settings.LIGHTS_NOOP:
-                spidev.write(raw_data)
-                spidev.flush()
+            if settings.LIGHTS_DRIVER_MODE in ('standalone', 'server'):
+                self.write_data(spidev, raw_data)
 
             # Rate limit if we're not running for real
-            if settings.LIGHTS_NOOP:
-                time.sleep(1)
+            sleep_time = settings.LIGHTS_UPDATE_INTERVAL - (time.time() - current_time)
+            if sleep_time > 0:
+                time.sleep(sleep_time)
 
         return False
 

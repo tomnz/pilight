@@ -14,6 +14,7 @@ urlpatterns = patterns(
     url(r'^light/render_snippet/?$', 'render_lights_snippet', name='render_lights_snippet'),
     url(r'^light/apply_tool/?$', 'apply_light_tool', name='apply_light_tool'),
     url(r'^light/simulate/?$', 'run_simulation', name='run_simulation'),
+    url(r'^light/fill_color/?$', 'fill_color', name='fill_color'),
     url(r'^transform/render_snippet/?$', 'render_transforms_snippet', name='render_transforms_snippet'),
     url(r'^transform/add/?$', 'add_transform', name='add_transform'),
     url(r'^transform/delete/?$', 'delete_transform', name='delete_transform'),
