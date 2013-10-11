@@ -46,6 +46,13 @@ LIGHTS_DEV_NAME = '/dev/spidev0.0'
 # Recommend leaving this greater than 1.0
 LIGHTS_MESSAGE_CHECK_INTERVAL = 2.0
 
+# These multipliers are applied before final output to the LEDs
+# to get colors that are truer to the desired color - the LEDs
+# tend to have a bias towards blue, and a lesser extent red
+LIGHTS_MULTIPLIER_R = 0.9
+LIGHTS_MULTIPLIER_G = 1
+LIGHTS_MULTIPLIER_B = 0.66
+
 
 ############
 # Pika setup
