@@ -137,19 +137,19 @@ class Color(object):
         return max(min(self.r, 1), 0)
 
     def safe_corrected_r(self):
-        return max(min(self.r / 1.1, 1), 0)
+        return max(min(self.r * settings.LIGHTS_MULTIPLIER_R, 1), 0)
 
     def safe_g(self):
         return max(min(self.g, 1), 0)
 
     def safe_corrected_g(self):
-        return max(min(self.g / 1.1, 1), 0)
+        return max(min(self.g * settings.LIGHTS_MULTIPLIER_G, 1), 0)
 
     def safe_b(self):
         return max(min(self.b, 1), 0)
 
     def safe_corrected_b(self):
-        return max(min(self.b / 1.3, 1), 0)
+        return max(min(self.b * settings.LIGHTS_MULTIPLIER_B, 1), 0)
 
     def as_safe(self):
         return Color(self.safe_r(), self.safe_g(), self.safe_b())
