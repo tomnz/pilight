@@ -69,7 +69,6 @@ class Command(BaseCommand):
             except KeyboardInterrupt:
                 # The user has interrupted execution - close our resources
                 print '* Cleaning up...'
-                pass
             except:
                 # The catch-all here is bad, but manage.py commands usually don't print
                 # a stack trace, which is not very helpful for finding bugs
