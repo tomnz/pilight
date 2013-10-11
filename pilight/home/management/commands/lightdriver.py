@@ -77,8 +77,8 @@ class Command(BaseCommand):
                 traceback.print_exc(file=sys.stdout)
             finally:
                 # Clean up resources
+                driver.clear_lights(spidev)
                 if settings.LIGHTS_DRIVER_MODE == 'standalone' and spidev:
-                    driver.clear_lights(spidev)
                     spidev.close()
 
                 # Only release lock if it was ours to begin with (i.e. don't release if
