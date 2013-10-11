@@ -125,6 +125,13 @@ class LightDriver(object):
         if not current_colors:
             return False
 
+        # Are we animating?
+        animating = False
+        for transform in current_transforms:
+            if transform.is_animated():
+                animating = True
+                break
+
         # Run the simulation
         if not self.start_time:
             self.start_time = time.time()
@@ -158,17 +165,22 @@ class LightDriver(object):
             raw_data = bytearray(settings.LIGHTS_NUM_LEDS * 3)
             pos = 0
             for light in colors:
-                raw_data[pos*3:] = light.to_raw()
+                raw_data[pos*3:] = light.to_raw_corrected()
                 pos += 1
 
             # Write the data
             if settings.LIGHTS_DRIVER_MODE in ('standalone', 'server'):
                 self.write_data(spidev, raw_data)
 
-            # Rate limit if we're not running for real
-            sleep_time = settings.LIGHTS_UPDATE_INTERVAL - (time.time() - current_time)
-            if sleep_time > 0:
-                time.sleep(sleep_time)
+            # Rate limit
+            # If we have no transforms, don't bother updating very often
+            if not animating:
+                time.sleep(1)
+            else:
+                # Otherwise, sleep based on the requested update interval
+                sleep_time = settings.LIGHTS_UPDATE_INTERVAL - (time.time() - current_time)
+                if sleep_time > 0:
+                    time.sleep(sleep_time)
 
         return False
 
