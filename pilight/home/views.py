@@ -1,6 +1,7 @@
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.http import HttpResponse
+from django.contrib.auth.decorators import user_passes_test
 from models import Transform, Light, TransformInstance, Store
 from pilight.classes import Color, PikaConnection
 from pilight.driver import LightDriver
@@ -27,9 +28,21 @@ def message_stop_driver():
 def message_restart_driver():
     publish_message('restart')
 
+def auth_check(user):
+    # Should we restrict access?
+    if not settings.LIGHTS_REQUIRE_AUTH:
+        return True
+
+    # Auth is really easy - you just need to be logged in
+    if user.is_authenticated():
+        return True
+    else:
+        return False
+
 
 # Views
 @ensure_csrf_cookie
+@user_passes_test(auth_check)
 def index(request):
     # Always "reset" the lights - will fill out the correct number if it's wrong
     Light.objects.reset()
@@ -60,6 +73,7 @@ def index(request):
     )
 
 
+@user_passes_test(auth_check)
 def render_lights_snippet(request):
     # Always "reset" the lights - will fill out the correct number if it's wrong
     Light.objects.reset()
@@ -72,6 +86,7 @@ def render_lights_snippet(request):
     )
 
 
+@user_passes_test(auth_check)
 def render_transforms_snippet(request):
     current_transforms = TransformInstance.objects.get_current()
 
@@ -82,6 +97,7 @@ def render_transforms_snippet(request):
     )
 
 
+@user_passes_test(auth_check)
 def render_stores_snippet(request):
     stores = Store.objects.all().order_by('name')
 
@@ -92,6 +108,7 @@ def render_stores_snippet(request):
     )
 
 
+@user_passes_test(auth_check)
 def save_store(request):
 
     if request.method == 'POST':
@@ -137,6 +154,7 @@ def save_store(request):
     return HttpResponse(json.dumps({'success': result}), content_type='application/json')
 
 
+@user_passes_test(auth_check)
 def load_store(request):
 
     if request.method == 'POST':
@@ -176,6 +194,7 @@ def load_store(request):
     return HttpResponse(json.dumps({'success': result}), content_type='application/json')
 
 
+@user_passes_test(auth_check)
 def run_simulation(request):
     # To do this, we call into the driver class to simulate running
     # the actual driver
@@ -189,6 +208,7 @@ def run_simulation(request):
     return HttpResponse(json.dumps(hex_colors), content_type='application/json')
 
 
+@user_passes_test(auth_check)
 def apply_light_tool(request):
     """
     Complex function that applies a "tool" across several lights
@@ -249,6 +269,7 @@ def apply_light_tool(request):
     return HttpResponse(json.dumps({'success': result}), content_type='application/json')
 
 
+@user_passes_test(auth_check)
 def fill_color(request):
 
     if request.method == 'POST':
@@ -271,6 +292,7 @@ def fill_color(request):
     return HttpResponse(json.dumps({'success': result}), content_type='application/json')
 
 
+@user_passes_test(auth_check)
 def delete_transform(request):
 
     if request.method == 'POST':
@@ -292,6 +314,7 @@ def delete_transform(request):
     return HttpResponse(json.dumps({'success': result}), content_type='application/json')
 
 
+@user_passes_test(auth_check)
 def update_transform_params(request):
 
     if request.method == 'POST':
@@ -315,6 +338,7 @@ def update_transform_params(request):
     return HttpResponse(json.dumps({'success': result}), content_type='application/json')
 
 
+@user_passes_test(auth_check)
 def add_transform(request):
 
     if request.method == 'POST':
@@ -340,16 +364,19 @@ def add_transform(request):
     return HttpResponse(json.dumps({'success': result}), content_type='application/json')
 
 
+@user_passes_test(auth_check)
 def start_driver(request):
     message_start_driver()
     return HttpResponse()
 
 
+@user_passes_test(auth_check)
 def stop_driver(request):
     message_stop_driver()
     return HttpResponse()
 
 
+@user_passes_test(auth_check)
 def restart_driver(request):
     message_restart_driver()
     return HttpResponse()

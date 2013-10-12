@@ -18,6 +18,11 @@ LIGHTS_INSTALLATION_NAME = "PiLight"
 # Number of LEDs in the string
 LIGHTS_NUM_LEDS = 50
 
+# Require a valid Django user to change the lights?
+# Recommend setting this to True for externally
+# accessible installations
+LIGHTS_REQUIRE_AUTH = False
+
 # Minimum amount of time that must pass before another
 # set of color data is computed by the driver (secs)
 # Sets an effective refresh rate throttle. Note that
@@ -129,6 +134,9 @@ STATIC_ROOT = ''
 # URL prefix for static files.
 # Example: "http://example.com/static/", "http://static.example.com/"
 STATIC_URL = '/static/'
+
+# Where to redirect on successful login
+LOGIN_REDIRECT_URL = '/'
 
 # Additional locations of static files
 STATICFILES_DIRS = (
