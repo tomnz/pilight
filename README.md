@@ -108,3 +108,15 @@ Changes in the configuration interface are instantly sent to the light driver if
 You can save the current configuration by typing a name in the text box at top right, and hitting Save. You can also load past configurations with the Load button.
 
 > Note: If you load a configuration, changes you make are NOT automatically saved back to that configuration. Make sure you hit Save again when you're done. This will overwrite previous settings, if a configuration already exists with the same name.
+
+
+Updating
+--------
+
+Periodically you may want to update PiLight to get the latest features and bug fixes. Just run the following commands from the `pilight/pilight` directory:
+
+    hg pull
+    hg update
+    python manage.py syncdb
+    python manage.py migrate
+    python manage.py loaddata fixtures/initial_data.json

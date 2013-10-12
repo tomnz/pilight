@@ -24,6 +24,13 @@ urlpatterns = patterns(
     url(r'^store/save/?$', 'save_store', name='save_store'),
 )
 
+# Auth
+urlpatterns += patterns(
+    '',
+    url(r'^accounts/login/?$', 'django.contrib.auth.views.login'),
+    url(r'^accounts/logout/?$', 'django.contrib.auth.views.logout', {'next_page': '/'}),
+)
+
 # Admin
 urlpatterns += patterns(
     '',
