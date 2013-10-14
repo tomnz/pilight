@@ -5,6 +5,11 @@ Flexible LED controller designed to run on a Raspberry Pi, and drive WS2801 LED 
 
 Although it is more work to set up (and completely optional), PiLight is designed to be run in a server/client configuration - with a powerful server driving the configuration interface, and computing color data to send to the LEDs; and a lightweight client script running on the Raspberry Pi. See the Client/Server section below for more details.
 
+For more information, check out the following sources:
+
+* [Blog post](http://tom.net.nz/2013/10/pilight/) detailing hardware and installation of PiLight
+* [Demo video](http://www.youtube.com/watch?v=ohJMUAsssQw) showing the PiLight interface and lights running
+
 
 Client/Server
 -------------
