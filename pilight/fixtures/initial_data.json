@@ -63,6 +63,15 @@
     }
 },
 {
+    "pk": 8, 
+    "model": "home.transform", 
+    "fields": {
+        "long_name": "Strobe", 
+        "name": "strobe", 
+        "description": "Alternates the lights on and off, every X number of \"frames\""
+    }
+},
+{
     "pk": 1, 
     "model": "home.transformfield", 
     "fields": {
@@ -264,6 +273,30 @@
         "transform": 7, 
         "long_name": "Burst Radius", 
         "name": "burst_radius"
+    }
+},
+{
+    "pk": 18, 
+    "model": "home.transformfield", 
+    "fields": {
+        "default_value": "1", 
+        "field_type": "long", 
+        "description": "Number of frames for the lights to remain on", 
+        "transform": 8, 
+        "long_name": "Frames On", 
+        "name": "frames_on"
+    }
+},
+{
+    "pk": 19, 
+    "model": "home.transformfield", 
+    "fields": {
+        "default_value": "5", 
+        "field_type": "long", 
+        "description": "Number of frames for the lights to remain off", 
+        "transform": 8, 
+        "long_name": "Frames Off", 
+        "name": "frames_off"
     }
 }
 ]

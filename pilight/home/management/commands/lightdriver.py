@@ -87,4 +87,5 @@ class Command(BaseCommand):
         else:
             print 'Another light driver appears to already be running'
             print 'Force light driver to run with --force-run'
+            print 'Clear the running flag with --clear-lock'
             print 'Note that you WILL encounter issues if more than one driver runs at once'

@@ -211,6 +211,9 @@ class LightDriver(object):
 
         # Perform each transform step
         for transform in transforms:
+            # Tick the transform frame
+            transform.tick_frame(elapsed_time, len(colors))
+
             # Transform each light
             for i in range(len(colors)):
                 color = transform.transform(elapsed_time, i, len(colors), colors[i], colors)
