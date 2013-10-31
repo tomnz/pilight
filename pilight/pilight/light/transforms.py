@@ -17,6 +17,13 @@ class TransformBase(object):
         """
         pass
 
+    def tick_frame(self, time, num_positions):
+        """
+        Called once at the beginning of each frame - gives the transform
+        an opportunity to update state
+        """
+        pass
+
     def serialize_params(self):
         """
         Serializes all parameters back to JSON
@@ -79,6 +86,32 @@ class FlashTransform(TransformBase):
         scale = (1 - progress) * self.params['start_value'] + progress * self.params['end_value']
 
         return start_color.scale(scale)
+
+
+class StrobeTransform(TransformBase):
+
+    def __init__(self, transforminstance):
+        super(StrobeTransform, self).__init__(transforminstance)
+
+        self.state_on = True
+        self.frames = 0
+
+    def tick_frame(self, time, num_positions):
+        self.frames += 1
+        if self.state_on:
+            if self.frames > self.params['frames_on']:
+                self.state_on = False
+                self.frames = 0
+        else:
+            if self.frames > self.params['frames_off']:
+                self.state_on = True
+                self.frames = 0
+
+    def transform(self, time, position, num_positions, start_color, all_colors):
+        if self.state_on:
+            return start_color
+        else:
+            return Color(0, 0, 0)
 
 
 class ScrollTransform(TransformBase):
@@ -165,42 +198,41 @@ class BurstTransform(TransformBase):
         self.brightnesses = []
         self.last_time = 0
 
-    def transform(self, time, position, num_positions, start_color, all_colors):
-        # Do we need to animate sparks?
-        if self.last_time != time or len(self.brightnesses) == 0:
-            if self.last_time == 0:
-                self.last_time = time
-
-            # Advance existing sparks
-            elapsed_time = time - self.last_time
-            for i in self.sparks.keys():
-                self.sparks[i] += elapsed_time / self.params['burst_length']
-                if self.sparks[i] >= 1:
-                    del self.sparks[i]
-
-            # Determine probability of making a spark
-            chance = elapsed_time * self.params['burst_rate'] / num_positions
-
-            # Spawn new sparks
-            for i in range(num_positions):
-                if random.random() < chance and not i in self.sparks.keys():
-                    self.sparks[i] = 0
-
-            # Determine brightnesses
-            self.brightnesses = [0] * num_positions
-            radius = self.params['burst_radius']
-            for index, progress in self.sparks.iteritems():
-                spark_strength = 1 - abs((progress - 0.5) * 2)
-                min_index = int(max(0, index - radius))
-                max_index = int(min(num_positions, index + radius + 1))
-                for i in range(min_index, max_index):
-                    distance = abs(index - i)
-                    # TODO: Better falloff function
-                    self.brightnesses[i] += (1.0 - (float(distance) / radius)) * spark_strength
-
-            # Save this time for the next iteration
+    def tick_frame(self, time, num_positions):
+        if self.last_time == 0:
             self.last_time = time
 
+        # Advance existing sparks
+        elapsed_time = time - self.last_time
+        for i in self.sparks.keys():
+            self.sparks[i] += elapsed_time / self.params['burst_length']
+            if self.sparks[i] >= 1:
+                del self.sparks[i]
+
+        # Determine probability of making a spark
+        chance = elapsed_time * self.params['burst_rate'] / num_positions
+
+        # Spawn new sparks
+        for i in range(num_positions):
+            if random.random() < chance and not i in self.sparks.keys():
+                self.sparks[i] = 0
+
+        # Determine brightnesses
+        self.brightnesses = [0] * num_positions
+        radius = self.params['burst_radius']
+        for index, progress in self.sparks.iteritems():
+            spark_strength = 1 - abs((progress - 0.5) * 2)
+            min_index = int(max(0, index - radius))
+            max_index = int(min(num_positions, index + radius + 1))
+            for i in range(min_index, max_index):
+                distance = abs(index - i)
+                # TODO: Better falloff function
+                self.brightnesses[i] += (1.0 - (float(distance) / radius)) * spark_strength
+
+        # Save this time for the next iteration
+        self.last_time = time
+
+    def transform(self, time, position, num_positions, start_color, all_colors):
         # Apply the saved brightnesses
         return start_color * self.brightnesses[position]
 
@@ -222,4 +254,5 @@ AVAILABLE_TRANSFORMS = {
     'gaussian': GaussianBlurTransform,
     'brightness': BrightnessTransform,
     'burst': BurstTransform,
+    'strobe': StrobeTransform,
 }
