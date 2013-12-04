@@ -72,6 +72,15 @@
     }
 },
 {
+    "pk": 9, 
+    "model": "home.transform", 
+    "fields": {
+        "long_name": "Noise", 
+        "name": "noise", 
+        "description": "Introduces random variations to each light, each frame. Strength defines the maximum amount that the light can vary by in each of the base colors."
+    }
+},
+{
     "pk": 1, 
     "model": "home.transformfield", 
     "fields": {
@@ -297,6 +306,54 @@
         "transform": 8, 
         "long_name": "Frames Off", 
         "name": "frames_off"
+    }
+},
+{
+    "pk": 20, 
+    "model": "home.transformfield", 
+    "fields": {
+        "default_value": "0.5", 
+        "field_type": "float", 
+        "description": "Amount that the color will randomly vary by in red", 
+        "transform": 9, 
+        "long_name": "Red Strength", 
+        "name": "red_strength"
+    }
+},
+{
+    "pk": 21, 
+    "model": "home.transformfield", 
+    "fields": {
+        "default_value": "0.5", 
+        "field_type": "float", 
+        "description": "Amount that the color will randomly vary by in green", 
+        "transform": 9, 
+        "long_name": "Green Strength", 
+        "name": "green_strength"
+    }
+},
+{
+    "pk": 22, 
+    "model": "home.transformfield", 
+    "fields": {
+        "default_value": "0.5", 
+        "field_type": "float", 
+        "description": "Amount that the color will randomly vary by in blue", 
+        "transform": 9, 
+        "long_name": "Blue Strength", 
+        "name": "blue_strength"
+    }
+},
+{
+    "pk": 23, 
+    "model": "home.transformfield", 
+    "fields": {
+        "default_value": "0.5", 
+        "field_type": "float", 
+        "description": "Time in seconds between new noise pattern", 
+        "transform": 9, 
+        "long_name": "Length", 
+        "name": "length"
     }
 }
 ]
