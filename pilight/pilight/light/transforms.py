@@ -243,6 +243,7 @@ class NoiseTransform(TransformBase):
         super(NoiseTransform, self).__init__(transforminstance)
 
         self.last_time = 0
+        self.progress = 0.0
         self.current_colors = []
         self.next_colors = []
 
@@ -264,11 +265,11 @@ class NoiseTransform(TransformBase):
             self.current_colors = self.next_colors
             self.next_colors = self.get_random_colors(num_positions)
 
-    def transform(self, time, position, num_positions, start_color, all_colors):
-        length = self.params['length']
-        progress = (float(time) - float(self.last_time)) / length
+        self.progress = (float(time) - float(self.last_time)) / self.params['length']
 
-        tween_color = self.next_colors[position] * progress + self.current_colors[position] * (1 - progress)
+    def transform(self, time, position, num_positions, start_color, all_colors):
+
+        tween_color = self.next_colors[position] * self.progress + self.current_colors[position] * (1 - self.progress)
 
         r_str = self.params['red_strength']
         g_str = self.params['green_strength']
