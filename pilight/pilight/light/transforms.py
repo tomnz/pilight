@@ -237,6 +237,48 @@ class BurstTransform(TransformBase):
         return start_color * self.brightnesses[position]
 
 
+class NoiseTransform(TransformBase):
+
+    def __init__(self, transforminstance):
+        super(NoiseTransform, self).__init__(transforminstance)
+
+        self.last_time = 0
+        self.current_colors = []
+        self.next_colors = []
+
+    def get_random_colors(self, length):
+        colors = []
+        for i in range(length):
+            colors.append(Color(random.random(), random.random(), random.random()))
+        return colors
+
+    def tick_frame(self, time, num_positions):
+        # Do we need to initialize?
+        if self.last_time == 0 or len(self.current_colors) != num_positions or len(self.next_colors) != num_positions:
+            self.current_colors = self.get_random_colors(num_positions)
+            self.next_colors = self.get_random_colors(num_positions)
+
+        # Have we passed the next time to update colors?
+        if time - self.last_time > self.params['length']:
+            self.last_time = time
+            self.current_colors = self.next_colors
+            self.next_colors = self.get_random_colors(num_positions)
+
+    def transform(self, time, position, num_positions, start_color, all_colors):
+        length = self.params['length']
+        progress = (float(time) - float(self.last_time)) / length
+
+        tween_color = self.next_colors[position] * progress + self.current_colors[position] * (1 - progress)
+
+        r_str = self.params['red_strength']
+        g_str = self.params['green_strength']
+        b_str = self.params['blue_strength']
+
+        return Color(start_color.r * (1 - r_str) + tween_color.r * r_str,
+                     start_color.g * (1 - g_str) + tween_color.g * g_str,
+                     start_color.b * (1 - b_str) + tween_color.b * b_str)
+
+
 class BrightnessTransform(TransformBase):
 
     def is_animated(self):
@@ -253,6 +295,7 @@ AVAILABLE_TRANSFORMS = {
     'rotatehue': RotateHueTransform,
     'gaussian': GaussianBlurTransform,
     'brightness': BrightnessTransform,
+    'noise': NoiseTransform,
     'burst': BurstTransform,
     'strobe': StrobeTransform,
 }
