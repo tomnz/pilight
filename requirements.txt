@@ -1,5 +1,4 @@
 django
 pika
 psycopg2
-south
 django-bootstrap3
