@@ -49,6 +49,8 @@ Install the Python dependencies:
 
 > Note: If you get an error message about available space on the device, it's likely your /tmp folder is too small. Run `sudo nano /etc/default/tmpfs`, change TMP_SIZE to 200M, then try `pip install -r requirements.txt` again. You may run into this when installing on a Raspberry Pi device.
 
+> Note: If setting up a server installation on Windows, with PostgreSQL, you may find it easier to install the `psycopg2` package from a binary installer instead of with pip. [Download the binary](http://www.stickpeople.com/projects/python/win-psycopg/) corresponding to your Python/PostgreSQL version.
+
 Create a new database in your DBMS (e.g. PostgreSQL) to use for PiLight.
 
 Copy the settings file and make required changes (particularly set up your light parameters, and database instance):
