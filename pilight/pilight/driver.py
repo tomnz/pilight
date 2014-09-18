@@ -64,8 +64,10 @@ class LightDriver(object):
 
         # We have the right number of parts - assume the message is
         # ok... Worse case scenario we end up with a blank color for
-        # a bogus channel key
-        self.color_channels[color_parts[1]] = Color.from_hex(color_parts[2])
+        # a bogus channel key. Some sanitation is done - channel is
+        # truncated to 30 chars to match the web side, and the color
+        # gets safely parsed by from_hex().
+        self.color_channels[(color_parts[1])[0:30]] = Color.from_hex(color_parts[2])
 
     def wait(self, spidev):
         """
