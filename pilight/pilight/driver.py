@@ -2,7 +2,7 @@ from home.models import Light, TransformInstance
 import time
 from pilight.light.transforms import AVAILABLE_TRANSFORMS
 from django.conf import settings
-from pilight.classes import PikaConnection
+from pilight.classes import PikaConnection, Color
 import base64
 
 
@@ -11,6 +11,7 @@ class LightDriver(object):
     def __init__(self):
         self.start_time = None
         self.messages_since_last_queue_check = 0
+        self.color_channels = {}
 
     def pop_message(self):
         """
@@ -51,6 +52,20 @@ class LightDriver(object):
         channel.basic_publish(exchange='', routing_key=settings.PIKA_QUEUE_NAME_COLORS, body=data)
 
         self.messages_since_last_queue_check += 1
+
+    def process_color_message(self, msg):
+        """
+        Processes a raw color message into its parts, populating the
+        given channel with the given color
+        """
+        color_parts = msg.split('_')
+        if len(color_parts) != 3:
+            return
+
+        # We have the right number of parts - assume the message is
+        # ok... Worse case scenario we end up with a blank color for
+        # a bogus channel key
+        self.color_channels[color_parts[1]] = Color.from_hex(color_parts[2])
 
     def wait(self, spidev):
         """
@@ -156,6 +171,8 @@ class LightDriver(object):
                     elif msg == 'restart':
                         print '    Restarting'
                         return True
+                    elif msg.startswith('color'):
+                        self.process_color_message(msg)
 
             # Note that we always start from the same base lights on each iteration
             # The previous iteration has no effect on the current iteration
@@ -211,8 +228,13 @@ class LightDriver(object):
 
         # Perform each transform step
         for transform in transforms:
+            # Does the transform subscribe to a color channel?
+            external_color = None
+            if transform.color_channel:
+                external_color = self.color_channels.get(transform.color_channel, None)
+
             # Tick the transform frame
-            transform.tick_frame(elapsed_time, len(colors))
+            transform.tick_frame(elapsed_time, len(colors), external_color)
 
             # Transform each light
             for i in range(len(colors)):

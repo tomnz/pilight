@@ -2,6 +2,7 @@ import json
 import math
 import random
 from pilight.classes import Color
+from PIL import ImageGrab, ImageFilter, Image
 
 
 class TransformBase(object):
@@ -10,6 +11,7 @@ class TransformBase(object):
         # Base classes should override this - and do something with params if need be
         self.transforminstance = transforminstance
         self.params = transforminstance.decoded_params
+        self.color_channel = None
 
     def transform(self, time, position, num_positions, start_color, all_colors):
         """
@@ -17,10 +19,12 @@ class TransformBase(object):
         """
         pass
 
-    def tick_frame(self, time, num_positions):
+    def tick_frame(self, time, num_positions, color_param=None):
         """
         Called once at the beginning of each frame - gives the transform
-        an opportunity to update state
+        an opportunity to update state. If the transform has set a
+        color_channel, then it will receive the current value of that
+        channel (if any)
         """
         pass
 
@@ -36,6 +40,22 @@ class TransformBase(object):
         static (not animated), then the update rate can be much lower
         """
         return True
+
+
+class ExternalColorTransform(TransformBase):
+
+    def __init__(self, transforminstance):
+        super(ExternalColorTransform, self).__init__(transforminstance)
+
+        self.color_channel = self.params['color_channel']
+        self.color = Color.from_hex('default_color')
+
+    def tick_frame(self, time, num_positions, color_param=None):
+        if color_param:
+            self.color = color_param
+
+    def transform(self, time, position, num_positions, start_color, all_colors):
+        return self.color * self.params['opacity'] + start_color * (1 - self.params['opacity'])
 
 
 class ColorFlashTransform(TransformBase):
@@ -96,7 +116,7 @@ class StrobeTransform(TransformBase):
         self.state_on = True
         self.frames = 0
 
-    def tick_frame(self, time, num_positions):
+    def tick_frame(self, time, num_positions, color_param=None):
         self.frames += 1
         if self.state_on:
             if self.frames > self.params['frames_on']:
@@ -198,7 +218,7 @@ class BurstTransform(TransformBase):
         self.brightnesses = []
         self.last_time = 0
 
-    def tick_frame(self, time, num_positions):
+    def tick_frame(self, time, num_positions, color_param=None):
         if self.last_time == 0:
             self.last_time = time
 
@@ -253,7 +273,7 @@ class NoiseTransform(TransformBase):
             colors.append(Color(random.random(), random.random(), random.random()))
         return colors
 
-    def tick_frame(self, time, num_positions):
+    def tick_frame(self, time, num_positions, color_param=None):
         # Do we need to initialize?
         if self.last_time == 0 or len(self.current_colors) != num_positions or len(self.next_colors) != num_positions:
             self.current_colors = self.get_random_colors(num_positions)
@@ -289,6 +309,47 @@ class BrightnessTransform(TransformBase):
         return start_color * self.params['brightness']
 
 
+class ScreenAmbianceTransform(TransformBase):
+
+    def __init__(self, transforminstance):
+        super(ScreenAmbianceTransform, self).__init__(transforminstance)
+
+        self.width = 0
+        self.height = 0
+        self.screen = None
+        self.frames = 0
+        self.saved = False
+
+    def tick_frame(self, time, num_positions, color_param=None):
+        # TODO: Check if we're on Windows - this will fail otherwise
+        self.frames -= 1
+
+        if self.frames <= 0:
+            self.frames = 10
+            self.screen = ImageGrab.grab()
+            if self.screen:
+                self.width = 50
+                self.height = 50
+                self.screen = self.screen.resize((50, 50), Image.BICUBIC)
+                self.screen = self.screen.filter(ImageFilter.GaussianBlur(40))
+                if not self.saved:
+                    self.saved = True
+                    self.screen.save("F:\\Store\\PiLight\\temp.png")
+
+    def transform(self, time, position, num_positions, start_color, all_colors):
+
+        percentage = float(position) / float(num_positions)
+        if percentage < 0.3333:
+            pixel = self.screen.getpixel((self.width - 1, self.height - 1 - self.height * percentage * 3))
+            return Color(float(pixel[0]) / 255, float(pixel[1]) / 255, float(pixel[2]) / 255)
+        elif percentage > 0.6667:
+            pixel = self.screen.getpixel((0, self.height * (percentage - 0.6667) * 3))
+            return Color(float(pixel[0]) / 255, float(pixel[1]) / 255, float(pixel[2]) / 255)
+        else:
+            pixel = self.screen.getpixel((self.width - 1 - self.width * (percentage - 0.3333) * 3, 0))
+            return Color(float(pixel[0]) / 255, float(pixel[1]) / 255, float(pixel[2]) / 255)
+
+
 AVAILABLE_TRANSFORMS = {
     'flash': FlashTransform,
     'scroll': ScrollTransform,
@@ -299,4 +360,6 @@ AVAILABLE_TRANSFORMS = {
     'noise': NoiseTransform,
     'burst': BurstTransform,
     'strobe': StrobeTransform,
+    'external': ExternalColorTransform,
+    'screen': ScreenAmbianceTransform,
 }

@@ -28,6 +28,19 @@ def message_stop_driver():
 def message_restart_driver():
     publish_message('restart')
 
+
+def message_color_channel(channel, color):
+    # Make sure we got a color
+    if not isinstance(color, Color):
+        return
+
+    # Truncate the channel name so we don't have any possibility of
+    # messiness with buffer overruns or the like
+    channel = str(channel)[0:30]
+
+    publish_message('color_%s_%s' % (channel, color.to_hex()))
+
+
 def auth_check(user):
     # Should we restrict access?
     if not settings.LIGHTS_REQUIRE_AUTH:
@@ -288,6 +301,25 @@ def fill_color(request):
 
     if result:
         message_restart_driver()
+
+    return HttpResponse(json.dumps({'success': result}), content_type='application/json')
+
+
+@user_passes_test(auth_check)
+def update_color_channel(request):
+
+    if request.method == 'POST':
+        if 'color' in request.POST and 'channel' in request.POST:
+            color = Color.from_hex(request.POST['color'])
+            channel = request.POST['channel']
+
+            message_color_channel(channel, color)
+
+            result = True
+        else:
+            result = False
+    else:
+        result = False
 
     return HttpResponse(json.dumps({'success': result}), content_type='application/json')
 
