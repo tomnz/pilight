@@ -132,6 +132,7 @@ FIELD_TYPE_CHOICES = (
     ('float', 'Decimal'),
     ('color', 'Color'),
     ('percentage', 'Percent'),
+    ('string', 'String'),
 )
 
 
@@ -157,5 +158,7 @@ class TransformField(models.Model):
             return long(value)
         elif self.field_type in ('float', 'percentage'):
             return float(value)
+        elif self.field_type == 'string':
+            return str(value)
         else:
             return value
