@@ -19,6 +19,9 @@ class LightDriver(object):
         Returns the body of the message if present, otherwise None
         """
         channel = PikaConnection.get_channel()
+        if not channel:
+            return None
+
         method, properties, body = channel.basic_get(settings.PIKA_QUEUE_NAME, no_ack=True)
         if method:
             return body
@@ -31,6 +34,9 @@ class LightDriver(object):
         by a client - usually pilight-client
         """
         channel = PikaConnection.get_channel()
+        if not channel:
+            # Failed to get the channel
+            return
 
         # Check for excessive messages in queue - and drop them if
         # there are too many. This is useful if the light driver is
@@ -79,10 +85,23 @@ class LightDriver(object):
         running = True
 
         # Purge all existing events
-        channel = PikaConnection.get_channel()
+        channel = None
+        while not channel:
+            channel = PikaConnection.get_channel()
+            if not channel:
+                print 'Failed to connect... Retrying in 30 seconds'
+                time.sleep(30)
         channel.queue_purge(settings.PIKA_QUEUE_NAME)
 
         while running:
+            # Try to obtain the channel again
+            channel = None
+            while not channel:
+                channel = PikaConnection.get_channel()
+            if not channel:
+                print 'Failed to connect... Retrying in 30 seconds'
+                time.sleep(30)
+
             # First wait for a "start" or "restart" command
             # "consume" is a blocking method that will wait for the first message to come in
             body = None

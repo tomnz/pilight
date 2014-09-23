@@ -8,13 +8,26 @@ from pilight.driver import LightDriver
 from django.conf import settings
 import json
 from django.views.decorators.csrf import ensure_csrf_cookie
+from pika.exceptions import ConnectionClosed
 
 
 # Pika message passing setup
 # Helper functions for controlling the light driver
-def publish_message(msg):
+def publish_message(msg, first=True):
     channel = PikaConnection.get_channel()
-    channel.basic_publish(exchange='', routing_key=settings.PIKA_QUEUE_NAME, body=msg)
+    if not channel:
+        # Connection failed to open - fail silently
+        return
+    try:
+        channel.basic_publish(exchange='', routing_key=settings.PIKA_QUEUE_NAME, body=msg)
+    except ConnectionClosed:
+        # Someone closed our connection - attempt the publish again to refresh
+        # (But only if it's the first time)
+        if first:
+            publish_message(msg, first=False)
+        else:
+            # Not the first time - there is something bigger going on - fail silently
+            pass
 
 
 def message_start_driver():

@@ -66,9 +66,14 @@ class PikaConnection(object):
             PikaConnection.channel_obj = None
         if not PikaConnection.connection_obj:
             # Connect
-            PikaConnection.connection_obj = pika.BlockingConnection(
-                pika.ConnectionParameters(host=settings.PIKA_HOST_NAME)
-            )
+            try:
+                PikaConnection.connection_obj = pika.BlockingConnection(
+                    pika.ConnectionParameters(host=settings.PIKA_HOST_NAME)
+                )
+            except pika.exceptions.AMQPConnectionError:
+                # Connection failed - just silently return nothing
+                return None
+
             # Open our queues
             PikaConnection.connection_obj.channel().queue_declare(
                 queue=settings.PIKA_QUEUE_NAME,
