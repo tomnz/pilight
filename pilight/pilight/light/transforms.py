@@ -42,10 +42,53 @@ class TransformBase(object):
         return True
 
 
-class ExternalColorTransform(TransformBase):
+class LayerBase(TransformBase):
+    """
+    Specialized type of transform - produces color information
+    independently of any prior colors (like a layer in an image
+    editor), and then uses a common method and params to blend
+    the color information into the existing color data.
+    """
 
     def __init__(self, transforminstance):
-        super(ExternalColorTransform, self).__init__(transforminstance)
+        super(LayerBase, self).__init__(transforminstance)
+
+        self.opacity = self.params['opacity']
+        self.blend_mode = self.params['blend_mode']
+
+    def transform(self, time, position, num_positions, start_color, all_colors):
+        """
+        Performs blending of the layer's color with the existing color in
+        the given position, using opacity and blending modes. Should not be
+        overriden by inherited classes - override get_color instead.
+        """
+        # Grab the color from the layer
+        color = self.get_color(time, position, num_positions)
+
+        # Perform blending with the given blend mode
+        # Currently support "multiply" and "normal" modes - normal being the default
+        # if an unknown mode gets passed in
+        result = start_color
+        if self.blend_mode == 'multiply':
+            mult_color = start_color * color
+            result = (start_color * (1 - self.opacity)) + (mult_color * self.opacity)
+        else:
+            result = (start_color * (1 - self.opacity)) + (color * self.opacity)
+
+        return result
+
+    def get_color(self, time, position, num_positions):
+        """
+        Main method that inherited classes should implement - returns a
+        color for the given position
+        """
+        pass
+
+
+class ExternalColorLayer(LayerBase):
+
+    def __init__(self, transforminstance):
+        super(ExternalColorLayer, self).__init__(transforminstance)
 
         self.color_channel = self.params['color_channel']
         self.color = Color.from_hex('default_color')
@@ -54,8 +97,8 @@ class ExternalColorTransform(TransformBase):
         if color_param:
             self.color = color_param
 
-    def transform(self, time, position, num_positions, start_color, all_colors):
-        return self.color * self.params['opacity'] + start_color * (1 - self.params['opacity'])
+    def get_color(self, time, position, num_positions):
+        return self.color
 
 
 class ColorFlashTransform(TransformBase):
@@ -360,6 +403,6 @@ AVAILABLE_TRANSFORMS = {
     'noise': NoiseTransform,
     'burst': BurstTransform,
     'strobe': StrobeTransform,
-    'external': ExternalColorTransform,
+    'external': ExternalColorLayer,
     'screen': ScreenAmbianceTransform,
 }
