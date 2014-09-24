@@ -7,7 +7,7 @@ from pilight.classes import Color, PikaConnection
 from pilight.driver import LightDriver
 from django.conf import settings
 import json
-from django.views.decorators.csrf import ensure_csrf_cookie
+from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 from pika.exceptions import ConnectionClosed
 
 
@@ -97,6 +97,24 @@ def index(request):
         },
         context_instance=RequestContext(request)
     )
+
+
+@csrf_exempt
+def post_auth(request):
+    username = request.POST['username']
+    password = request.POST['password']
+    user = authenticate(username=username, password=password)
+
+    result = 'Failed'
+
+    if user is not None:
+        if user.is_active:
+            login(request, user)
+            result = 'Authenticated'
+        else:
+            result = 'Disabled'
+
+    return HttpResponse(json.dumps({'result': result}), content_type='application/json')
 
 
 @user_passes_test(auth_check)
@@ -318,7 +336,7 @@ def fill_color(request):
     return HttpResponse(json.dumps({'success': result}), content_type='application/json')
 
 
-@user_passes_test(auth_check)
+@csrf_exempt
 def update_color_channel(request):
 
     if request.method == 'POST':

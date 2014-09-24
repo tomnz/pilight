@@ -22,6 +22,8 @@ urlpatterns = patterns(
     url(r'^store/load/?$', 'load_store', name='load_store'),
     url(r'^store/render_snippet/?$', 'render_stores_snippet', name='render_stores_snippet'),
     url(r'^store/save/?$', 'save_store', name='save_store'),
+    url(r'^channel/set/?$', 'update_color_channel', name='update_color_channel'),
+    url(r'^auth/?$', 'post_auth', name='post_auth'),
 )
 
 # Auth
