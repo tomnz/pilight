@@ -97,19 +97,20 @@ def dec2hex(d):
 
 class Color(object):
     """
-    Helper class that stores an RGB color and provides many utility
+    Helper class that stores an RGBA color and provides many utility
     methods. This is the class that gets stored in the database to
     represent a light's color.
-    Each color value (r, g, b) is a floating point value between 0
+    Each color value (r, g, b, a) is a floating point value between 0
     and 1 - however, values can be greater than 1 or less than 0 in
     order to support HDR operations. This can be very powerful.
     """
 
-    # Constructor
-    def __init__(self, r, g, b):
+    # Constructors
+    def __init__(self, r, g, b, a=1.0):
         self.r = r
         self.g = g
         self.b = b
+        self.a = a
 
     # Serialize/deserialize
     def serialize(self):
@@ -133,46 +134,67 @@ class Color(object):
     def get_default(cls):
         return cls(1.0, 1.0, 1.0)
 
+    # Blending operations
+    @classmethod
+    def blend_normal(cls, bg, fg):
+        if not isinstance(bg, Color) or not isinstance(fg, Color):
+            return Color.get_default()
+
+        fg_a = getattr(fg, 'a', 1.0)
+        bg_a = getattr(bg, 'a', 1.0)
+
+        # Basic easy cases
+        if fg_a == 1.0:
+            return fg.clone()
+        elif fg_a == 0:
+            return bg.clone()
+        elif bg_a == 0:
+            return fg.clone()
+        elif bg_a == 1.0:
+            return Color(bg.r * (1 - fg_a) + fg.r * fg_a, bg.g * (1 - fg_a) + fg.g * fg_a, bg.b * (1 - fg_a) + fg.b * fg_a)
+
+        # Both channels have alpha
+        a = fg_a + bg_a - fg_a * bg_a
+        bg_scaled = bg * bg_a
+        bg_scaled.a = 1.0
+        fg_scaled = fg * fg_a
+        fg_scaled.a = 1.0
+
+        final = fg_scaled * fg_a + bg_scaled * (1 - fg_a)
+        if a > 0:
+            final /= a
+        final.a = a
+
+        return final
+
     # Operators
     def __add__(self, other):
         if isinstance(other, Color):
-            return Color(self.r + other.r, self.g + other.g, self.b + other.b)
+            if getattr(self, 'a', 1.0) == 1.0 and getattr(other, 'a', 1.0) == 1.0:
+                return Color(self.r + other.r, self.g + other.g, self.b + other.b)
+            else:
+                return self.flatten_alpha() + other.flatten_alpha()
         else:
             return NotImplemented
 
     def __mul__(self, other):
         if isinstance(other, (int, long, float)):
-            return Color(self.r * other, self.g * other, self.b * other)
+            # Don't multiply the alpha
+            return Color(self.r * other, self.g * other, self.b * other, getattr(self, 'a', 1.0))
         elif isinstance(other, Color):
-            return Color(self.r * other.r, self.g * other.g, self.b * other.b)
-        else:
-            return NotImplemented
-
-    def __div__(self, other):
-        if isinstance(other, (int, long, float)):
-            return Color(self.r / other, self.g / other, self.b / other)
+            if getattr(self, 'a', 1.0) == 1.0 and getattr(other, 'a', 1.0) == 1.0:
+                return Color(self.r * other.r, self.g * other.g, self.b * other.b)
+            else:
+                return self.flatten_alpha() * other.flatten_alpha()
         else:
             return NotImplemented
 
     def __rmul__(self, other):
-        if isinstance(other, (int, long, float)):
-            return Color(self.r * other, self.g * other, self.b * other)
-        elif isinstance(other, Color):
-            return Color(self.r * other.r, self.g * other.g, self.b * other.b)
-        else:
-            return NotImplemented
+        return self * other
 
-    def __imul__(self, other):
+    def __div__(self, other):
         if isinstance(other, (int, long, float)):
-            return Color(self.r * other, self.g * other, self.b * other)
-        elif isinstance(other, Color):
-            return Color(self.r * other.r, self.g * other.g, self.b * other.b)
-        else:
-            return NotImplemented
-
-    def __idiv__(self, other):
-        if isinstance(other, (int, long, float)):
-            return Color(self.r / other, self.g / other, self.b / other)
+            return Color(self.r / other, self.g / other, self.b / other, getattr(self, 'a', 1.0))
         else:
             return NotImplemented
 
@@ -203,27 +225,38 @@ class Color(object):
     def safe_corrected_b(self):
         return max(min(self.b * settings.LIGHTS_MULTIPLIER_B, 1), 0)
 
+    def safe_a(self):
+        return max(min(getattr(self, 'a', 1.0), 1), 0)
+
     def as_safe(self):
-        return Color(self.safe_r(), self.safe_g(), self.safe_b())
+        return Color(self.safe_r(), self.safe_g(), self.safe_b(), self.safe_a())
+
+    def flatten_alpha(self):
+        flattened = self * getattr(self, 'a', 1.0)
+        flattened.a = 1.0
+        return flattened
 
     def to_hex(self):
-        return dec2hex(self.safe_r()*255) + dec2hex(self.safe_g()*255) + dec2hex(self.safe_b()*255)
+        flattened = self.flatten_alpha()
+        return dec2hex(flattened.safe_r()*255) + dec2hex(flattened.safe_g()*255) + dec2hex(flattened.safe_b()*255)
 
     def to_hex_web(self):
         return ('#%s' % self.to_hex()).lower()
 
     def to_raw(self):
+        flattened = self.flatten_alpha()
         return (
-            struct.pack('B', int(self.safe_r() * (2 ** 8 - 1))),
-            struct.pack('B', int(self.safe_g() * (2 ** 8 - 1))),
-            struct.pack('B', int(self.safe_b() * (2 ** 8 - 1))),
+            struct.pack('B', int(flattened.safe_r() * (2 ** 8 - 1))),
+            struct.pack('B', int(flattened.safe_g() * (2 ** 8 - 1))),
+            struct.pack('B', int(flattened.safe_b() * (2 ** 8 - 1))),
         )
 
     def to_raw_corrected(self):
+        flattened = self.flatten_alpha()
         return (
-            struct.pack('B', int(self.safe_corrected_r() * (2 ** 8 - 1))),
-            struct.pack('B', int(self.safe_corrected_g() * (2 ** 8 - 1))),
-            struct.pack('B', int(self.safe_corrected_b() * (2 ** 8 - 1))),
+            struct.pack('B', int(flattened.safe_corrected_r() * (2 ** 8 - 1))),
+            struct.pack('B', int(flattened.safe_corrected_g() * (2 ** 8 - 1))),
+            struct.pack('B', int(flattened.safe_corrected_b() * (2 ** 8 - 1))),
         )
 
     # Conversion
@@ -255,14 +288,14 @@ class Color(object):
         if h < 0:
             h += 360
 
-        return h, s, v
+        return h, s, v, getattr(self, 'a', 1.0)
 
     @classmethod
-    def from_hsv(cls, h, s, v):
+    def from_hsv(cls, h, s, v, a=1.0):
         # Algorithm from:
         # http://www.cs.rit.edu/~ncs/color/t_convert.html
         if s == 0:
-            return Color(v, v, v)
+            return Color(v, v, v, a)
 
         h /= 60
         i = int(h)
@@ -272,14 +305,14 @@ class Color(object):
         t = v * (1 - s * (1 - f))
 
         if i == 0:
-            return Color(v, t, p)
+            return Color(v, t, p, a)
         elif i == 1:
-            return Color(q, v, p)
+            return Color(q, v, p, a)
         elif i == 2:
-            return Color(p, v, t)
+            return Color(p, v, t, a)
         elif i == 3:
-            return Color(p, q, v)
+            return Color(p, q, v, a)
         elif i == 4:
-            return Color(t, p, v)
+            return Color(t, p, v, a)
         else:
-            return Color(v, p, q)
+            return Color(v, p, q, a)
