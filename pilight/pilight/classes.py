@@ -14,6 +14,11 @@ class PikaConnection(object):
     channel_obj = None
 
     @staticmethod
+    def clear_channel():
+        connection_obj = None
+        channel_obj = None
+
+    @staticmethod
     def get_channel():
         if (PikaConnection.connection_obj and not PikaConnection.connection_obj.is_open) or \
                 (PikaConnection.channel_obj and not PikaConnection.channel_obj.is_open):

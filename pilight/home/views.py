@@ -21,6 +21,9 @@ def publish_message(msg, first=True):
     try:
         channel.basic_publish(exchange='', routing_key=settings.PIKA_QUEUE_NAME, body=msg)
     except ConnectionClosed:
+        # Force the channel to try reconnecting next time
+        PikaConnection.clear_channel()
+
         # Someone closed our connection - attempt the publish again to refresh
         # (But only if it's the first time)
         if first:
