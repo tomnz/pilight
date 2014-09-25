@@ -1,0 +1,55 @@
+PiLight
+
+MESSAGE QUEUE:
+
+Ditch Celery?!?
+Instead run the task file as a standalone thing
+Take messages for start, stop, and refresh
+
+
+DUMPING INITIAL DATA:
+
+python manage.py dumpdata --exclude home.Light --exclude home.TransformInstance --exclude home.Store --indent 4 home > fixtures\initial_data.json
+
+
+IDEAS:
+
+- Have a basic color setting, for setting each individual LED
+    - Static colors can be assigned to individually, or "painted" across a region with a "brush"
+    - The whole pallette can be assigned by a single script (e.g. a single color, or a rainbow, or randomized) - optional KVP params
+    - (Future) scripts can be continually-updating, in which case they disable the editor... This might be unnecessary, could be achieved with a transform instead...
+- Apply transforms across the whole system
+    - Get applied in a particular order (changeable by the user)
+    - Any arbitrary number of transforms can get stacked
+    - Pass in KVP params
+    - Examples:
+        - Dim
+        - Dim based on time of day
+        - Flash (rate)
+        - Scroll (rate)
+        - Blur
+        - Sparkle
+
+
+OTHER NOTES:
+
+- 16-bit color values to allow HDR??
+- Have params encoded in a table with type string, default value, etc... represented by custom class with custom serialize/deserialize
+
+
+SCOPE:
+
+V1
+    - Apply single color to entire string
+    - Basic tranforms capability (either no params, or params via textbox)
+    - No live update of settings - spawn a worker thread with an initial state... have to restart after making changes
+
+V2
+    - Update individual colors
+    - Add brushes
+
+V3
+    - Params via controls
+
+V4
+    - Live update without restart

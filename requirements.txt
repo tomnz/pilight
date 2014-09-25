@@ -1,0 +1,5 @@
+django
+pika
+psycopg2
+django-bootstrap3
+pillow

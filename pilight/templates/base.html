@@ -1,0 +1,32 @@
+{% load bootstrap3 %}
+{% load static from staticfiles %}
+
+<!DOCTYPE html>
+<html>
+<head>
+    {% if title %}
+        <title>{{ INSTALLATION_NAME }} - {{ title }}</title>
+    {% else %}
+        <title>{{ INSTALLATION_NAME }}</title>
+    {% endif %}
+    {% bootstrap_css %}
+    <link href="{% static "css/pilight.css" %}" rel="stylesheet" type="text/css" />
+    {% block head %}
+    {% endblock %}
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="../../assets/js/html5shiv.js"></script>
+      <script src="../../assets/js/respond.min.js"></script>
+    <![endif]-->
+</head>
+<body>
+    <div class="container">
+        {% block body %}
+        {% endblock %}
+    </div>
+    {% bootstrap_javascript True %}
+    {% block js %}
+    {% endblock %}
+</body>
+</html>
