@@ -194,6 +194,8 @@ CACHES = {
 
 ROOT_URLCONF = 'pilight.urls'
 
+TEST_RUNNER = 'django.test.runner.DiscoverRunner'
+
 # Python dotted path to the WSGI application used by Django's runserver.
 WSGI_APPLICATION = 'pilight.wsgi.application'
 
