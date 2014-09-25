@@ -62,18 +62,18 @@ class LayerBase(TransformBase):
         the given position, using opacity and blending modes. Should not be
         overriden by inherited classes - override get_color instead.
         """
-        # Grab the color from the layer
+        # Grab the color from the layer and apply the opacity
         color = self.get_color(time, position, num_positions)
+        color.a *= self.opacity
 
         # Perform blending with the given blend mode
         # Currently support "multiply" and "normal" modes - normal being the default
         # if an unknown mode gets passed in
-        result = start_color
         if self.blend_mode == 'multiply':
-            mult_color = start_color * color
-            result = (start_color * (1 - self.opacity)) + (mult_color * self.opacity)
+            # TODO: Actually implement multiplicative blending
+            result = Color.blend_normal(start_color, color)
         else:
-            result = (start_color * (1 - self.opacity)) + (color * self.opacity)
+            result = Color.blend_normal(start_color, color)
 
         return result
 
@@ -91,7 +91,7 @@ class ExternalColorLayer(LayerBase):
         super(ExternalColorLayer, self).__init__(transforminstance)
 
         self.color_channel = self.params['color_channel']
-        self.color = Color.from_hex('default_color')
+        self.color = Color.from_hex(self.params['default_color'])
 
     def tick_frame(self, time, num_positions, color_param=None):
         if color_param:
@@ -99,6 +99,61 @@ class ExternalColorLayer(LayerBase):
 
     def get_color(self, time, position, num_positions):
         return self.color
+
+
+class ExternalColorBurstLayer(LayerBase):
+
+    def __init__(self, transforminstance):
+        super(ExternalColorBurstLayer, self).__init__(transforminstance)
+
+        self.color_channel = self.params['color_channel']
+        self.color = Color.from_hex(self.params['default_color'])
+        self.sparks = {}
+        self.brightnesses = []
+        self.last_time = 0
+
+    def tick_frame(self, time, num_positions, color_param=None):
+        if color_param:
+            self.color = color_param
+
+        if self.last_time == 0:
+            self.last_time = time
+
+        # Advance existing sparks
+        elapsed_time = time - self.last_time
+        for i in self.sparks.keys():
+            self.sparks[i] += elapsed_time / self.params['burst_length']
+            if self.sparks[i] >= 1:
+                del self.sparks[i]
+
+        # Determine probability of making a spark
+        chance = elapsed_time * self.params['burst_rate'] / num_positions
+
+        # Spawn new sparks
+        for i in range(num_positions):
+            if random.random() < chance and not i in self.sparks.keys():
+                self.sparks[i] = 0
+
+        # Determine brightnesses
+        self.brightnesses = [0] * num_positions
+        radius = self.params['burst_radius']
+        for index, progress in self.sparks.iteritems():
+            spark_strength = 1 - abs((progress - 0.5) * 2)
+            min_index = int(max(0, index - radius))
+            max_index = int(min(num_positions, index + radius + 1))
+            for i in range(min_index, max_index):
+                distance = abs(index - i)
+                # TODO: Better falloff function
+                self.brightnesses[i] += (1.0 - (float(distance) / radius)) * spark_strength
+
+        # Save this time for the next iteration
+        self.last_time = time
+
+    def get_color(self, time, position, num_positions):
+        # Apply the saved brightnesses
+        result = self.color.clone()
+        result.a = self.brightnesses[position]
+        return result
 
 
 class ColorFlashTransform(TransformBase):
@@ -205,13 +260,13 @@ class RotateHueTransform(TransformBase):
         progress = float(time) / float(length) - int(time / length)
 
         # Get color as HSV
-        h, s, v = start_color.to_hsv()
+        h, s, v, a = start_color.to_hsv()
 
         # Rotate H by given amount
         h = (h + progress * 360) % 360
 
         # Transform HSV back to RGB and return
-        return Color.from_hsv(h, s, v)
+        return Color.from_hsv(h, s, v, a)
 
 
 class GaussianBlurTransform(TransformBase):
@@ -297,7 +352,9 @@ class BurstTransform(TransformBase):
 
     def transform(self, time, position, num_positions, start_color, all_colors):
         # Apply the saved brightnesses
-        return start_color * self.brightnesses[position]
+        result = start_color.clone()
+        result.a *= self.brightnesses[position]
+        return result
 
 
 class NoiseTransform(TransformBase):
@@ -404,5 +461,6 @@ AVAILABLE_TRANSFORMS = {
     'burst': BurstTransform,
     'strobe': StrobeTransform,
     'external': ExternalColorLayer,
+    'externalburst': ExternalColorBurstLayer,
     'screen': ScreenAmbianceTransform,
 }

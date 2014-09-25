@@ -100,6 +100,15 @@
 },
 {
     "fields": {
+        "long_name": "External Color Burst",
+        "name": "externalburst",
+        "description": "Designed to accept color updates from an external source - applying the given color to all of the LEDs. Do not use unless you know what you are doing! Make sure color_channel matches what the external source is providing. Adds a burst effect to the color."
+    },
+    "model": "home.transform",
+    "pk": 12
+},
+{
+    "fields": {
         "default_value": "2",
         "field_type": "float",
         "description": "Time in seconds per cycle",
@@ -421,5 +430,101 @@
     },
     "model": "home.transformfield",
     "pk": 27
+},
+{
+    "fields": {
+        "default_value": "1.0",
+        "field_type": "float",
+        "description": "",
+        "transform": 12,
+        "long_name": "Opacity",
+        "name": "opacity"
+    },
+    "model": "home.transformfield",
+    "pk": 28
+},
+{
+    "fields": {
+        "default_value": "#FFFFFF",
+        "field_type": "color",
+        "description": "",
+        "transform": 12,
+        "long_name": "Default Color",
+        "name": "default_color"
+    },
+    "model": "home.transformfield",
+    "pk": 29
+},
+{
+    "fields": {
+        "default_value": "unknown",
+        "field_type": "string",
+        "description": "",
+        "transform": 12,
+        "long_name": "Color Channel",
+        "name": "color_channel"
+    },
+    "model": "home.transformfield",
+    "pk": 30
+},
+{
+    "fields": {
+        "default_value": "3.0",
+        "field_type": "float",
+        "description": "",
+        "transform": 12,
+        "long_name": "Burst Radius",
+        "name": "burst_radius"
+    },
+    "model": "home.transformfield",
+    "pk": 31
+},
+{
+    "fields": {
+        "default_value": "1.0",
+        "field_type": "float",
+        "description": "",
+        "transform": 12,
+        "long_name": "Burst Length",
+        "name": "burst_length"
+    },
+    "model": "home.transformfield",
+    "pk": 32
+},
+{
+    "fields": {
+        "default_value": "4.0",
+        "field_type": "float",
+        "description": "",
+        "transform": 12,
+        "long_name": "Burst Rate",
+        "name": "burst_rate"
+    },
+    "model": "home.transformfield",
+    "pk": 33
+},
+{
+    "fields": {
+        "default_value": "normal",
+        "field_type": "string",
+        "description": "",
+        "transform": 11,
+        "long_name": "Blend Mode",
+        "name": "blend_mode"
+    },
+    "model": "home.transformfield",
+    "pk": 34
+},
+{
+    "fields": {
+        "default_value": "normal",
+        "field_type": "string",
+        "description": "",
+        "transform": 12,
+        "long_name": "Blend Mode",
+        "name": "blend_mode"
+    },
+    "model": "home.transformfield",
+    "pk": 35
 }
 ]
