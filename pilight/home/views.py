@@ -20,7 +20,10 @@ def publish_message(msg, first=True):
         return
     try:
         channel.basic_publish(exchange='', routing_key=settings.PIKA_QUEUE_NAME, body=msg)
-    except ConnectionClosed:
+
+    # Current version of Pika can be a little unstable - catch ANY exception
+    except:
+        print 'Pika channel publish failed - clearing objects to try again'
         # Force the channel to try reconnecting next time
         PikaConnection.clear_channel()
 

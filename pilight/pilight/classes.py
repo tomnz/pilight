@@ -15,65 +15,21 @@ class PikaConnection(object):
 
     @staticmethod
     def clear_channel():
-        connection_obj = None
-        channel_obj = None
+        PikaConnection.connection_obj = None
+        PikaConnection.channel_obj = None
 
     @staticmethod
     def get_channel():
         if (PikaConnection.connection_obj and not PikaConnection.connection_obj.is_open) or \
                 (PikaConnection.channel_obj and not PikaConnection.channel_obj.is_open):
             # Just start over in this case...
-            # Attempting to fix the following bug:
-            # Traceback (most recent call last):
-            #   File "C:\Python27\lib\site-packages\django\core\handlers\base.py", line 115, i
-            # n get_response
-            #     response = callback(request, *callback_args, **callback_kwargs)
-            #   File "F:\Store\PiLight\pilight\home\views.py", line 344, in start_driver
-            #     message_start_driver()
-            #   File "F:\Store\PiLight\pilight\home\views.py", line 20, in message_start_drive
-            # r
-            #     publish_message('start')
-            #   File "F:\Store\PiLight\pilight\home\views.py", line 16, in publish_message
-            #     channel.basic_publish(exchange='', routing_key=settings.PIKA_QUEUE_NAME, bod
-            # y=msg)
-            #   File "C:\Python27\lib\site-packages\pika\adapters\blocking_connection.py", lin
-            # e 540, in basic_publish
-            #     (properties, body), False)
-            #   File "C:\Python27\lib\site-packages\pika\adapters\blocking_connection.py", lin
-            # e 1121, in _send_method
-            #     self.connection.send_method(self.channel_number, method_frame, content)
-            #   File "C:\Python27\lib\site-packages\pika\adapters\blocking_connection.py", lin
-            # e 249, in send_method
-            #     self._send_method(channel_number, method_frame, content)
-            #   File "C:\Python27\lib\site-packages\pika\connection.py", line 1489, in _send_m
-            # ethod
-            #     self._send_frame(frame.Method(channel_number, method_frame))
-            #   File "C:\Python27\lib\site-packages\pika\adapters\blocking_connection.py", lin
-            # e 388, in _send_frame
-            #     super(BlockingConnection, self)._send_frame(frame_value)
-            #   File "C:\Python27\lib\site-packages\pika\connection.py", line 1476, in _send_f
-            # rame
-            #     self._flush_outbound()
-            #   File "C:\Python27\lib\site-packages\pika\adapters\blocking_connection.py", lin
-            # e 348, in _flush_outbound
-            #     if self._handle_write():
-            #   File "C:\Python27\lib\site-packages\pika\adapters\base_connection.py", line 33
-            # 8, in _handle_write
-            #     return self._handle_error(error)
-            #   File "C:\Python27\lib\site-packages\pika\adapters\base_connection.py", line 28
-            # 2, in _handle_error
-            #     self._handle_disconnect()
-            #   File "C:\Python27\lib\site-packages\pika\adapters\blocking_connection.py", lin
-            # e 318, in _handle_disconnect
-            #     self.disconnect()
-            # AttributeError: 'BlockingConnection' object has no attribute 'disconnect'
             PikaConnection.connection_obj = None
             PikaConnection.channel_obj = None
         if not PikaConnection.connection_obj:
             # Connect
             try:
                 PikaConnection.connection_obj = pika.BlockingConnection(
-                    pika.ConnectionParameters(host=settings.PIKA_HOST_NAME)
+                    pika.ConnectionParameters(host=settings.PIKA_HOST_NAME, heartbeat_interval=60)
                 )
             except pika.exceptions.AMQPConnectionError:
                 # Connection failed - just silently return nothing
