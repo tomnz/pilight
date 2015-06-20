@@ -85,6 +85,38 @@ And
 
 That's it! You should now be able to access the interface to control the lights by accessing [http://localhost:8000/](http://localhost:8000/).
 
+Starting Automatically
+----------------------
+
+If running PiLight from a Raspberry Pi, it may be beneficial to have the server and light driver start automatically when the device boots. This saves having to connect a keyboard or SSH to your Pi whenever the power cycles. It's suggested that you do this by using screen. First, open your screen config:
+
+    nano ~/.screenrc
+
+Suggested config to use (important pieces highlighted):
+
+<pre>startup_message off
+vbell off
+escape /
+defscrollback 5000
+hardstatus alwayslastline
+hardstatus string '%{= kG}%-Lw%{= kW}%50> %n*%f %t%{= kG}%+Lw%< %{= kG}%-=%D %m/%d/%y | %C:%s %A'
+
+chdir $HOME
+screen -t shell 0 bash
+screen -t root 0 su -
+
+<strong>chdir $HOME/pilight/pilight
+screen -t pl 1 python manage.py runserver 0.0.0.0:8000
+screen -t pl-driver 2 python manage.py lightdriver</strong>
+
+chdir $HOME
+select 0</pre>
+
+This will open two tabs for PiLight on startup - one for the web interface, and one for the light driver. The final step is to have screen run at startup. There are a few ways to do this, but crontab is likely the simplest. Run `crontab -e`, then enter a line like the following:
+
+    @reboot sleep 120 && screen -d -m
+
+This will wait 2 minutes (you can try lowering this timeout) after system reboot, then open screen in a detached mode. If you SSH into the Pi later, you can view the opened processes by running `screen -R`.
 
 Guide
 -----

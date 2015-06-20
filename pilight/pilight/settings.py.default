@@ -66,6 +66,16 @@ PIKA_QUEUE_NAME = 'pilight-queue'
 PIKA_QUEUE_NAME_COLORS = 'pilight-colors'
 
 
+#####################################
+# Lightdriver infrastructure settings
+
+# Identifier for the driver running cache entry
+DRIVER_CACHE_ID = 'light-driver-running'
+
+# How long (in seconds) to retain the cached lock
+DRIVER_CACHE_EXPIRY = 5 * 60
+
+
 ######################
 # Django core settings
 DEBUG = True

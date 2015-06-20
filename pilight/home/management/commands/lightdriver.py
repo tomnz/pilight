@@ -7,11 +7,6 @@ import traceback
 import sys
 
 
-# How long to wait to expire an old lock
-# Set to a day by default
-LOCK_EXPIRE = 60 * 60 * 24
-
-
 # Boilerplate to launch the light driver as a Django command
 class Command(BaseCommand):
     option_list = BaseCommand.option_list + (
@@ -37,7 +32,7 @@ class Command(BaseCommand):
     help = 'Starts the light driver to await commands'
 
     def handle(self, *args, **options):
-        lock_id = 'light-driver-running'
+        lock_id = settings.DRIVER_CACHE_ID
 
         if options['clear_lock']:
             # This is a "last ditch" utility function to clear the running flag
@@ -46,7 +41,7 @@ class Command(BaseCommand):
             return
 
         # Perform locking - can we even run right now?
-        acquire_lock = lambda: cache.add(lock_id, 'true', LOCK_EXPIRE)
+        acquire_lock = lambda: cache.add(lock_id, 'true', settings.DRIVER_CACHE_EXPIRY)
         release_lock = lambda: cache.delete(lock_id)
 
         got_lock = acquire_lock()
@@ -85,7 +80,8 @@ class Command(BaseCommand):
                 if got_lock:
                     release_lock()
         else:
-            print 'Another light driver appears to already be running'
+            print ''
+            print 'Another driver appears to be running'
             print 'Force light driver to run with --force-run'
             print 'Clear the running flag with --clear-lock'
             print 'Note that you WILL encounter issues if more than one driver runs at once'
