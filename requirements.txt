@@ -1,3 +1,6 @@
+pyopenssl
+ndg-httpsclient
+pyasn1
 django
 pika
 psycopg2
