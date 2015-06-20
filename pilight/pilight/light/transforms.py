@@ -2,7 +2,6 @@ import json
 import math
 import random
 from pilight.classes import Color
-from PIL import ImageGrab, ImageFilter, Image
 
 
 class TransformBase(object):
@@ -409,46 +408,6 @@ class BrightnessTransform(TransformBase):
         return start_color * self.params['brightness']
 
 
-class ScreenAmbianceTransform(TransformBase):
-
-    def __init__(self, transforminstance):
-        super(ScreenAmbianceTransform, self).__init__(transforminstance)
-
-        self.width = 0
-        self.height = 0
-        self.screen = None
-        self.frames = 0
-        self.saved = False
-
-    def tick_frame(self, time, num_positions, color_param=None):
-        # TODO: Check if we're on Windows - this will fail otherwise
-        self.frames -= 1
-
-        if self.frames <= 0:
-            self.frames = 10
-            self.screen = ImageGrab.grab()
-            if self.screen:
-                self.width = 50
-                self.height = 50
-                self.screen = self.screen.resize((50, 50), Image.BICUBIC)
-                self.screen = self.screen.filter(ImageFilter.GaussianBlur(40))
-                if not self.saved:
-                    self.saved = True
-                    self.screen.save("F:\\Store\\PiLight\\temp.png")
-
-    def transform(self, time, position, num_positions, start_color, all_colors):
-
-        percentage = float(position) / float(num_positions)
-        if percentage < 0.3333:
-            pixel = self.screen.getpixel((self.width - 1, self.height - 1 - self.height * percentage * 3))
-            return Color(float(pixel[0]) / 255, float(pixel[1]) / 255, float(pixel[2]) / 255)
-        elif percentage > 0.6667:
-            pixel = self.screen.getpixel((0, self.height * (percentage - 0.6667) * 3))
-            return Color(float(pixel[0]) / 255, float(pixel[1]) / 255, float(pixel[2]) / 255)
-        else:
-            pixel = self.screen.getpixel((self.width - 1 - self.width * (percentage - 0.3333) * 3, 0))
-            return Color(float(pixel[0]) / 255, float(pixel[1]) / 255, float(pixel[2]) / 255)
-
 
 AVAILABLE_TRANSFORMS = {
     'flash': FlashTransform,
@@ -462,5 +421,4 @@ AVAILABLE_TRANSFORMS = {
     'strobe': StrobeTransform,
     'external': ExternalColorLayer,
     'externalburst': ExternalColorBurstLayer,
-    'screen': ScreenAmbianceTransform,
 }
