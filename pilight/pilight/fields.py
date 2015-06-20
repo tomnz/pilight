@@ -1,6 +1,5 @@
 from django.db import models
 from pilight.widgets import ColorPickerWidget
-from south.modelsinspector import add_introspection_rules
 import pickle
 
 
@@ -52,6 +51,3 @@ class ColorField(PickledObjectField):
     def formfield(self, **kwargs):
         kwargs['widget'] = ColorPickerWidget
         return super(ColorField, self).formfield(**kwargs)
-
-
-add_introspection_rules([], ["^pilight\.fields\.ColorField"])
