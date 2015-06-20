@@ -92,7 +92,7 @@ If running PiLight from a Raspberry Pi, it may be beneficial to have the server 
 
     nano ~/.screenrc
 
-Suggested config to use (important pieces highlighted):
+Suggested config to use (important piece commented):
 
     startup_message off
     vbell off
@@ -105,6 +105,7 @@ Suggested config to use (important pieces highlighted):
     screen -t shell 0 bash
     screen -t shell 1 bash
 
+    # Crucial tabs:
     chdir $HOME/pilight/pilight
     screen -t pl 2 sh -c 'python manage.py runserver 0.0.0.0:8000; exec bash'
     screen -t pl-driver 3 sh -c 'python manage.py lightdriver; exec bash'
@@ -112,9 +113,9 @@ Suggested config to use (important pieces highlighted):
     chdir $HOME
     select 0
 
-This will open two extra tabs (1+2) for PiLight on startup - one for the web interface, and one for the light driver. The final step is to have screen run at startup. There are a few ways to do this, but crontab is likely the simplest. Run `crontab -e`, then enter a line like the following:
+This will open two extra tabs (2+3) for PiLight on startup - one for the web interface, and one for the light driver. The final step is to have screen run at startup. There are a few ways to do this, but crontab is likely the simplest. Run `crontab -e`, then enter a line like the following:
 
-    @reboot sleep 60 && screen -d -m -A
+    @reboot sleep 30 && screen -d -m -A
 
 This will wait a minute (you can try lowering this timeout) after system reboot, then open screen in a detached mode. The delay is necessary due to other services starting up. If you SSH into the Pi later, you can view the opened processes by running `screen -R`. Navigate screens by Ctrl+A then the screen id (0 through 3 in the above example).
 
