@@ -79,9 +79,9 @@ First, ensure that RabbitMQ and your DBMS are running. Then, run the following c
 
 And
 
-    python manage.py runserver 0.0.0.0:8000
+    python manage.py runserver --noreload 0.0.0.0:8000
 
-> Note: `lightdriver` and `runserver` are both blocking commands that run until stopped, which is why they must be in separate console windows. We bind `runserver` to 0.0.0.0:8000 so that it can be accessed from other devices on the network, not just localhost. This is useful for controlling PiLight from your phone or computer.
+> Note: `lightdriver` and `runserver` are both blocking commands that run until stopped, which is why they must be in separate console windows. We bind `runserver` to 0.0.0.0:8000 so that it can be accessed from other devices on the network, not just localhost. This is useful for controlling PiLight from your phone or computer. `--noreload` reduces CPU usage by the web service significantly when idle. This is especially important when running in standalone mode.
 
 That's it! You should now be able to access the interface to control the lights by accessing [http://localhost:8000/](http://localhost:8000/).
 
@@ -107,7 +107,7 @@ Suggested config to use (important piece commented):
 
     # Crucial tabs:
     chdir $HOME/pilight/pilight
-    screen -t pl 2 sh -c 'python manage.py runserver 0.0.0.0:8000; exec bash'
+    screen -t pl 2 sh -c 'python manage.py runserver --noreload 0.0.0.0:8000; exec bash'
     screen -t pl-driver 3 sh -c 'python manage.py lightdriver; exec bash'
 
     chdir $HOME
