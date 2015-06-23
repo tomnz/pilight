@@ -236,7 +236,7 @@ class Color(object):
         else:
             s = 0
             h = -1
-            return h, s, v
+            return h, s, v, getattr(self, 'a', 1.0)
 
         if safe_color.r == max_val:
             h = (safe_color.g - safe_color.b) / delta
