@@ -3,3 +3,4 @@ syntax: glob
 pilight/.idea/*
 pilight/pilight/settings.py
 build*
+.idea/*
