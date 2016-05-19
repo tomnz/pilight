@@ -1,5 +1,6 @@
-from django.conf import settings
 import struct
+
+from django.conf import settings
 import pickle
 import pika
 
