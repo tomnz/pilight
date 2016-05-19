@@ -1,9 +1,11 @@
-from home.models import Light, TransformInstance
-import time
-from pilight.light.transforms import AVAILABLE_TRANSFORMS
-from django.conf import settings
-from pilight.classes import PikaConnection, Color
 import base64
+import time
+
+from django.conf import settings
+
+from home.models import Light, TransformInstance
+from pilight.classes import PikaConnection, Color
+from pilight.light.transforms import AVAILABLE_TRANSFORMS
 
 
 class LightDriver(object):
