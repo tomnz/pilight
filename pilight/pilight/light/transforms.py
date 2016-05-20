@@ -408,6 +408,18 @@ class BrightnessTransform(TransformBase):
         return start_color * self.params['brightness']
 
 
+class BrightnessVariableTransform(TransformBase):
+
+    def __init__(self, transforminstance, variable):
+        super(BrightnessVariableTransform, self).__init__(transforminstance)
+        self.variable = variable
+
+    def is_animated(self):
+        return True
+
+    def transform(self, time, position, num_positions, start_color, all_colors):
+        return start_color * self.variable.get_value()
+
 
 AVAILABLE_TRANSFORMS = {
     'flash': FlashTransform,

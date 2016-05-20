@@ -3,9 +3,10 @@ import time
 
 from django.conf import settings
 
-from home.models import Light, TransformInstance
+from home.models import Light, TransformInstance, Transform
 from pilight.classes import PikaConnection, Color
-from pilight.light.transforms import AVAILABLE_TRANSFORMS
+from pilight.light.transforms import AVAILABLE_TRANSFORMS, BrightnessVariableTransform
+from pilight.light.variables import AudioVariable
 
 
 class LightDriver(object):
@@ -120,14 +121,23 @@ class LightDriver(object):
             if body == 'start':
                 # We received a start command!
                 print '    Starting'
+
+                # Init audio
+                current_variables = {
+                    'audio': AudioVariable()
+                }
+
                 restart = True
                 while restart:
                     # Actually run the light driver
                     # Note that run_lights can return true to request that it be restarted
-                    restart = self.run_lights(spidev)
+                    restart = self.run_lights(spidev, current_variables)
 
                 # Clear the lights to black since we're no longer running
                 self.clear_lights(spidev)
+
+                # Close variables
+                current_variables['audio'].close()
 
                 # Reset start_time so that we start over on the next run
                 self.start_time = None
@@ -148,7 +158,7 @@ class LightDriver(object):
                 raw_data[i] = 0x00
             self.write_data(spidev, raw_data)
 
-    def run_lights(self, spidev):
+    def run_lights(self, spidev, current_variables):
         """
         Drives the actual lights in a continuous loop until receiving
         a stop signal
@@ -158,7 +168,7 @@ class LightDriver(object):
 
         # Grab the simulation parameters
         current_colors = self.get_colors()
-        current_transforms = self.get_transforms()
+        current_transforms = self.get_transforms(current_variables)
 
         if not current_colors:
             return False
@@ -199,7 +209,7 @@ class LightDriver(object):
 
             # Note that we always start from the same base lights on each iteration
             # The previous iteration has no effect on the current iteration
-            colors = self.do_step(current_colors, elapsed_time, current_transforms)
+            colors = self.do_step(current_colors, elapsed_time, current_transforms, current_variables)
 
             # Prepare the final data
             raw_data = bytearray(settings.LIGHTS_NUM_LEDS * 3)
@@ -232,7 +242,10 @@ class LightDriver(object):
 
         # Grab the simulation parameters
         current_colors = self.get_colors()
-        current_transforms = self.get_transforms()
+        current_variables = {
+            'audio': AudioVariable()
+        }
+        current_transforms = self.get_transforms(current_variables)
 
         if not current_colors:
             return None
@@ -241,13 +254,19 @@ class LightDriver(object):
 
         for i in range(steps):
             elapsed_time = time_step * i
-            result.append(self.do_step(current_colors, elapsed_time, current_transforms))
+            result.append(self.do_step(current_colors, elapsed_time, current_transforms, current_variables))
+
+        current_variables['audio'].close()
 
         return result
 
-    def do_step(self, start_colors, elapsed_time, transforms):
+    def do_step(self, start_colors, elapsed_time, transforms, variables):
         colors = start_colors
         next_colors = []
+
+        # Update variables
+        for variable in variables.itervalues():
+            variable.update(elapsed_time)
 
         # Perform each transform step
         for transform in transforms:
@@ -270,7 +289,7 @@ class LightDriver(object):
 
         return colors
 
-    def get_transforms(self):
+    def get_transforms(self, variables):
         # Grab transform instances out of the database, and
         # instantiate the corresponding classes
         transform_items = TransformInstance.objects.get_current()
@@ -280,6 +299,9 @@ class LightDriver(object):
             transform_obj = AVAILABLE_TRANSFORMS[transform_item.transform.name](transform_item)
 
             current_transforms.append(transform_obj)
+
+        audio_transform = TransformInstance(params='{}', transform=Transform(name='audio'), order=1)
+        current_transforms.append(BrightnessVariableTransform(audio_transform, variables['audio']))
 
         return current_transforms
 

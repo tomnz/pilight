@@ -1,3 +1,4 @@
+import struct
 import numpy as np
 import pyaudio
 
@@ -43,20 +44,31 @@ class AudioVariable(Variable):
                                         input=True,
                                         frames_per_buffer=CHUNK)
 
-        self.frames = np.array()
+        self.frames = np.array([0])
         self.val = 0.0
 
     def update(self, time):
         while self.stream.get_read_available() >= CHUNK:
-            data = self.stream.read(CHUNK)
-            self.frames.append(data)
+            data = self.stream.read(CHUNK, exception_on_overflow=False)
+            self.frames = np.concatenate((self.frames, np.array(struct.unpack('%dh' % CHUNK, data)) / MAX_y))
 
-        self.frames = self.frames[-RATE*AUDIO_SECS:]
-        fft = np.fft.fft(self.frames, n=FFT_N)
+        self.frames = self.frames[int(-CHUNK):]
+        if len(self.frames) < FFT_N:
+            self.val = 0.0
+            return
+
+        fft_weights = np.fft.rfft(self.frames, n=FFT_N).real
 
         self.val = 0.0
         for idx, weight in FFT_WEIGHTS.iteritems():
-            self.val += fft[idx] * weight
+            self.val += abs(fft_weights[idx]) * weight
+
+        print self.val
 
     def get_value(self):
         return max(0.0, min(1.0, self.val))
+
+    def close(self):
+        self.stream.stop_stream()
+        self.stream.close()
+        self.pyaudio.terminate()
