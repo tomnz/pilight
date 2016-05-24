@@ -300,8 +300,7 @@ class LightDriver(object):
 
             current_transforms.append(transform_obj)
 
-        audio_transform = TransformInstance(params='{}', transform=Transform(name='audio'), order=1)
-        current_transforms.append(BrightnessVariableTransform(audio_transform, variables['audio']))
+        current_transforms.append(BrightnessVariableTransform(None, variables['audio']))
 
         return current_transforms
 
