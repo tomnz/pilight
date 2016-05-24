@@ -24,11 +24,10 @@ MAX_y = 2.0 ** (pyaudio.get_sample_size(FORMAT) * 8 - 1)
 AUDIO_SECS = 0.25
 FFT_N = 20
 FFT_WEIGHTS = {
-    0: 1.0,
+    0: 3.0,
     1: 1.0,
-    2: 1.0,
-    3: 1.0
 }
+PRIOR_WEIGHT = 0.7
 
 class AudioVariable(Variable):
 
@@ -59,14 +58,14 @@ class AudioVariable(Variable):
 
         fft_weights = np.fft.rfft(self.frames, n=FFT_N).real
 
-        self.val = 0.0
+        val = 0.0
         for idx, weight in FFT_WEIGHTS.iteritems():
-            self.val += abs(fft_weights[idx]) * weight
+            val += abs(fft_weights[idx]) * weight
 
-        print self.val
+        self.val = self.val * PRIOR_WEIGHT + val * (1 - PRIOR_WEIGHT)
 
     def get_value(self):
-        return max(0.0, min(1.0, self.val))
+        return max(0.0, min(1.0, self.val - 0.2))
 
     def close(self):
         self.stream.stop_stream()

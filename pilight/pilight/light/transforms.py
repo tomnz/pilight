@@ -9,7 +9,10 @@ class TransformBase(object):
     def __init__(self, transforminstance):
         # Base classes should override this - and do something with params if need be
         self.transforminstance = transforminstance
-        self.params = transforminstance.decoded_params
+        if hasattr(transforminstance, 'decoded_params'):
+            self.params = transforminstance.decoded_params
+        else:
+            self.params = {}
         self.color_channel = None
 
     def transform(self, time, position, num_positions, start_color, all_colors):
