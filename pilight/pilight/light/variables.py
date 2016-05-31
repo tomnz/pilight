@@ -19,7 +19,7 @@ class Variable(object):
 CHUNK = 1024
 FORMAT = pyaudio.paInt16
 CHANNELS = 1
-RATE = 32000
+RATE = 44100
 MAX_y = 2.0 ** (pyaudio.get_sample_size(FORMAT) * 8 - 1)
 AUDIO_SECS = 0.25
 FFT_N = 20
@@ -71,7 +71,7 @@ class AudioVariable(Variable):
         self.val = self.val * PRIOR_WEIGHT + val * (1 - PRIOR_WEIGHT)
 
     def get_value(self):
-        return max(0.0, min(1.0, self.val - 0.2))
+        return max(0.0, min(1.0, self.val - 0.5))
 
     def close(self):
         self.stream.stop_stream()
