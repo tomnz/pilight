@@ -58,7 +58,7 @@ class AudioVariable(Variable):
             data = self.stream.read(CHUNK, exception_on_overflow=False)
             chunk = np.array(struct.unpack('%dh' % CHUNK, data)) / MAX_y
 
-        if not chunk:
+        if chunk is None or not chunk.any():
             self.val = 0.0
             return
 
