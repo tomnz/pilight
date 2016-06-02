@@ -38,6 +38,11 @@ LIGHTS_REQUIRE_AUTH = False
 # value than 0.03
 LIGHTS_UPDATE_INTERVAL = 0.03
 
+# Automatically start the lights when the driver first runs?
+# Without this setting, the driver must be explicitly
+# started from the web UI
+AUTO_START = False
+
 # Microcontroller type used on the LED string
 # Known values:
 #  - 'ws2801'
