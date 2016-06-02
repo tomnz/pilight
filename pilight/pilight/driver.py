@@ -87,6 +87,11 @@ class LightDriver(object):
         # Basically run this loop forever until interrupted
         running = True
 
+        # If we are configured to autostart, then just go crazy - we don't need Pika until
+        # the driver stops
+        if settings.AUTO_START:
+            self.start(spidev)
+
         # Purge all existing events
         channel = None
         while not channel:
@@ -120,27 +125,30 @@ class LightDriver(object):
             # In future we may want to also handle a 'restart' command here
             if body == 'start':
                 # We received a start command!
-                print '    Starting'
+                self.start(spidev)
 
-                # Init audio
-                current_variables = {
-                    'audio': AudioVariable()
-                }
+    def start(self, spidev):
+            print '   Starting'
 
-                restart = True
-                while restart:
-                    # Actually run the light driver
-                    # Note that run_lights can return true to request that it be restarted
-                    restart = self.run_lights(spidev, current_variables)
+            # Init audio
+            current_variables = {
+                'audio': AudioVariable()
+            }
 
-                # Clear the lights to black since we're no longer running
-                self.clear_lights(spidev)
+            restart = True
+            while restart:
+                # Actually run the light driver
+                # Note that run_lights can return true to request that it be restarted
+                restart = self.run_lights(spidev, current_variables)
 
-                # Close variables
-                current_variables['audio'].close()
+            # Clear the lights to black since we're no longer running
+            self.clear_lights(spidev)
 
-                # Reset start_time so that we start over on the next run
-                self.start_time = None
+            # Close variables
+            current_variables['audio'].close()
+
+            # Reset start_time so that we start over on the next run
+            self.start_time = None
 
     def write_data(self, spidev, raw_data):
         if settings.LIGHTS_DRIVER_MODE == 'standalone':
