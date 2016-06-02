@@ -421,7 +421,8 @@ class BrightnessVariableTransform(TransformBase):
         return True
 
     def transform(self, time, position, num_positions, start_color, all_colors):
-        return start_color * self.variable.get_value()
+        val = self.variable.get_value()
+        return Color(start_color.r * val, min(start_color.g * val, 0.3), min(start_color.b * val, 0.1), start_color.a)
 
 
 AVAILABLE_TRANSFORMS = {
