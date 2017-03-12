@@ -101,7 +101,6 @@ def index(request):
             'tool_color': tool_color.to_hex_web(),
             'stores': stores,
         },
-        context_instance=RequestContext(request)
     )
 
 
@@ -132,7 +131,6 @@ def render_lights_snippet(request):
     return render_to_response(
         'home/snippets/lights.html',
         {'current_lights': current_lights},
-        context_instance=RequestContext(request)
     )
 
 
@@ -143,7 +141,6 @@ def render_transforms_snippet(request):
     return render_to_response(
         'home/snippets/transforms.html',
         {'current_transforms': current_transforms},
-        context_instance=RequestContext(request)
     )
 
 
@@ -154,7 +151,6 @@ def render_stores_snippet(request):
     return render_to_response(
         'home/snippets/stores-list.html',
         {'stores': stores},
-        context_instance=RequestContext(request)
     )
 
 

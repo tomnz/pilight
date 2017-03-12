@@ -41,6 +41,8 @@ For Raspbian or similar:
     sudo apt-get install python python-pip python-dev
     # At the time of writing, PostgreSQL was at 9.4 in the Raspbian repo
     sudo apt-get install postgresql postgresql-server-dev-9.4 rabbitmq-server
+    # Extra deps
+    sudo apt-get install python-pyaudio python-numpy
 
 > Note: These instructions assume you're using a Raspberry Pi with Occidentalis for the most part - omit sudo if your flavor doesn't use it, for example. This is all tested working with a 512MB Raspberry Pi device, and Occidentalis v0.2.
 
@@ -68,7 +70,6 @@ Copy the settings file and make required changes (particularly set up your light
 
 Setup the database:
 
-    python manage.py syncdb
     python manage.py migrate
     python manage.py loaddata fixtures/initial_data.json
     python manage.py createcachetable pilight_cache

@@ -148,28 +148,28 @@
         };
 
         function refreshLights() {
-            $.post("{% url 'home.views.render_lights_snippet' %}", null, function(data) {
+            $.post("{% url 'render_lights_snippet' %}", null, function(data) {
                 $("div#current-lights-content").html(data);
                 bindLights();
             }, "html");
         }
 
         function refreshTransforms() {
-            $.post("{% url 'home.views.render_transforms_snippet' %}", null, function(data) {
+            $.post("{% url 'render_transforms_snippet' %}", null, function(data) {
                 $("div#current-transforms-content").html(data);
                 bindTransforms();
             }, "html");
         }
 
         function refreshStores() {
-            $.post("{% url 'home.views.render_stores_snippet' %}", null, function(data) {
+            $.post("{% url 'render_stores_snippet' %}", null, function(data) {
                 $("ul#store-list-content").html(data);
                 bindStores();
             }, "html");
         }
 
         function restartDriver() {
-            $.post("{% url 'home.views.restart_driver' %}");
+            $.post("{% url 'restart_driver' %}");
         }
 
         function bindLights() {
@@ -194,7 +194,7 @@
                 var color = $('input#color-value').val();
 
                 var post_data = {index:index, radius:radius, opacity:opacity, tool:tool, color:color};
-                $.post("{% url 'home.views.apply_light_tool' %}", post_data, function(data) {
+                $.post("{% url 'apply_light_tool' %}", post_data, function(data) {
                     if (data.success) {
                         // Success - refresh lights
                         refreshLights();
@@ -213,7 +213,7 @@
                 var params = $('input#transform-params-'+index).val();
 
                 var post_data = {transform_id:index,params:params};
-                $.post("{% url 'home.views.update_transform_params' %}", post_data, function(data) {
+                $.post("{% url 'update_transform_params' %}", post_data, function(data) {
                     if (data.success) {
                         refreshTransforms();
                     }
@@ -227,7 +227,7 @@
                 }
 
                 var post_data = {transform_id:index};
-                $.post("{% url 'home.views.delete_transform' %}", post_data, function(data) {
+                $.post("{% url 'delete_transform' %}", post_data, function(data) {
                     if (data.success) {
                         refreshTransforms();
                     }
@@ -249,7 +249,7 @@
                 $('button#btn-load').prop('disabled', true);
 
                 var post_data = {store_id:index};
-                $.post("{% url 'home.views.load_store' %}", post_data, function(data) {
+                $.post("{% url 'load_store' %}", post_data, function(data) {
                     if (data.success) {
                         $('input#store-name').val(store_name);
                         refreshLights();
@@ -339,13 +339,13 @@
                 refreshTransforms();
             });
             $('button#btn-start').click(function() {
-                $.post("{% url 'home.views.start_driver' %}");
+                $.post("{% url 'start_driver' %}");
             });
             $('button#btn-stop').click(function() {
-                $.post("{% url 'home.views.stop_driver' %}");
+                $.post("{% url 'stop_driver' %}");
             });
             $('button#btn-simulate').click(function() {
-                $.post("{% url 'home.views.run_simulation' %}", null, function(data) {
+                $.post("{% url 'run_simulation' %}", null, function(data) {
                     startSimulation(data);
                 }, "json");
             });
@@ -357,7 +357,7 @@
                 }
 
                 var post_data = {transform_id:index};
-                $.post("{% url 'home.views.add_transform' %}", post_data, function(data) {
+                $.post("{% url 'add_transform' %}", post_data, function(data) {
                     if (data.success) {
                         refreshTransforms();
                     }
@@ -367,7 +367,7 @@
                 var color = $('input#color-value').val();
 
                 var post_data = {color:color};
-                $.post("{% url 'home.views.fill_color' %}", post_data, function(data) {
+                $.post("{% url 'fill_color' %}", post_data, function(data) {
                     if (data.success) {
                         // Success - refresh lights
                         refreshLights();
@@ -383,7 +383,7 @@
                 $('button#btn-save').prop('disabled', true);
 
                 var post_data = {store_name:store_name};
-                $.post("{% url 'home.views.save_store' %}", post_data, function(data) {
+                $.post("{% url 'save_store' %}", post_data, function(data) {
                     if (data.success) {
                         refreshStores();
                         $('button#btn-save').prop('disabled', false);
