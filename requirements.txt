@@ -1,8 +1,7 @@
-pyopenssl
-ndg-httpsclient
-pyasn1
-django
-pika
-psycopg2
-django-bootstrap3
-django-picklefield
+Django              ==1.9.6
+psycopg2            ==2.7
+pika                ==0.10.0
+django-bootstrap3   ==8.2.1
+django-picklefield  ==0.3.2
+pyaudio             ==0.2.10
+numpy               ==1.12.0
