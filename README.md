@@ -36,11 +36,17 @@ Install all prerequisites first:
 * [RabbitMQ](http://www.rabbitmq.com/download.html) (requires [Erlang](http://www.erlang.org/download.html))
 * [pip](https://pypi.python.org/pypi/pip/) strongly recommended to install extra Python dependencies
 
+For Raspbian or similar:
+
+    sudo apt-get install python python-pip python-dev
+    # At the time of writing, PostgreSQL was at 9.4 in the Raspbian repo
+    sudo apt-get install postgresql postgresql-server-dev-9.4 rabbitmq-server
+
 > Note: These instructions assume you're using a Raspberry Pi with Occidentalis for the most part - omit sudo if your flavor doesn't use it, for example. This is all tested working with a 512MB Raspberry Pi device, and Occidentalis v0.2.
 
 Download the source to a desired location:
 
-    hg clone https://bitbucket.org/tomnz/pilight
+    git clone https://github.com/TomNZ/PiLight.git
 
 Install the Python dependencies:
 
