@@ -1,4 +1,6 @@
 import struct
+
+from django.conf import settings
 import numpy as np
 import pyaudio
 
@@ -14,6 +16,9 @@ class Variable(object):
 
     def get_value(self):
         raise NotImplementedError()
+
+    def close(self):
+        pass
 
 
 CHUNK = 1024
@@ -32,6 +37,9 @@ class AudioVariable(Variable):
     def __init__(self, ):
         super(AudioVariable, self).__init__()
 
+        if not settings.ENABLE_AUDIO_VAR:
+            return
+
         # Initialize the audio
         self.pyaudio = pyaudio.PyAudio()
 
@@ -47,17 +55,10 @@ class AudioVariable(Variable):
         self.long_term = 0.0
         self.determine_freqs()
 
-    def determine_freqs(self):
-        # Pre-compute which FFT values to include, based on their frequency
-        self.total_ffts = 0
-        for freq in np.fft.rfftfreq(AUDIO_SAMPLES, d=1.0 / RATE):
-            if freq < 120:
-                self.total_ffts += 1
-            else:
-                print self.total_ffts
-                break
-
     def update(self, time):
+        if not settings.ENABLE_AUDIO_VAR:
+            return
+
         while self.stream.get_read_available() >= CHUNK:
             data = self.stream.read(CHUNK, exception_on_overflow=False)
             self.frames = np.concatenate((self.frames, np.array(struct.unpack("%dh" % (len(data) / SAMPLE_SIZE), data)) / MAX_y))
@@ -86,9 +87,25 @@ class AudioVariable(Variable):
         self.norm_val = max(0.0, min(1.0, ((self.val / self.long_term - 1.0) / 3)))
 
     def get_value(self):
+        if not settings.ENABLE_AUDIO_VAR:
+            return 1.0
+
         return self.norm_val
 
     def close(self):
+        if not settings.ENABLE_AUDIO_VAR:
+            return
+
         self.stream.stop_stream()
         self.stream.close()
         self.pyaudio.terminate()
+
+    def determine_freqs(self):
+        # Pre-compute which FFT values to include, based on their frequency
+        self.total_ffts = 0
+        for freq in np.fft.rfftfreq(AUDIO_SAMPLES, d=1.0 / RATE):
+            if freq < 120:
+                self.total_ffts += 1
+            else:
+                print self.total_ffts
+                break

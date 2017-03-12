@@ -12,7 +12,7 @@
         <div class="col-md-8">
             <h1>{{ INSTALLATION_NAME }}
             {% if user.is_authenticated %}
-                &nbsp;<a class="btn btn-default btn-xs" href="{% url "django.contrib.auth.views.logout" %}">Logout</a>
+                &nbsp;<a class="btn btn-default btn-xs" href="{% url 'logout' %}">Logout</a>
             {% endif %}</h1>
         </div>
         <div class="col-md-4">

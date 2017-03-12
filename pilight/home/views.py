@@ -1,14 +1,15 @@
-from django.shortcuts import render_to_response
-from django.template import RequestContext
-from django.http import HttpResponse
+import json
+
+from django.conf import settings
+from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import user_passes_test
-from models import Transform, Light, TransformInstance, Store
+from django.http import HttpResponse
+from django.shortcuts import render
+from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
+
+from home.models import Transform, Light, TransformInstance, Store
 from pilight.classes import Color, PikaConnection
 from pilight.driver import LightDriver
-from django.conf import settings
-import json
-from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
-from pika.exceptions import ConnectionClosed
 
 
 # Pika message passing setup
@@ -91,7 +92,8 @@ def index(request):
         tool_color += light.color
     tool_color /= len(current_lights)
 
-    return render_to_response(
+    return render(
+        request,
         'home/index.html',
         {
             'title': 'Home',
@@ -128,7 +130,8 @@ def render_lights_snippet(request):
     Light.objects.reset()
     current_lights = Light.objects.get_current()
 
-    return render_to_response(
+    return render(
+        request,
         'home/snippets/lights.html',
         {'current_lights': current_lights},
     )
@@ -138,7 +141,8 @@ def render_lights_snippet(request):
 def render_transforms_snippet(request):
     current_transforms = TransformInstance.objects.get_current()
 
-    return render_to_response(
+    return render(
+        request,
         'home/snippets/transforms.html',
         {'current_transforms': current_transforms},
     )
@@ -148,7 +152,8 @@ def render_transforms_snippet(request):
 def render_stores_snippet(request):
     stores = Store.objects.all().order_by('name')
 
-    return render_to_response(
+    return render(
+        request,
         'home/snippets/stores-list.html',
         {'stores': stores},
     )

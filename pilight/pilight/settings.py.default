@@ -63,6 +63,9 @@ LIGHTS_MULTIPLIER_R = 0.9
 LIGHTS_MULTIPLIER_G = 1
 LIGHTS_MULTIPLIER_B = 0.66
 
+# Set to True to enable the audio variable based on mic level
+ENABLE_AUDIO_VAR = False
+
 
 ############
 # Pika setup

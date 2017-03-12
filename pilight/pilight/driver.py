@@ -308,7 +308,8 @@ class LightDriver(object):
 
             current_transforms.append(transform_obj)
 
-        current_transforms.append(BrightnessVariableTransform(None, variables['audio']))
+        if settings.ENABLE_AUDIO_VAR:
+            current_transforms.append(BrightnessVariableTransform(None, variables['audio']))
 
         return current_transforms
 

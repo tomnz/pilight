@@ -29,8 +29,8 @@ urlpatterns = [
 
 # Auth
 urlpatterns += [
-    url(r'^accounts/login/?$', auth_views.login),
-    url(r'^accounts/logout/?$', auth_views.logout, {'next_page': '/'}),
+    url(r'^accounts/login/?$', auth_views.login, name='login'),
+    url(r'^accounts/logout/?$', auth_views.logout, {'next_page': '/'}, name='logout'),
 ]
 
 # Admin
