@@ -85,6 +85,13 @@ WS281X_DMA = 5
 # True to invert the signal (when using NPN transistor level shift)
 WS281X_INVERT = False
 
+# Strip type for driver - use one of the constant names from:
+# https://github.com/jgarff/rpi_ws281x/blob/master/ws2811.h
+# The string will be used to look up the actual constant at runtime.
+WS281X_STRIP = 'WS2812_STRIP'
+
+# PWM channel to use
+WS281X_CHANNEL = 0
 
 
 ############
