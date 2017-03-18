@@ -16,6 +16,28 @@ class LightDriver(object):
         self.messages_since_last_queue_check = 0
         self.color_channels = {}
 
+        # Initialize appropriate strip based on microcontroller type
+        if settings.LIGHTS_MICROCONTROLLER == 'ws2801':
+            import Adafruit_WS2801
+            from Adafruit_GPIO import SPI
+            self.strip = Adafruit_WS2801.WS2801Pixels(
+                settings.LIGHTS_NUM_LEDS,
+                spi=SPI.SpiDev(0, 0))
+            self.strip.clear()
+            self.strip.show()
+
+        elif settings.LIGHTS_MICROCONTROLLER == 'ws281x':
+            import neopixel
+            self.strip = neopixel.Adafruit_NeoPixel(
+                settings.LIGHTS_NUM_LEDS,
+                settings.WS281X_LED_PIN,
+                settings.WS281X_FREQ_HZ,
+                settings.WS281X_DMA,
+                # Brightness - leave at max
+                255)
+            self.strip.begin()
+            self.strip.show()
+
     def pop_message(self):
         """
         Grabs the latest message from Pika, if one is waiting
@@ -78,7 +100,7 @@ class LightDriver(object):
         # gets safely parsed by from_hex().
         self.color_channels[(color_parts[1])[0:30]] = Color.from_hex(color_parts[2])
 
-    def wait(self, spidev):
+    def wait(self):
         """
         Main entry point that waits for a start signal before running
         the actual light driver
@@ -90,7 +112,7 @@ class LightDriver(object):
         # If we are configured to autostart, then just go crazy - we don't need Pika until
         # the driver stops
         if settings.AUTO_START:
-            self.start(spidev)
+            self.start()
 
         # Purge all existing events
         channel = None
@@ -125,9 +147,9 @@ class LightDriver(object):
             # In future we may want to also handle a 'restart' command here
             if body == 'start':
                 # We received a start command!
-                self.start(spidev)
+                self.start()
 
-    def start(self, spidev):
+    def start(self):
             print '   Starting'
 
             # Init audio
@@ -139,10 +161,10 @@ class LightDriver(object):
             while restart:
                 # Actually run the light driver
                 # Note that run_lights can return true to request that it be restarted
-                restart = self.run_lights(spidev, current_variables)
+                restart = self.run_lights(current_variables)
 
             # Clear the lights to black since we're no longer running
-            self.clear_lights(spidev)
+            self.clear_lights()
 
             # Close variables
             current_variables['audio'].close()
@@ -150,23 +172,37 @@ class LightDriver(object):
             # Reset start_time so that we start over on the next run
             self.start_time = None
 
-    def write_data(self, spidev, raw_data):
+    def set_colors(self, colors):
         if settings.LIGHTS_DRIVER_MODE == 'standalone':
-            # Write directly to the SPI device
-            spidev.write(raw_data)
-            spidev.flush()
+            # Slightly differing APIs :(
+            # TODO: Could abstract this if we add more chips
+            if settings.LIGHTS_MICROCONTROLLER == 'ws2801':
+                for idx, color in enumerate(colors):
+                    self.strip.set_pixel(idx, color.to_raw_corrected())
+                self.strip.show()
+
+            elif settings.LIGHTS_MICROCONTROLLER == 'ws281x':
+                for idx, color in enumerate(colors):
+                    self.strip.setPixelColor(idx, color.to_raw_corrected())
+                self.strip.show()
+
         elif settings.LIGHTS_DRIVER_MODE == 'server':
-            # Pass the data to the message queue
-            self.publish_colors(raw_data)
+            # Write the data to the message queue
+            self.publish_colors(self.to_data(colors))
 
-    def clear_lights(self, spidev):
-        if settings.LIGHTS_DRIVER_MODE in ('standalone', 'server'):
-            raw_data = bytearray(settings.LIGHTS_NUM_LEDS * 3)
-            for i in range(settings.LIGHTS_NUM_LEDS * 3):
-                raw_data[i] = 0x00
-            self.write_data(spidev, raw_data)
+    def to_data(self, colors):
+        raw_data = bytearray(settings.LIGHTS_NUM_LEDS * 3)
+        pos = 0
+        for light in colors:
+            raw_data[pos * 3:] = light.to_raw_corrected()
+            pos += 1
+        return raw_data
 
-    def run_lights(self, spidev, current_variables):
+    def clear_lights(self):
+        black = [Color(0, 0, 0)] * settings.LIGHTS_NUM_LEDS
+        self.set_colors(black)
+
+    def run_lights(self, current_variables):
         """
         Drives the actual lights in a continuous loop until receiving
         a stop signal
@@ -220,15 +256,7 @@ class LightDriver(object):
             colors = self.do_step(current_colors, elapsed_time, current_transforms, current_variables)
 
             # Prepare the final data
-            raw_data = bytearray(settings.LIGHTS_NUM_LEDS * 3)
-            pos = 0
-            for light in colors:
-                raw_data[pos*3:] = light.to_raw_corrected()
-                pos += 1
-
-            # Write the data
-            if settings.LIGHTS_DRIVER_MODE in ('standalone', 'server'):
-                self.write_data(spidev, raw_data)
+            self.set_colors(colors)
 
             # Rate limit
             # If we have no transforms, don't bother updating very often

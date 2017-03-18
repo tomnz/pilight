@@ -46,21 +46,10 @@ class Command(BaseCommand):
 
         got_lock = acquire_lock()
         if got_lock or options['force_run']:
-            # Setup the output device
-            spidev = None
-            if settings.LIGHTS_DRIVER_MODE == 'standalone':
-                try:
-                    spidev = file(settings.LIGHTS_DEV_NAME, 'wb')
-                except:
-                    # Ugly catch-all...
-                    print 'Exception opening SPI device!'
-                    traceback.print_exc(file=sys.stdout)
-                    return
-
             driver = LightDriver()
             try:
                 # Run the actual driver loop
-                driver.wait(spidev)
+                driver.wait()
             except KeyboardInterrupt:
                 # The user has interrupted execution - close our resources
                 print '* Cleaning up...'
@@ -71,9 +60,7 @@ class Command(BaseCommand):
                 traceback.print_exc(file=sys.stdout)
             finally:
                 # Clean up resources
-                driver.clear_lights(spidev)
-                if settings.LIGHTS_DRIVER_MODE == 'standalone' and spidev:
-                    spidev.close()
+                driver.clear_lights()
 
                 # Only release lock if it was ours to begin with (i.e. don't release if
                 # someone else already had it and we were forced to run)
