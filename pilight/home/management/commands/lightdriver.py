@@ -9,16 +9,16 @@ import sys
 
 # Boilerplate to launch the light driver as a Django command
 class Command(BaseCommand):
-    option_list = BaseCommand.option_list + (
-        make_option(
+    def add_arguments(self, parser):
+        parser.add_argument(
             '--force-run',
             action='store_true',
             dest='force_run',
             default=False,
             help="Forces the light driver to run, even if there appears to be another instance. Useful if " +
                  "the last driver exited unexpectedly and didn't clear the running flag",
-        ),
-        make_option(
+        )
+        parser.add_argument(
             '--clear-lock',
             action='store_true',
             dest='clear_lock',
@@ -26,8 +26,7 @@ class Command(BaseCommand):
             help="Forces clearing of the flag indicating that another driver is running. Only use if you are " +
                  "sure that another instance of the driver is not running. This should never be necessary. Does " +
                  "not actually run the driver.",
-        ),
-    )
+        )
 
     help = 'Starts the light driver to await commands'
 
