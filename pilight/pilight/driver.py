@@ -16,6 +16,9 @@ class LightDriver(object):
         self.messages_since_last_queue_check = 0
         self.color_channels = {}
 
+        if settings.LIGHTS_DRIVER_MODE == 'noop':
+            return
+
         # Initialize appropriate strip based on microcontroller type
         if settings.LIGHTS_MICROCONTROLLER == 'ws2801':
             import Adafruit_WS2801
@@ -37,7 +40,6 @@ class LightDriver(object):
                 # Brightness - leave at max
                 255)
             self.strip.begin()
-            self.strip.show()
 
     def pop_message(self):
         """
@@ -174,7 +176,10 @@ class LightDriver(object):
             self.start_time = None
 
     def set_colors(self, colors):
-        if settings.LIGHTS_DRIVER_MODE == 'standalone':
+        if settings.LIGHTS_DRIVER_MODE == 'noop':
+            return
+
+        elif settings.LIGHTS_DRIVER_MODE == 'standalone':
             # Slightly differing APIs :(
             # TODO: Could abstract this if we add more chips
             if settings.LIGHTS_MICROCONTROLLER == 'ws2801':
