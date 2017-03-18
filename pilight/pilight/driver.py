@@ -184,7 +184,11 @@ class LightDriver(object):
 
             elif settings.LIGHTS_MICROCONTROLLER == 'ws281x':
                 for idx, color in enumerate(colors):
-                    self.strip.setPixelColor(idx, color.to_raw_corrected())
+                    self.strip.setPixelColorRGB(
+                        idx,
+                        int(color.safe_corrected_r() * 255),
+                        int(color.safe_corrected_g() * 255),
+                        int(color.safe_corrected_b() * 255))
                 self.strip.show()
 
         elif settings.LIGHTS_DRIVER_MODE == 'server':
