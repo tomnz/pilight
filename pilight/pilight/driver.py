@@ -33,6 +33,7 @@ class LightDriver(object):
                 settings.WS281X_LED_PIN,
                 settings.WS281X_FREQ_HZ,
                 settings.WS281X_DMA,
+                settings.WS281X_INVERT,
                 # Brightness - leave at max
                 255)
             self.strip.begin()
