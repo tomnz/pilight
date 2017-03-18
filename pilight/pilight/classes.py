@@ -190,6 +190,14 @@ class Color(object):
     def safe_a(self):
         return max(min(getattr(self, 'a', 1.0), 1), 0)
 
+    def safe_dict(self):
+        return {
+            'r': self.safe_r(),
+            'g': self.safe_g(),
+            'b': self.safe_b(),
+            'a': self.safe_a(),
+        }
+
     def as_safe(self):
         return Color(self.safe_r(), self.safe_g(), self.safe_b(), self.safe_a())
 
