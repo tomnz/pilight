@@ -80,8 +80,7 @@ Lights
 
 Depending on the type of LED you are trying to drive, you will need to install a helper library so that PiLight is able to talk to your lights. Follow the directions for your given driver type:
 
-WS2801
-======
+### WS2801
 
 Install Adafruit's library:
 
@@ -92,8 +91,7 @@ Install Adafruit's GPIO driver (for SPI support) using [their instructions](http
 In `settings.py`, change `LIGHTS_MICROCONTROLLER` to `ws2801`. Configure any other related settings for WS2801.
 
 
-WS281x (NeoPixel)
-=================
+### WS281x (NeoPixel)
 
 Follow [Adafruit's instructions](https://learn.adafruit.com/neopixels-on-raspberry-pi/software) to build and install the Python library.
 
@@ -116,6 +114,7 @@ And
 > Note: `lightdriver` and `runserver` are both blocking commands that run until stopped, which is why they must be in separate console windows. We bind `runserver` to 0.0.0.0:8000 so that it can be accessed from other devices on the network, not just localhost. This is useful for controlling PiLight from your phone or computer. `--noreload` reduces CPU usage by the web service significantly when idle. This is especially important when running in standalone mode.
 
 That's it! You should now be able to access the interface to control the lights by accessing [http://localhost:8000/](http://localhost:8000/).
+
 
 Starting Automatically
 ----------------------
@@ -140,16 +139,16 @@ Suggested config to use (important piece commented):
     # Crucial tabs:
     chdir $HOME/pilight/pilight
     screen -t pl 2 sh -c 'python manage.py runserver --noreload 0.0.0.0:8000; exec bash'
-    screen -t pl-driver 3 sh -c 'python manage.py lightdriver; exec bash'
+    screen -t pl-driver 3 sh -c 'sudo python manage.py lightdriver; exec bash'
 
     chdir $HOME
     select 0
 
 This will open two extra tabs (2+3) for PiLight on startup - one for the web interface, and one for the light driver. The final step is to have screen run at startup. There are a few ways to do this, but crontab is likely the simplest. Run `crontab -e`, then enter a line like the following:
 
-    @reboot sleep 30 && screen -d -m -A
+    @reboot sleep 5 && screen -d -m -A
 
-This will wait a minute (you can try lowering this timeout) after system reboot, then open screen in a detached mode. The delay is necessary due to other services starting up. If you SSH into the Pi later, you can view the opened processes by running `screen -R`. Navigate screens by Ctrl+A then the screen id (0 through 3 in the above example).
+This will open screen in a detached mode on startup. The delay is necessary due to other services starting up (you may need to increase it). If you SSH into the Pi later, you can view the opened processes by running `screen -R`. Navigate screens by Ctrl+A then the screen id (0 through 3 in the above example).
 
 Guide
 -----
@@ -187,8 +186,22 @@ Updating
 
 Periodically you may want to update PiLight to get the latest features and bug fixes. Just run the following commands from the `pilight/pilight` directory:
 
-    hg pull
-    hg update
-    python manage.py syncdb
+    git pull
+    git update
     python manage.py migrate
     python manage.py loaddata fixtures/initial_data.json
+
+
+Development
+-----------
+
+PiLight uses Django for the driver backend and API, and Webpack/React for the frontend. When running the server in standalone mode, you do not need to install any Node/Webpack/React deps, since the precompiled app bundle is checked in, and can be served independently by Django.
+
+However, if you wish to develop the PiLight frontend, you'll need to set those dependencies up.
+
+* Install Node as appropriate for your system.
+* It's recommended to use `yarn` instead of `npm` (although this is really up to personal preference).
+* From the `pilight` directory, run:
+* `yarn install` to install all of the relevant Node packages.
+* `yarn run` to run the development server. This will automatically forward API calls to `localhost:8000`, so ensure Django is also running.
+* When you're ready to check in changes, make sure to re-generate the frontend bundle for Django: `yarn build`
