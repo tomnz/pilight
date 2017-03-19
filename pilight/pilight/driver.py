@@ -24,7 +24,7 @@ class LightDriver(object):
             import Adafruit_WS2801
             from Adafruit_GPIO import SPI
             self.strip = Adafruit_WS2801.WS2801Pixels(
-                settings.LIGHTS_NUM_LEDS,
+                settings.LIGHTS_NUM_LEDS * settings.LIGHTS_SCALE,
                 spi=SPI.SpiDev(0, 0))
             self.strip.clear()
             self.strip.show()
@@ -34,7 +34,7 @@ class LightDriver(object):
             strip_type = getattr(neopixel.ws, settings.WS281X_STRIP)
 
             self.strip = neopixel.Adafruit_NeoPixel(
-                num=settings.LIGHTS_NUM_LEDS,
+                num=settings.LIGHTS_NUM_LEDS * settings.LIGHTS_SCALE,
                 pin=settings.WS281X_LED_PIN,
                 freq_hz=settings.WS281X_FREQ_HZ,
                 dma=settings.WS281X_DMA,
