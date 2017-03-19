@@ -5,3 +5,5 @@ pilight/.idea/*
 pilight/pilight/settings.py
 build*
 .idea/
+pilight/node_modules/
+pilight/npm-debug.log

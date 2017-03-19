@@ -1,6 +1,5 @@
 from django.conf.urls import include, url
 from django.contrib import admin
-from django.contrib.auth import views as auth_views
 
 from home import views
 
@@ -9,28 +8,26 @@ admin.autodiscover()
 # Home
 urlpatterns = [
     url(r'^$', views.index, name='index'),
-    url(r'^driver/start/?$', views.start_driver, name='start_driver'),
-    url(r'^driver/stop/?$', views.stop_driver, name='stop_driver'),
-    url(r'^driver/restart/?$', views.restart_driver, name='restart_driver'),
-    url(r'^light/render_snippet/?$', views.render_lights_snippet, name='render_lights_snippet'),
-    url(r'^light/apply_tool/?$', views.apply_light_tool, name='apply_light_tool'),
-    url(r'^light/simulate/?$', views.run_simulation, name='run_simulation'),
-    url(r'^light/fill_color/?$', views.fill_color, name='fill_color'),
-    url(r'^transform/render_snippet/?$', views.render_transforms_snippet, name='render_transforms_snippet'),
-    url(r'^transform/add/?$', views.add_transform, name='add_transform'),
-    url(r'^transform/delete/?$', views.delete_transform, name='delete_transform'),
-    url(r'^transform/updateparams/?$', views.update_transform_params, name='update_transform_params'),
-    url(r'^store/load/?$', views.load_store, name='load_store'),
-    url(r'^store/render_snippet/?$', views.render_stores_snippet, name='render_stores_snippet'),
-    url(r'^store/save/?$', views.save_store, name='save_store'),
-    url(r'^channel/set/?$', views.update_color_channel, name='update_color_channel'),
-    url(r'^auth/?$', views.post_auth, name='post_auth'),
+    url(r'^api/?$', views.bootstrap_client, name='bootstrap_client'),
+    url(r'^api/driver/start/?$', views.start_driver, name='start_driver'),
+    url(r'^api/driver/stop/?$', views.stop_driver, name='stop_driver'),
+    url(r'^api/driver/restart/?$', views.restart_driver, name='restart_driver'),
+    url(r'^api/light/base-colors/?$', views.get_base_colors, name='get_base_colors'),
+    url(r'^api/light/apply-tool/?$', views.apply_light_tool, name='apply_light_tool'),
+    url(r'^api/light/preview/?$', views.preview, name='preview'),
+    url(r'^api/light/fill-color/?$', views.fill_color, name='fill_color'),
+    url(r'^api/transform/add/?$', views.add_transform, name='add_transform'),
+    url(r'^api/transform/delete/?$', views.delete_transform, name='delete_transform'),
+    url(r'^api/transform/update/?$', views.update_transform, name='update_transform'),
+    url(r'^api/config/load/?$', views.load_config, name='load_config'),
+    url(r'^api/config/save/?$', views.save_config, name='save_config'),
+    url(r'^api/channel/set/?$', views.update_color_channel, name='update_color_channel'),
 ]
 
 # Auth
 urlpatterns += [
-    url(r'^accounts/login/?$', auth_views.login, name='login'),
-    url(r'^accounts/logout/?$', auth_views.logout, {'next_page': '/'}, name='logout'),
+    url(r'^api/auth/login/?$', views.login, name='login'),
+    url(r'^api/auth/logout/?$', views.logout, name='logout'),
 ]
 
 # Admin

@@ -1,64 +1,30 @@
 import json
 
 from django.conf import settings
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
 from django.contrib.auth.decorators import user_passes_test
 from django.http import HttpResponse
+from django.middleware import csrf
 from django.shortcuts import render
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
+from django.views.decorators.http import require_POST
 
+from home import client_queries, driver
 from home.models import Transform, Light, TransformInstance, Store
-from pilight.classes import Color, PikaConnection
+from pilight.classes import Color
 from pilight.driver import LightDriver
 
 
-# Pika message passing setup
-# Helper functions for controlling the light driver
-def publish_message(msg, first=True):
-    channel = PikaConnection.get_channel()
-    if not channel:
-        # Connection failed to open - fail silently
-        return
-    try:
-        channel.basic_publish(exchange='', routing_key=settings.PIKA_QUEUE_NAME, body=msg)
-
-    # Current version of Pika can be a little unstable - catch ANY exception
-    except:
-        print 'Pika channel publish failed - clearing objects to try again'
-        # Force the channel to try reconnecting next time
-        PikaConnection.clear_channel()
-
-        # Someone closed our connection - attempt the publish again to refresh
-        # (But only if it's the first time)
-        if first:
-            publish_message(msg, first=False)
-        else:
-            # Not the first time - there is something bigger going on - fail silently
-            pass
+def success_json(data_dict):
+    data_dict['success'] = True
+    return json.dumps(data_dict)
 
 
-def message_start_driver():
-    publish_message('start')
-
-
-def message_stop_driver():
-    publish_message('stop')
-
-
-def message_restart_driver():
-    publish_message('restart')
-
-
-def message_color_channel(channel, color):
-    # Make sure we got a color
-    if not isinstance(color, Color):
-        return
-
-    # Truncate the channel name so we don't have any possibility of
-    # messiness with buffer overruns or the like
-    channel = str(channel)[0:30]
-
-    publish_message('color_%s_%s' % (channel, color.to_hex()))
+def fail_json(error):
+    return json.dumps({
+        'success': False,
+        'error': error,
+    })
 
 
 def auth_check(user):
@@ -75,378 +41,398 @@ def auth_check(user):
 
 # Views
 @ensure_csrf_cookie
-@user_passes_test(auth_check)
 def index(request):
+    return render(
+        request,
+        'home/index.html',
+    )
+
+
+@ensure_csrf_cookie
+def bootstrap_client(request):
+    if not request.user.is_authenticated() and settings.LIGHTS_REQUIRE_AUTH:
+        return HttpResponse(success_json({
+            'loggedIn': False,
+            'authRequired': True,
+        }), content_type='application/json')
+
     # Always "reset" the lights - will fill out the correct number if it's wrong
     Light.objects.reset()
 
     # Get objects that the page needs
     current_lights = Light.objects.get_current()
-    current_transforms = TransformInstance.objects.get_current()
-    transforms = Transform.objects.all()
-    stores = Store.objects.all().order_by('name')
 
     # Find average light color to use as default for paintbrush
     tool_color = Color(0, 0, 0)
+    base_colors = []
     for light in current_lights:
         tool_color += light.color
+        base_colors.append(light.color.safe_dict())
     tool_color /= len(current_lights)
 
-    return render(
-        request,
-        'home/index.html',
-        {
-            'title': 'Home',
-            'current_lights': current_lights,
-            'transforms': transforms,
-            'current_transforms': current_transforms,
-            'tool_color': tool_color.to_hex_web(),
-            'stores': stores,
-        },
-    )
+    return HttpResponse(success_json({
+        'baseColors': base_colors,
+        'activeTransforms': client_queries.active_transforms(),
+        'availableTransforms': client_queries.available_transforms(),
+        'configs': client_queries.configs(),
+        'toolColor': tool_color.safe_dict(),
+        'csrfToken': csrf.get_token(request),
+        'loggedIn': request.user.is_authenticated(),
+        'authRequired': settings.LIGHTS_REQUIRE_AUTH,
+    }), content_type='application/json')
 
 
+@require_POST
 @csrf_exempt
-def post_auth(request):
-    username = request.POST['username']
-    password = request.POST['password']
-    user = authenticate(username=username, password=password)
+def login(request):
+    req = json.loads(request.body)
 
-    result = 'Failed'
+    logged_in = False
+    if 'username' in req and 'password' in req:
+        username = req['username']
+        password = req['password']
+        user = authenticate(username=username, password=password)
 
-    if user is not None:
-        if user.is_active:
-            login(request, user)
-            result = 'Authenticated'
-        else:
-            result = 'Disabled'
+        if user is not None:
+            if user.is_active:
+                auth_login(request, user)
+                logged_in = True
+    else:
+        return HttpResponse(fail_json('Must include username and password'))
 
-    return HttpResponse(json.dumps({'result': result}), content_type='application/json')
+    return HttpResponse(success_json({
+        'loggedIn': logged_in,
+    }), content_type='application/json')
+
+
+@require_POST
+@user_passes_test(auth_check)
+def logout(request):
+    auth_logout(request)
+    return HttpResponse(success_json({}), content_type='application/json')
 
 
 @user_passes_test(auth_check)
-def render_lights_snippet(request):
+def get_base_colors(request):
     # Always "reset" the lights - will fill out the correct number if it's wrong
     Light.objects.reset()
-    current_lights = Light.objects.get_current()
 
-    return render(
-        request,
-        'home/snippets/lights.html',
-        {'current_lights': current_lights},
-    )
+    return HttpResponse(success_json({
+        'baseColors': client_queries.base_colors(),
+    }), content_type='application/json')
 
 
+@require_POST
 @user_passes_test(auth_check)
-def render_transforms_snippet(request):
-    current_transforms = TransformInstance.objects.get_current()
+def save_config(request):
+    req = json.loads(request.body)
 
-    return render(
-        request,
-        'home/snippets/transforms.html',
-        {'current_transforms': current_transforms},
-    )
+    error = None
+    if 'configName' in req:
+        # First see if the store already exists
+        store_name = (req['configName'])[0:29]
+        stores = Store.objects.filter(name=store_name)
+        if len(stores) >= 1:
+            store = stores[0]
+            # Remove existing lights/transforms
+            store.light_set.all().delete()
+            store.transforminstance_set.all().delete()
+        else:
+            # Create new store
+            store = Store()
+            store.name = store_name
+            store.save()
+
+        # Copy all of the current lights and transforms to the given store
+        current_lights = Light.objects.get_current()
+        current_transforms = TransformInstance.objects.get_current()
+
+        for light in current_lights:
+            # By setting primary key to none, we ensure a copy of
+            # the object is made
+            light.pk = None
+            # Set the store to None so that it's part of the "current"
+            # setup
+            light.store = store
+            light.save()
+
+        for transforminstance in current_transforms:
+            transforminstance.pk = None
+            transforminstance.store = store
+            transforminstance.save()
+
+    else:
+        error = 'Must specify a config name'
+
+    if error:
+        return HttpResponse(fail_json(error), content_type='application/json')
+
+    return HttpResponse(success_json({
+        'configs': client_queries.configs(),
+    }), content_type='application/json')
 
 
+@require_POST
 @user_passes_test(auth_check)
-def render_stores_snippet(request):
-    stores = Store.objects.all().order_by('name')
+def load_config(request):
+    req = json.loads(request.body)
 
-    return render(
-        request,
-        'home/snippets/stores-list.html',
-        {'stores': stores},
-    )
+    error = None
+    if 'id' in req:
+        store = Store.objects.get(id=req['id'])
+        if store:
+            # Found the store - load its lights and transforms
+            # First clear out existing "current" items
+            Light.objects.get_current().delete()
+            TransformInstance.objects.get_current().delete()
 
-
-@user_passes_test(auth_check)
-def save_store(request):
-
-    if request.method == 'POST':
-        if 'store_name' in request.POST:
-            # First see if the store already exists
-            store_name = (request.POST['store_name'])[0:29]
-            stores = Store.objects.filter(name=store_name)
-            if len(stores) >= 1:
-                store = stores[0]
-                # Remove existing lights/transforms
-                store.light_set.all().delete()
-                store.transforminstance_set.all().delete()
-            else:
-                # Create new store
-                store = Store()
-                store.name = store_name
-                store.save()
-
-            # Copy all of the current lights and transforms to the given store
-            current_lights = Light.objects.get_current()
-            current_transforms = TransformInstance.objects.get_current()
-
-            for light in current_lights:
+            for light in store.light_set.all():
                 # By setting primary key to none, we ensure a copy of
                 # the object is made
                 light.pk = None
                 # Set the store to None so that it's part of the "current"
                 # setup
-                light.store = store
+                light.store = None
                 light.save()
 
-            for transforminstance in current_transforms:
+            for transforminstance in store.transforminstance_set.all():
                 transforminstance.pk = None
-                transforminstance.store = store
+                transforminstance.store = None
                 transforminstance.save()
 
-            result = True
         else:
-            result = False
+            error = 'Invalid config specified'
     else:
-        result = False
+        error = 'Must specify a config'
 
-    return HttpResponse(json.dumps({'success': result}), content_type='application/json')
+    if error:
+        return HttpResponse(fail_json(error), content_type='application/json')
+
+    driver.message_restart()
+    # Return an empty response - the client will re-bootstrap
+    return HttpResponse(success_json({}), content_type='application/json')
 
 
+@require_POST
 @user_passes_test(auth_check)
-def load_store(request):
-
-    if request.method == 'POST':
-        if 'store_id' in request.POST:
-            stores = Store.objects.filter(id=int(request.POST['store_id']))
-            if len(stores) == 1:
-                # Found the store - load its lights and transforms
-                # First clear out existing "current" items
-                Light.objects.get_current().delete()
-                TransformInstance.objects.get_current().delete()
-
-                for light in stores[0].light_set.all():
-                    # By setting primary key to none, we ensure a copy of
-                    # the object is made
-                    light.pk = None
-                    # Set the store to None so that it's part of the "current"
-                    # setup
-                    light.store = None
-                    light.save()
-
-                for transforminstance in stores[0].transforminstance_set.all():
-                    transforminstance.pk = None
-                    transforminstance.store = None
-                    transforminstance.save()
-
-                result = True
-            else:
-                result = False
-        else:
-            result = False
-    else:
-        result = False
-
-    if result:
-        message_restart_driver()
-
-    return HttpResponse(json.dumps({'success': result}), content_type='application/json')
-
-
-@user_passes_test(auth_check)
-def run_simulation(request):
+def preview(request):
     # To do this, we call into the driver class to simulate running
     # the actual driver
-    driver = LightDriver()
-    colors = driver.run_simulation(0.1, 100)
-    hex_colors = []
+    driver = LightDriver(simulation=True)
+    frames = driver.run_simulation(0.05, 100)
+    frame_dicts = []
 
-    for color in colors:
-        hex_colors.append([x.to_hex_web() for x in color])
+    for frame in frames:
+        frame_dicts.append([color.safe_dict() for color in frame])
 
-    return HttpResponse(json.dumps(hex_colors), content_type='application/json')
+    return HttpResponse(success_json({
+        'frames': frame_dicts
+    }), content_type='application/json')
 
 
+@require_POST
 @user_passes_test(auth_check)
 def apply_light_tool(request):
     """
     Complex function that applies a "tool" across several lights
     """
+    req = json.loads(request.body)
 
-    if request.method == 'POST':
-        if 'tool' in request.POST and \
-                'index' in request.POST and \
-                'radius' in request.POST and \
-                'opacity' in request.POST and \
-                'color' in request.POST:
-            # Always "reset" the lights - will fill out the correct number if it's wrong
-            Light.objects.reset()
-            current_lights = list(Light.objects.get_current())
+    error = None
+    if 'tool' in req and \
+            'index' in req and \
+            'radius' in req and \
+            'opacity' in req and \
+            'color' in req:
 
-            tool = request.POST['tool']
-            index = int(request.POST['index'])
-            radius = int(request.POST['radius'])
-            opacity = float(request.POST['opacity']) / 100
-            color = Color.from_hex(request.POST['color'])
+        # Always "reset" the lights - will fill out the correct number if it's wrong
+        Light.objects.reset()
+        current_lights = list(Light.objects.get_current())
 
-            if tool == 'solid':
-                # Apply the color at the given opacity and radius
-                min_idx = max(0, index - radius)
-                max_idx = min(len(current_lights), index + radius + 1)
+        tool = req['tool']
+        index = req['index']
+        radius = req['radius']
+        opacity = float(req['opacity']) / 100
+        color = Color.from_dict(req['color'])
 
-                for i in range(min_idx, max_idx):
-                    light = current_lights[i]
-                    light.color = (light.color * (1.0 - opacity)) + (color * opacity)
-                    light.save()
+        if tool == 'solid':
+            # Apply the color at the given opacity and radius
+            min_idx = max(0, index - radius)
+            max_idx = min(len(current_lights), index + radius + 1)
 
-                result = True
-            elif tool == 'smooth':
-                # Apply the color at the given opacity and radius, with falloff
-                min_idx = max(0, index - radius)
-                max_idx = min(len(current_lights), index + radius + 1)
-
-                for i in range(min_idx, max_idx):
-                    distance = abs(index - i)
-                    # TODO: Better falloff function
-                    strength = (1.0 - (float(distance) / radius)) * opacity
-
-                    light = current_lights[i]
-                    light.color = (light.color * (1.0 - strength)) + (color * strength)
-                    light.save()
-
-                result = True
-            else:
-                result = False
-        else:
-            result = False
-    else:
-        result = False
-
-    if result:
-        message_restart_driver()
-
-    return HttpResponse(json.dumps({'success': result}), content_type='application/json')
-
-
-@user_passes_test(auth_check)
-def fill_color(request):
-
-    if request.method == 'POST':
-        if 'color' in request.POST:
-            color = Color.from_hex(request.POST['color'])
-
-            for light in Light.objects.get_current():
-                light.color = color
+            for i in range(min_idx, max_idx):
+                light = current_lights[i]
+                light.color = (light.color * (1.0 - opacity)) + (color * opacity)
                 light.save()
 
-            result = True
+        elif tool == 'smooth':
+            # Apply the color at the given opacity and radius, with falloff
+            min_idx = max(0, index - radius)
+            max_idx = min(len(current_lights), index + radius + 1)
+
+            for i in range(min_idx, max_idx):
+                distance = abs(index - i)
+                # TODO: Better falloff function
+                strength = (1.0 - (float(distance) / radius)) * opacity
+
+                light = current_lights[i]
+                light.color = (light.color * (1.0 - strength)) + (color * strength)
+                light.save()
+
         else:
-            result = False
+            error = 'Unknown tool %s' % tool
     else:
-        result = False
+        error = 'No tool specified'
 
-    if result:
-        message_restart_driver()
+    if error:
+        return HttpResponse(fail_json(error), content_type='application/json')
 
-    return HttpResponse(json.dumps({'success': result}), content_type='application/json')
+    driver.message_restart()
+    return HttpResponse(success_json({
+        'baseColors': client_queries.base_colors(),
+    }), content_type='application/json')
 
 
+@require_POST
+@user_passes_test(auth_check)
+def fill_color(request):
+    req = json.loads(request.body)
+
+    if 'color' in req:
+        color = Color.from_dict(req['color'])
+
+        for light in Light.objects.get_current():
+            light.color = color
+            light.save()
+
+    else:
+        return HttpResponse(fail_json('Must specify color'))
+
+    driver.message_restart()
+    return HttpResponse(success_json({
+        'baseColors': client_queries.base_colors(),
+    }), content_type='application/json')
+
+
+@require_POST
 @csrf_exempt
 def update_color_channel(request):
+    req = json.loads(request.body)
 
-    if request.method == 'POST':
-        if 'color' in request.POST and 'channel' in request.POST:
-            color = Color.from_hex(request.POST['color'])
-            channel = request.POST['channel']
+    if 'color' in req and 'channel' in req:
+        color = Color.from_hex(req['color'])
+        channel = req['channel']
 
-            message_color_channel(channel, color)
+        driver.message_color_channel(channel, color)
 
-            result = True
-        else:
-            result = False
     else:
-        result = False
+        return HttpResponse(fail_json('Must specify color and channel'))
 
-    return HttpResponse(json.dumps({'success': result}), content_type='application/json')
+    return HttpResponse(success_json({}), content_type='application/json')
 
 
+@require_POST
 @user_passes_test(auth_check)
 def delete_transform(request):
+    req = json.loads(request.body)
 
-    if request.method == 'POST':
-        if 'transform_id' in request.POST:
-            transforms = TransformInstance.objects.filter(id=int(request.POST['transform_id'])).filter(store=None)
-            if len(transforms) == 1:
-                transforms.delete()
-                result = True
-            else:
-                result = False
+    error = None
+    if 'id' in req:
+        transform = TransformInstance.objects.get(id=req['id'])
+        if transform:
+            transform.delete()
         else:
-            result = False
+            error = 'Invalid transform specified'
     else:
-        result = False
+        error = 'No transform specified'
 
-    if result:
-        message_restart_driver()
+    if error:
+        return HttpResponse(fail_json(error), content_type='application/json')
 
-    return HttpResponse(json.dumps({'success': result}), content_type='application/json')
+    driver.message_restart()
+    return HttpResponse(success_json({
+        'activeTransforms': client_queries.active_transforms(),
+    }), content_type='application/json')
 
 
+@require_POST
 @user_passes_test(auth_check)
-def update_transform_params(request):
+def update_transform(request):
+    req = json.loads(request.body)
 
-    if request.method == 'POST':
-        if 'transform_id' in request.POST and\
-                'params' in request.POST:
-            transforms = TransformInstance.objects.filter(id=int(request.POST['transform_id'])).filter(store=None)
-            if len(transforms) == 1:
-                transforms[0].params = request.POST['params']
-                transforms[0].save()
-                result = True
-            else:
-                result = False
+    error = None
+    result = None
+    if 'id' in req and 'params' in req:
+        transform = TransformInstance.objects.get(id=req['id'])
+        if transform:
+            transform.params = json.dumps(req['params'])
+            transform.save()
+            result = {
+                'id': transform.id,
+                'transformId': transform.transform.id,
+                'name': transform.transform.name,
+                'longName': transform.transform.long_name,
+                'params': json.loads(transform.params),
+            }
         else:
-            result = False
+            error = 'Invalid transform specified'
     else:
-        result = False
+        error = 'Must supply transform and params'
 
-    if result:
-        message_restart_driver()
+    print result
+    if error:
+        return HttpResponse(fail_json(error), content_type='application/json')
 
-    return HttpResponse(json.dumps({'success': result}), content_type='application/json')
+    driver.message_restart()
+    return HttpResponse(success_json({
+        'transform': result,
+    }), content_type='application/json')
 
 
+@require_POST
 @user_passes_test(auth_check)
 def add_transform(request):
+    req = json.loads(request.body)
 
-    if request.method == 'POST':
-        if 'transform_id' in request.POST:
-            transform = Transform.objects.filter(id=int(request.POST['transform_id']))
-            if len(transform) == 1:
-                transform_instance = TransformInstance()
-                transform_instance.transform = transform[0]
-                transform_instance.params = json.dumps(transform[0].default_params)
-                transform_instance.order = 0
-                transform_instance.save()
-                result = True
-            else:
-                result = False
+    error = None
+    if 'id' in req:
+        transform = Transform.objects.get(id=req['id'])
+        if transform:
+            transform_instance = TransformInstance()
+            transform_instance.transform = transform
+            transform_instance.params = json.dumps(transform.default_params)
+            transform_instance.order = 0
+            transform_instance.save()
         else:
-            result = False
+            error = 'Invalid transform specified'
     else:
-        result = False
+        error = 'No transform specified'
 
-    if result:
-        message_restart_driver()
+    if error:
+        return HttpResponse(fail_json(error), content_type='application/json')
 
-    return HttpResponse(json.dumps({'success': result}), content_type='application/json')
+    driver.message_restart()
+    return HttpResponse(success_json({
+        'activeTransforms': client_queries.active_transforms(),
+    }), content_type='application/json')
 
 
+@require_POST
 @user_passes_test(auth_check)
 def start_driver(request):
-    message_start_driver()
-    return HttpResponse()
+    driver.message_start()
+    return HttpResponse(success_json({}), content_type='application/json')
 
 
+@require_POST
 @user_passes_test(auth_check)
 def stop_driver(request):
-    message_stop_driver()
-    return HttpResponse()
+    driver.message_stop()
+    return HttpResponse(success_json({}), content_type='application/json')
 
 
+@require_POST
 @user_passes_test(auth_check)
 def restart_driver(request):
-    message_restart_driver()
-    return HttpResponse()
+    driver.message_restart()
+    return HttpResponse(success_json({}), content_type='application/json')
