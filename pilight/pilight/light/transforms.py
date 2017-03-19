@@ -73,7 +73,7 @@ class LayerBase(TransformBase):
         # if an unknown mode gets passed in
         if self.blend_mode == 'multiply':
             # TODO: Actually implement multiplicative blending
-            result = Color.blend_normal(start_color, color)
+            result = Color.blend_mult(start_color, color)
         else:
             result = Color.blend_normal(start_color, color)
 
@@ -180,7 +180,7 @@ class ColorFlashTransform(TransformBase):
         flash_end_color = Color.from_hex(self.params['end_color'])
 
         # Compute value based on progress and start/end vals
-        mult_color = (1 - progress) * flash_start_color + progress * flash_end_color
+        mult_color = flash_start_color * (1 - progress) + flash_end_color * progress
 
         return start_color * mult_color
 

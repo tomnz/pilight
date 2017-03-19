@@ -78,36 +78,36 @@ class Color(object):
     def serialize(self):
         return pickle.dumps(self, pickle.HIGHEST_PROTOCOL)
 
-    @classmethod
-    def deserialize(cls, val):
+    @staticmethod
+    def deserialize(val):
         return pickle.loads(val)
 
     # Creators
-    @classmethod
-    def from_hex(cls, hex_val):
+    @staticmethod
+    def from_hex(hex_val):
         if len(hex_val) == 7:
             hex_val = hex_val[1:]
         if len(hex_val) == 6:
-            return cls(float(int(hex_val[0:2], 16)) / 255.0, float(int(hex_val[2:4], 16)) / 255.0, float(int(hex_val[4:6], 16)) / 255.0)
+            return Color(float(int(hex_val[0:2], 16)) / 255.0, float(int(hex_val[2:4], 16)) / 255.0, float(int(hex_val[4:6], 16)) / 255.0)
         else:
-            return cls.get_default()
+            return Color.get_default()
 
-    @classmethod
-    def from_dict(cls, color_dict):
-        return cls(
+    @staticmethod
+    def from_dict(color_dict):
+        return Color(
             color_dict.get('r', 0.0),
             color_dict.get('g', 0.0),
             color_dict.get('b', 0.0),
             color_dict.get('a', 1.0),
         )
 
-    @classmethod
-    def get_default(cls):
-        return cls(1.0, 1.0, 1.0)
+    @staticmethod
+    def get_default():
+        return Color(1.0, 1.0, 1.0)
 
     # Blending operations
-    @classmethod
-    def blend_normal(cls, bg, fg):
+    @staticmethod
+    def blend_normal(bg, fg):
         if not isinstance(bg, Color) or not isinstance(fg, Color):
             return Color.get_default()
 
@@ -138,6 +138,13 @@ class Color(object):
 
         return final
 
+    @staticmethod
+    def blend_mult(a, b):
+        if getattr(a, 'a', 1.0) == 1.0 and getattr(b, 'a', 1.0) == 1.0:
+            return Color(a.r * b.r, a.g * b.g, a.b * b.b)
+        else:
+            return a.flatten_alpha() * b.flatten_alpha()
+
     # Operators
     def __add__(self, other):
         if isinstance(other, Color):
@@ -149,16 +156,8 @@ class Color(object):
             return NotImplemented
 
     def __mul__(self, other):
-        if isinstance(other, (int, long, float)):
-            # Don't multiply the alpha
-            return Color(self.r * other, self.g * other, self.b * other, getattr(self, 'a', 1.0))
-        elif isinstance(other, Color):
-            if getattr(self, 'a', 1.0) == 1.0 and getattr(other, 'a', 1.0) == 1.0:
-                return Color(self.r * other.r, self.g * other.g, self.b * other.b)
-            else:
-                return self.flatten_alpha() * other.flatten_alpha()
-        else:
-            return NotImplemented
+        # Don't multiply the alpha
+        return Color(self.r * other, self.g * other, self.b * other, getattr(self, 'a', 1.0))
 
     def __rmul__(self, other):
         return self * other
