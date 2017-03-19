@@ -301,9 +301,7 @@ def fill_color(request):
     if 'color' in req:
         color = Color.from_dict(req['color'])
 
-        for light in Light.objects.get_current():
-            light.color = color
-            light.save()
+        Light.objects.get_current().update(color=color)
 
     else:
         return HttpResponse(fail_json('Must specify color'))

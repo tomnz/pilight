@@ -16,10 +16,18 @@ LIGHTS_DRIVER_DEBUG = False
 
 # Installation name
 # Can be anything you like - shown on the web UI
-LIGHTS_INSTALLATION_NAME = "PiLight"
+LIGHTS_INSTALLATION_NAME = 'PiLight'
 
-# Number of LEDs in the string
+# Number of lights in the string
+# The true number of LED data points emitted is NUM_LEDS * SCALE
 LIGHTS_NUM_LEDS = 50
+
+# Scale up the light pattern by the given amount
+# If this is 1, one light = one LED
+# If larger numbers are used, then the light calculation becomes
+# more efficient. This is especially useful for large numbers
+# of LEDs
+LIGHTS_SCALE = 1
 
 # Require a valid Django user to change the lights?
 # Recommend setting this to True for externally
@@ -116,7 +124,7 @@ DRIVER_CACHE_EXPIRY = 5 * 60
 
 ######################
 # Django core settings
-DEBUG = True
+DEBUG = False
 
 ADMINS = (
     # ('Your Name', 'your_email@example.com'),

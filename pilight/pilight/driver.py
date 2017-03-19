@@ -187,16 +187,23 @@ class LightDriver(object):
             # TODO: Could abstract this if we add more chips
             if settings.LIGHTS_MICROCONTROLLER == 'ws2801':
                 for idx, color in enumerate(colors):
-                    self.strip.set_pixel(idx, color.to_raw_corrected())
+                    out_color = color.to_raw_corrected()
+                    for light_num in range(settings.LIGHTS_SCALE):
+                        self.strip.set_pixel(idx * settings.LIGHTS_SCALE + light_num, out_color)
+
                 self.strip.show()
 
             elif settings.LIGHTS_MICROCONTROLLER == 'ws281x':
                 for idx, color in enumerate(colors):
-                    self.strip.setPixelColorRGB(
-                        idx,
-                        int(color.safe_corrected_r() * 255),
-                        int(color.safe_corrected_g() * 255),
-                        int(color.safe_corrected_b() * 255))
+                    out_r = int(color.safe_corrected_r() * 255)
+                    out_g = int(color.safe_corrected_g() * 255)
+                    out_b = int(color.safe_corrected_b() * 255)
+
+                    for light_num in range(settings.LIGHTS_SCALE):
+                        self.strip.setPixelColorRGB(
+                            idx * settings.LIGHTS_SCALE + light_num,
+                            out_r, out_b, out_g)
+
                 self.strip.show()
 
         elif settings.LIGHTS_DRIVER_MODE == 'server':
