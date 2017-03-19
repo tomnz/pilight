@@ -43,15 +43,6 @@ LIGHTS_UPDATE_INTERVAL = 0.03
 # started from the web UI
 AUTO_START = False
 
-# Microcontroller type used on the LED string
-# Known values:
-#  - 'ws2801'
-# (Currently not used - placeholder for future extension)
-LIGHTS_MICROCONTROLLER = 'ws2801'
-
-# Device name for the SPI output in your Occidentals installation
-LIGHTS_DEV_NAME = '/dev/spidev0.0'
-
 # Time between message polls that the driver should use (secs)
 # Recommend leaving this greater than 1.0
 LIGHTS_MESSAGE_CHECK_INTERVAL = 2.0
@@ -65,6 +56,42 @@ LIGHTS_MULTIPLIER_B = 0.66
 
 # Set to True to enable the audio variable based on mic level
 ENABLE_AUDIO_VAR = False
+
+# Microcontroller type used on the LED string
+# Known values:
+#  - 'ws2801'
+#  - 'ws281x'
+# Configure related settings for your microcontroller below.
+LIGHTS_MICROCONTROLLER = 'ws2801'
+
+#################
+# WS2801 settings
+
+# Device name for the SPI output in your Occidentals installation
+WS2801_LIGHTS_DEV_NAME = '/dev/spidev0.0'
+
+#################
+# WS281X settings
+
+# GPIO pin to output data on (must be PWM)
+WS281X_LED_PIN = 18
+
+# Signal frequency in Hz
+WS281X_FREQ_HZ = 800000
+
+# DMA channel to use for generating the signal
+WS281X_DMA = 5
+
+# True to invert the signal (when using NPN transistor level shift)
+WS281X_INVERT = False
+
+# Strip type for driver - use one of the constant names from:
+# https://github.com/jgarff/rpi_ws281x/blob/master/ws2811.h
+# The string will be used to look up the actual constant at runtime.
+WS281X_STRIP = 'WS2812_STRIP'
+
+# PWM channel to use
+WS281X_CHANNEL = 0
 
 
 ############

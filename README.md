@@ -1,9 +1,9 @@
 PiLight
 =======
 
-Flexible LED controller designed to run on a Raspberry Pi, and drive WS2801 LED strings. Has a Django web-based interface for access anywhere.
+Flexible LED controller designed to run on a Raspberry Pi, and drive LED strings. Has a Django web-based interface for access anywhere.
 
-Although it is more work to set up (and completely optional), PiLight is designed to be run in a server/client configuration - with a powerful server driving the configuration interface, and computing color data to send to the LEDs; and a lightweight client script running on the Raspberry Pi. See the Client/Server section below for more details.
+Although it is more work to set up (and completely optional), PiLight is able to be run in a server/client configuration - with a powerful server driving the configuration interface, and computing color data to send to the LEDs; and a lightweight client script running on the Raspberry Pi. See the Client/Server section below for more details.
 
 For more information, check out the following sources:
 
@@ -73,6 +73,31 @@ Setup the database:
     python manage.py migrate
     python manage.py loaddata fixtures/initial_data.json
     python manage.py createcachetable pilight_cache
+
+
+Lights
+------
+
+Depending on the type of LED you are trying to drive, you will need to install a helper library so that PiLight is able to talk to your lights. Follow the directions for your given driver type:
+
+WS2801
+======
+
+Install Adafruit's library:
+
+    pip install adafruit-ws2801
+
+Install Adafruit's GPIO driver (for SPI support) using [their instructions](https://github.com/adafruit/Adafruit_Python_GPIO).
+
+In `settings.py`, change `LIGHTS_MICROCONTROLLER` to `ws2801`. Configure any other related settings for WS2801.
+
+
+WS281x (NeoPixel)
+=================
+
+Follow [Adafruit's instructions](https://learn.adafruit.com/neopixels-on-raspberry-pi/software) to build and install the Python library.
+
+In `settings.py`, change `LIGHTS_MICROCONTROLLER` to `ws281x`. Configure any other related settings for WS281x.
 
 
 Launch PiLight
