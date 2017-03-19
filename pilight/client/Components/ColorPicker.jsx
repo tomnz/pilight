@@ -1,5 +1,5 @@
 import React, {PropTypes} from 'react';
-import {Button} from 'react-bootstrap';
+import {Button, FormGroup} from 'react-bootstrap';
 import {SketchPicker} from 'react-color';
 import {connect} from 'react-redux';
 
@@ -22,15 +22,26 @@ class ColorPicker extends React.Component {
     };
 
     onChangeComplete = (color) => {
-        this.props.dispatch(setColor(color.rgb));
+        const rgb = color.rgb;
+        this.props.dispatch(setColor({
+            r: rgb.r / 255,
+            g: rgb.g / 255,
+            b: rgb.b / 255,
+            a: rgb.a,
+        }));
     };
 
     render() {
-        const color = !!this.props.color ? this.props.color : {r: 0, g: 0, b: 0};
-        const colorString = `rgb(${Math.round(color.r*255)}, ${Math.round(color.g*255)}, ${Math.round(color.b*255)})`;
+        const pickerColor = !!this.props.color ? {
+                r: this.props.color.r * 255,
+                g: this.props.color.g * 255,
+                b: this.props.color.b * 255,
+                a: this.props.color.a,
+            } : {r: 0, g: 0, b: 0};
+        const colorString = `rgb(${Math.round(pickerColor.r)}, ${Math.round(pickerColor.g)}, ${Math.round(pickerColor.b)})`;
 
         return (
-            <div>
+            <FormGroup>
                 <Button
                     onClick={this.togglePicker}
                     style={{backgroundColor: colorString}}
@@ -41,12 +52,12 @@ class ColorPicker extends React.Component {
                     <div className={css.popover}>
                         <div className={css.cover} onClick={this.closePicker}/>
                         <SketchPicker
-                            color={color}
+                            color={pickerColor}
                             onChangeComplete={this.onChangeComplete}
                             disableAlpha={true}
                         />
                     </div> : null}
-            </div>
+            </FormGroup>
         )
     }
 }

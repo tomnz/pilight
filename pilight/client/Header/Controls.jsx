@@ -7,16 +7,22 @@ import {
     FormControl,
     Grid,
     InputGroup,
-    ListGroup,
-    ListGroupItem,
     MenuItem,
-    Panel,
     Row
 } from 'react-bootstrap';
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 
-import {loadConfigAsync, saveConfigAsync} from '../store/client';
+import {
+    loadConfigAsync,
+    restartDriverAsync,
+    saveConfigAsync,
+    startDriverAsync,
+    stopDriverAsync,
+} from '../store/client';
+import {doPreviewAsync} from '../store/lights';
+
+import css from './Controls.scss';
 
 
 class Controls extends React.Component {
@@ -46,19 +52,26 @@ class Controls extends React.Component {
         });
 
         return (
-            <Panel>
-                <ListGroup fill>
-                    <ListGroupItem>
-                        <ButtonGroup>
-                            <Button bsStyle="success">Start</Button>
-                            <Button bsStyle="danger">Stop</Button>
-                            <Button bsStyle="primary">Refresh</Button>
-                        </ButtonGroup>
-                        &nbsp;
-                        <Button bsStyle="info">Preview</Button>
-                    </ListGroupItem>
-                    <ListGroupItem>
+            <Col xs={12} md={6} className={css.wrapper}>
+                <Row>
+                    <Col md={6}>
                         <InputGroup>
+                            <ButtonGroup>
+                                <Button bsStyle="success" onClick={this.props.startDriverAsync}>Start</Button>
+                                <Button bsStyle="danger" onClick={this.props.stopDriverAsync}>Stop</Button>
+                                <Button bsStyle="primary" onClick={this.props.restartDriverAsync}>Restart</Button>
+                                <Button
+                                    bsStyle="info"
+                                    disabled={this.props.previewActive}
+                                    onClick={this.props.doPreviewAsync}
+                                >Preview</Button>
+                            </ButtonGroup>
+                        </InputGroup>
+                    </Col>
+                </Row>
+                <Row>
+                    <Col md={6}>
+                        <InputGroup className={css.configLoader}>
                             <FormControl
                                 bsSize="sm"
                                 id="saveConfig"
@@ -81,9 +94,9 @@ class Controls extends React.Component {
                                 </DropdownButton>
                             </InputGroup.Button>
                         </InputGroup>
-                    </ListGroupItem>
-                </ListGroup>
-            </Panel>
+                    </Col>
+                </Row>
+            </Col>
         );
     }
 }
@@ -95,21 +108,31 @@ Controls.propTypes = {
             name: PropTypes.string.isRequired,
         }).isRequired,
     ).isRequired,
+    doPreviewAsync: PropTypes.func.isRequired,
     loadConfigAsync: PropTypes.func.isRequired,
+    previewActive: PropTypes.bool.isRequired,
+    restartDriverAsync: PropTypes.func.isRequired,
     saveConfigAsync: PropTypes.func.isRequired,
+    startDriverAsync: PropTypes.func.isRequired,
+    stopDriverAsync: PropTypes.func.isRequired,
 };
 
 const mapStateToProps = (state) => {
-    const {client} = state;
+    const {client, lights} = state;
     return {
         configs: client.configs,
+        previewActive: !!lights.previewFrame,
     }
 };
 
 const mapDispatchToProps = (dispatch) => {
     return bindActionCreators({
+        doPreviewAsync,
         loadConfigAsync,
+        restartDriverAsync,
         saveConfigAsync,
+        startDriverAsync,
+        stopDriverAsync,
     }, dispatch);
 };
 

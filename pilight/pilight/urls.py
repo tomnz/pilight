@@ -1,6 +1,5 @@
 from django.conf.urls import include, url
 from django.contrib import admin
-from django.contrib.auth import views as auth_views
 
 from home import views
 
@@ -15,7 +14,7 @@ urlpatterns = [
     url(r'^api/driver/restart/?$', views.restart_driver, name='restart_driver'),
     url(r'^api/light/base-colors/?$', views.get_base_colors, name='get_base_colors'),
     url(r'^api/light/apply-tool/?$', views.apply_light_tool, name='apply_light_tool'),
-    url(r'^api/light/simulate/?$', views.run_simulation, name='run_simulation'),
+    url(r'^api/light/preview/?$', views.preview, name='preview'),
     url(r'^api/light/fill-color/?$', views.fill_color, name='fill_color'),
     url(r'^api/transform/add/?$', views.add_transform, name='add_transform'),
     url(r'^api/transform/delete/?$', views.delete_transform, name='delete_transform'),
@@ -27,9 +26,8 @@ urlpatterns = [
 
 # Auth
 urlpatterns += [
-    url(r'^auth/?$', views.post_auth, name='post_auth'),
-    url(r'^accounts/login/?$', auth_views.login, name='login'),
-    url(r'^accounts/logout/?$', auth_views.logout, {'next_page': '/'}, name='logout'),
+    url(r'^api/auth/login/?$', views.login, name='login'),
+    url(r'^api/auth/logout/?$', views.logout, name='logout'),
 ]
 
 # Admin

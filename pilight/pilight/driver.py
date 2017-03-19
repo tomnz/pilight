@@ -11,12 +11,12 @@ from pilight.light.variables import AudioVariable
 
 class LightDriver(object):
 
-    def __init__(self):
+    def __init__(self, simulation=False):
         self.start_time = None
         self.messages_since_last_queue_check = 0
         self.color_channels = {}
 
-        if settings.LIGHTS_DRIVER_MODE == 'noop':
+        if settings.LIGHTS_DRIVER_MODE == 'noop' or simulation:
             return
 
         # Initialize appropriate strip based on microcontroller type

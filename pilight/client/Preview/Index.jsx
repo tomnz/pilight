@@ -6,6 +6,9 @@ import {
     Row,
 } from 'react-bootstrap';
 import {connect} from 'react-redux';
+import {bindActionCreators} from 'redux';
+
+import {applyToolAsync} from '../store/palette';
 
 import {LightButton} from './LightButton';
 
@@ -13,12 +16,23 @@ import css from './Index.scss';
 
 
 class Preview extends React.Component {
+    applyToolAsync = (id) => () => {
+        return this.props.applyToolAsync(id);
+    };
+
     render() {
         let id = 1;
-        let lightButtons = this.props.baseColors.map((color) => {
+        const colors = !!this.props.previewFrame ? this.props.previewFrame : this.props.baseColors;
+
+        let lightButtons = colors.map((color) => {
             let key = id++;
             return (
-                <LightButton key={key} id={key} color={color} />
+                <LightButton
+                    color={color}
+                    key={key}
+                    id={key}
+                    onClick={this.applyToolAsync(key - 1)}
+                />
             );
         });
 
@@ -39,7 +53,7 @@ class Preview extends React.Component {
         }
 
         return (
-            <Grid>
+            <Grid className={css.lights}>
                 <Row>
                     <Col md={12}>
                         {buttonGroups}
@@ -54,8 +68,16 @@ const mapStateToProps = (state) => {
     const {lights} = state;
     return {
         baseColors: lights.baseColors,
+        previewFrame: lights.previewFrame,
     }
 };
-const PreviewRedux = connect(mapStateToProps)(Preview);
+
+const mapDispatchToProps = (dispatch) => {
+    return bindActionCreators({
+        applyToolAsync,
+    }, dispatch);
+};
+
+const PreviewRedux = connect(mapStateToProps, mapDispatchToProps)(Preview);
 
 export {PreviewRedux as Preview};

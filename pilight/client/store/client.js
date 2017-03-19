@@ -45,7 +45,28 @@ export const loadConfigAsync = (id) => (dispatch) => {
             dispatch(finishBootstrap());
             dispatch(setError(error));
         },
-    )
+    );
+};
+
+export const startDriverAsync = () => (dispatch) => {
+    return postObjectPromise(
+        `/api/driver/start/`, {}, () => {},
+        (error) => { dispatch(setError(error)); },
+    );
+};
+
+export const stopDriverAsync = () => (dispatch) => {
+    return postObjectPromise(
+        `/api/driver/stop/`, {}, () => {},
+        (error) => { dispatch(setError(error)); },
+    );
+};
+
+export const restartDriverAsync = () => (dispatch) => {
+    return postObjectPromise(
+        `/api/driver/restart/`, {}, () => {},
+        (error) => { dispatch(setError(error)); },
+    );
 };
 
 
@@ -53,13 +74,13 @@ const INITIAL_STATE = {
     errorMessage: null,
     configs: [],
     // Using a const string to avoid depending on async
-    bootstrapStatus: 'INVALID',
+    bootstrapStatus: 'PENDING',
 };
 
 export const client = handleActions({
     [CLEAR_ERROR]: (state, action) => ({...state, errorMessage: null}),
-    [FINISH_BOOTSTRAP]: (state, action) => ({...state, bootstrapStatus: 'VALID'}),
+    [FINISH_BOOTSTRAP]: (state, action) => ({...state, bootstrapStatus: 'DONE'}),
     [SET_CONFIGS]: (state, action) => ({...state, configs: action.payload}),
     [SET_ERROR]: (state, action) => ({...state, errorMessage: action.payload}),
-    [START_BOOTSTRAP]: (state, action) => ({...state, bootstrapStatus: 'INVALID'}),
+    [START_BOOTSTRAP]: (state, action) => ({...state, bootstrapStatus: 'PENDING'}),
 }, INITIAL_STATE);

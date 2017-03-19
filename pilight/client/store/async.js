@@ -2,8 +2,8 @@ import fetch from 'isomorphic-fetch';
 
 export const Status = {
     INVALID: 'INVALID',
-    FETCHING: 'FETCHING',
-    VALID: 'VALID',
+    PENDING: 'PENDING',
+    DONE: 'DONE',
 };
 
 // Kind of hacky... But this is set externally from root.js on bootstrap.

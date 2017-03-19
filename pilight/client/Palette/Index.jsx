@@ -4,23 +4,29 @@ import {
     ButtonGroup,
     Col,
     ControlLabel,
+    Form,
     FormGroup,
     FormControl,
     Grid,
     InputGroup,
     Panel,
+    Radio,
     Row,
 } from 'react-bootstrap';
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 
-import {setOpacity, setRadius} from '../store/palette';
+import {fillAsync, setOpacity, setRadius, setTool} from '../store/palette';
 
 import {ColorPicker} from '../Components/ColorPicker';
 import {Slider} from '../Components/Slider';
 
 
 class Palette extends React.Component {
+    setTool = (name) => () => {
+        this.props.setTool(name);
+    };
+
     render() {
         return (
             <Grid>
@@ -37,35 +43,48 @@ class Palette extends React.Component {
                     </Col>
                 </Row>
                 <Row>
-                    <Col xs={12} sm={4} md={2}>
-                        <ButtonGroup>
-                            <Button>Solid</Button>
-                            <Button>Smooth</Button>
-                        </ButtonGroup>
-                    </Col>
-                    <Col xs={12} sm={4} md={3}>
-                        <Slider
-                            label="Radius"
-                            min={0}
-                            max={30}
-                            onChange={this.props.setRadius}
-                            value={this.props.radius}
-                        />
-                    </Col>
-                    <Col xs={12} sm={4} md={3}>
-                        <Slider
-                            label="Opacity"
-                            min={1}
-                            max={100}
-                            onChange={this.props.setOpacity}
-                            value={this.props.opacity}
-                        />
-                    </Col>
-                    <Col xs={6} md={2}>
-                        <ColorPicker />
-                    </Col>
-                    <Col xs={6} md={2}>
-                        <Button>Fill</Button>
+                    <Col md={12}>
+                        <Form inline>
+                            <FormGroup>
+                                <Radio
+                                    inline
+                                    onChange={this.setTool('solid')}
+                                    checked={this.props.tool === 'solid'}
+                                >
+                                    Solid
+                                </Radio>
+                                {' '}
+                                <Radio
+                                    inline
+                                    onChange={this.setTool('smooth')}
+                                    checked={this.props.tool === 'smooth'}
+                                >
+                                    Smooth
+                                </Radio>
+                            </FormGroup>
+                            &nbsp;&nbsp;&nbsp;&nbsp;
+                            <Slider
+                                id="radius"
+                                label="Radius"
+                                min={0}
+                                max={30}
+                                onChange={this.props.setRadius}
+                                value={this.props.radius}
+                            />
+                            {' '}
+                            <Slider
+                                id="opacity"
+                                label="Opacity"
+                                min={1}
+                                max={100}
+                                onChange={this.props.setOpacity}
+                                value={this.props.opacity}
+                            />
+                            &nbsp;&nbsp;&nbsp;
+                            <ColorPicker />
+                            {' '}
+                            <Button onClick={this.props.fillAsync}>Fill</Button>
+                        </Form>
                     </Col>
                 </Row>
             </Grid>
@@ -80,8 +99,12 @@ Palette.propTypes = {
         b: PropTypes.number,
         a: PropTypes.number,
     }),
+    fillAsync: PropTypes.func,
     opacity: PropTypes.number,
     radius: PropTypes.number,
+    setOpacity: PropTypes.func,
+    setRadius: PropTypes.func,
+    setTool: PropTypes.func,
 };
 
 const mapStateToProps = (state) => {
@@ -90,13 +113,16 @@ const mapStateToProps = (state) => {
         color: palette.color,
         opacity: palette.opacity,
         radius: palette.radius,
+        tool: palette.tool,
     }
 };
 
 const mapDispatchToProps = (dispatch) => {
     return bindActionCreators({
+        fillAsync,
         setOpacity,
-        setRadius
+        setRadius,
+        setTool,
     }, dispatch);
 };
 

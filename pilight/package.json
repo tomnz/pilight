@@ -39,6 +39,7 @@
     "webpack-dev-server": "^2.4.1"
   },
   "scripts": {
+    "build": "webpack -p",
     "start": "webpack-dev-server --debug --hot --inline"
   }
 }

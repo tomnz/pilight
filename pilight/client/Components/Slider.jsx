@@ -5,6 +5,8 @@ import {
 } from 'react-bootstrap';
 import {ReactBootstrapSlider} from 'react-bootstrap-slider';
 
+import css from './Slider.scss';
+
 
 export class Slider extends React.Component {
     onChange = (event) => {
@@ -15,11 +17,12 @@ export class Slider extends React.Component {
 
    render() {
         return (
-            <FormGroup>
-                <ControlLabel>{this.props.label}</ControlLabel><br />
+            <FormGroup className={css.wrapper}>
+                <ControlLabel>{this.props.label}</ControlLabel>
+                &nbsp;&nbsp;
                 <ReactBootstrapSlider
-                    min={0}
-                    max={30}
+                    min={this.props.min}
+                    max={this.props.max}
                     slideStop={this.onChange}
                     value={this.props.value}
                 />
