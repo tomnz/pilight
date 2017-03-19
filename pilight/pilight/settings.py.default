@@ -11,6 +11,9 @@
 #            pilight-client
 LIGHTS_DRIVER_MODE = 'standalone'
 
+# If true, outputs additional driver logging, such as FPS
+LIGHTS_DRIVER_DEBUG = False
+
 # Installation name
 # Can be anything you like - shown on the web UI
 LIGHTS_INSTALLATION_NAME = "PiLight"

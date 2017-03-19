@@ -242,11 +242,19 @@ class LightDriver(object):
             self.start_time = time.time()
         last_message_check = time.time()
 
+        frame_count = 0
+        last_fps = time.time()
         running = True
         while running:
             # Setup the current iteration
             current_time = time.time()
             elapsed_time = current_time - self.start_time
+            frame_count += 1
+
+            if current_time - last_fps > 10.0 and settings.LIGHTS_DRIVER_DEBUG:
+                print '      FPS: %0.1f' % (float(frame_count) / (current_time - last_fps))
+                last_fps = current_time
+                frame_count = 0
 
             # Check for messages only once couple of seconds
             # Slight optimization to stop rabbitmq being hammered
