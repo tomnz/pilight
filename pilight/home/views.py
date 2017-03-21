@@ -66,7 +66,7 @@ def bootstrap_client(request):
     tool_color = Color(0.0, 0.0, 0.0)
     base_colors = []
     for light in current_lights:
-        tool_color += light.color or Color(1.0, 1.0, 1.0)
+        tool_color += light.color or Color.get_default()
         base_colors.append(light.color.safe_dict())
     tool_color /= len(current_lights)
 

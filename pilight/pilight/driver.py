@@ -32,7 +32,8 @@ class LightDriver(object):
 
         self.device = DEVICES[settings.LIGHTS_DEVICE](settings.LIGHTS_NUM_LEDS, settings.LIGHTS_SCALE)
 
-    def pop_message(self):
+    @staticmethod
+    def pop_message():
         """
         Grabs the latest message from Pika, if one is waiting
         Returns the body of the message if present, otherwise None
@@ -245,8 +246,7 @@ class LightDriver(object):
         return result
 
     def do_step(self, start_colors, elapsed_time, transforms, variables):
-        colors = start_colors
-        next_colors = []
+        colors = [color.clone() for color in start_colors]
 
         # Update variables
         for variable in variables.itervalues():
@@ -262,14 +262,8 @@ class LightDriver(object):
             # Tick the transform frame
             transform.tick_frame(elapsed_time, len(colors), external_color)
 
-            # Transform each light
-            for i in range(len(colors)):
-                color = transform.transform(elapsed_time, i, len(colors), colors[i], colors)
-                next_colors.append(color)
-
-            # Save lights for next transform
-            colors = next_colors
-            next_colors = []
+            # Run the transform
+            colors = transform.transform(elapsed_time, colors)
 
         return colors
 
