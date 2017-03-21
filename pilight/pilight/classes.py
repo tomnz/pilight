@@ -106,7 +106,7 @@ class Color(object):
 
     @staticmethod
     def get_default():
-        return Color(1.0, 1.0, 1.0)
+        return Color(1.0, 1.0, 1.0, 1.0)
 
     # Blending operations
     @staticmethod
@@ -149,17 +149,14 @@ class Color(object):
         if getattr(a, 'a', 1.0) == 1.0 and getattr(b, 'a', 1.0) == 1.0:
             return Color(a.r * b.r, a.g * b.g, a.b * b.b)
         else:
-            return a.flatten_alpha() * b.flatten_alpha()
+            return Color.blend_mult(a.flatten_alpha(), b.flatten_alpha())
 
     # Operators
     def __add__(self, other):
-        if isinstance(other, Color):
-            if getattr(self, 'a', 1.0) == 1.0 and getattr(other, 'a', 1.0) == 1.0:
-                return Color(self.r + other.r, self.g + other.g, self.b + other.b)
-            else:
-                return self.flatten_alpha() + other.flatten_alpha()
+        if getattr(self, 'a', 1.0) == 1.0 and getattr(other, 'a', 1.0) == 1.0:
+            return Color(self.r + other.r, self.g + other.g, self.b + other.b)
         else:
-            return NotImplemented
+            return self.flatten_alpha() + other.flatten_alpha()
 
     def __mul__(self, other):
         # Don't multiply the alpha
@@ -169,18 +166,11 @@ class Color(object):
         return self * other
 
     def __div__(self, other):
-        if isinstance(other, (int, long, float)):
-            return Color(self.r / other, self.g / other, self.b / other, getattr(self, 'a', 1.0))
-        else:
-            return NotImplemented
-
-    # Operations
-    def scale(self, scale):
-        return Color(self.r * scale, self.g * scale, self.b * scale)
+        return Color(self.r / other, self.g / other, self.b / other, getattr(self, 'a', 1.0))
 
     # Clone
     def clone(self):
-        return Color(self.r, self.g, self.b)
+        return Color(self.r, self.g, self.b, self.a)
 
     # Utility functions
     def safe_r(self):
