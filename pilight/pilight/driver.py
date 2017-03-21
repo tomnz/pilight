@@ -1,12 +1,20 @@
-import base64
 import time
 
 from django.conf import settings
 
-from home.models import Light, TransformInstance, Transform
+from home.models import Light, TransformInstance
+from pilight.devices import client, noop, ws2801, ws281x
 from pilight.classes import PikaConnection, Color
 from pilight.light.transforms import AVAILABLE_TRANSFORMS, BrightnessVariableTransform
 from pilight.light.variables import AudioVariable
+
+
+DEVICES = {
+    'noop': noop.Device,
+    'client': client.Device,
+    'ws2801': ws2801.Device,
+    'ws281x': ws281x.Device,
+}
 
 
 class LightDriver(object):
@@ -16,33 +24,13 @@ class LightDriver(object):
         self.messages_since_last_queue_check = 0
         self.color_channels = {}
 
-        if settings.LIGHTS_DRIVER_MODE == 'noop' or simulation:
+        if simulation:
             return
 
-        # Initialize appropriate strip based on microcontroller type
-        if settings.LIGHTS_MICROCONTROLLER == 'ws2801':
-            import Adafruit_WS2801
-            from Adafruit_GPIO import SPI
-            self.strip = Adafruit_WS2801.WS2801Pixels(
-                settings.LIGHTS_NUM_LEDS * settings.LIGHTS_SCALE,
-                spi=SPI.SpiDev(0, 0))
-            self.strip.clear()
-            self.strip.show()
+        if settings.LIGHTS_DEVICE not in DEVICES:
+            raise KeyError('Unknown device specified, please check your settings')
 
-        elif settings.LIGHTS_MICROCONTROLLER == 'ws281x':
-            import neopixel
-            strip_type = getattr(neopixel.ws, settings.WS281X_STRIP)
-
-            self.strip = neopixel.Adafruit_NeoPixel(
-                num=settings.LIGHTS_NUM_LEDS * settings.LIGHTS_SCALE,
-                pin=settings.WS281X_LED_PIN,
-                freq_hz=settings.WS281X_FREQ_HZ,
-                dma=settings.WS281X_DMA,
-                invert=settings.WS281X_INVERT,
-                brightness=255,
-                channel=settings.WS281X_CHANNEL,
-                strip_type=strip_type)
-            self.strip.begin()
+        self.device = DEVICES[settings.LIGHTS_DEVICE](settings.LIGHTS_NUM_LEDS, settings.LIGHTS_SCALE)
 
     def pop_message(self):
         """
@@ -58,37 +46,6 @@ class LightDriver(object):
             return body
         else:
             return None
-
-    def publish_colors(self, raw_data):
-        """
-        Publishes the color data to a Pika queue for ingestion
-        by a client - usually pilight-client
-        """
-        channel = PikaConnection.get_channel()
-        if not channel:
-            # Failed to get the channel
-            return
-
-        # Check for excessive messages in queue - and drop them if
-        # there are too many. This is useful if the light driver is
-        # running but no client is taking the messages, to save
-        # on memory.
-        if self.messages_since_last_queue_check > 5000:
-            self.messages_since_last_queue_check = 0
-            result = channel.queue_declare(
-                queue=settings.PIKA_QUEUE_NAME_COLORS,
-                auto_delete=False,
-                durable=True,
-                passive=True
-            )
-            if result.method.message_count > 4000:
-                channel.queue_purge(settings.PIKA_QUEUE_NAME_COLORS)
-
-        # Encode the raw data to base64 for transmission
-        data = base64.b64encode(raw_data)
-        channel.basic_publish(exchange='', routing_key=settings.PIKA_QUEUE_NAME_COLORS, body=data)
-
-        self.messages_since_last_queue_check += 1
 
     def process_color_message(self, msg):
         """
@@ -179,44 +136,7 @@ class LightDriver(object):
             self.start_time = None
 
     def set_colors(self, colors):
-        if settings.LIGHTS_DRIVER_MODE == 'noop':
-            return
-
-        elif settings.LIGHTS_DRIVER_MODE == 'standalone':
-            # Slightly differing APIs :(
-            # TODO: Could abstract this if we add more chips
-            if settings.LIGHTS_MICROCONTROLLER == 'ws2801':
-                for idx, color in enumerate(colors):
-                    out_color = color.to_raw_corrected()
-                    for light_num in range(settings.LIGHTS_SCALE):
-                        self.strip.set_pixel(idx * settings.LIGHTS_SCALE + light_num, out_color)
-
-                self.strip.show()
-
-            elif settings.LIGHTS_MICROCONTROLLER == 'ws281x':
-                for idx, color in enumerate(colors):
-                    out_r = int(color.safe_corrected_r() * 255)
-                    out_g = int(color.safe_corrected_g() * 255)
-                    out_b = int(color.safe_corrected_b() * 255)
-
-                    for light_num in range(settings.LIGHTS_SCALE):
-                        self.strip.setPixelColorRGB(
-                            idx * settings.LIGHTS_SCALE + light_num,
-                            out_r, out_b, out_g)
-
-                self.strip.show()
-
-        elif settings.LIGHTS_DRIVER_MODE == 'server':
-            # Write the data to the message queue
-            self.publish_colors(self.to_data(colors))
-
-    def to_data(self, colors):
-        raw_data = bytearray(settings.LIGHTS_NUM_LEDS * 3)
-        pos = 0
-        for light in colors:
-            raw_data[pos * 3:] = light.to_raw_corrected()
-            pos += 1
-        return raw_data
+        self.device.set_colors(colors)
 
     def clear_lights(self):
         black = [Color(0, 0, 0)] * settings.LIGHTS_NUM_LEDS

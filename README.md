@@ -21,7 +21,7 @@ For high-performance installations running complex animations, it's recommended 
 * Install PiLight (as per the instructions below) onto your intended server computer
 * Install [PiLight Client](https://bitbucket.org/tomnz/pilight-client) onto the Raspberry Pi, according to the instructions on that page
 * Do NOT install the full PiLight software onto your Raspberry Pi
-* In the PiLight `settings.py` file, set `LIGHTS_DRIVER_MODE` to `'server'`
+* In the PiLight `settings.py` file, set `LIGHTS_DEVICE` to `'client'`
 * Make sure to open your RabbitMQ port (usually 5672) on your server computer, so that the Raspberry Pi can access it
 * You still need to run the `lightdriver` command on your server computer - this will now output to the RabbitMQ queue for the client to pick up, instead of directly to the LEDs
 
@@ -61,7 +61,7 @@ Install the Python dependencies:
 
 Create a new database in your DBMS (e.g. PostgreSQL) to use for PiLight.
 
-Copy the settings file and make required changes (particularly set up your light parameters, and database instance):
+Copy the settings file and make required changes (particularly set up your output device, light parameters, and database instance):
 
     cd pilight
     cp pilight/settings.py.default pilight/settings.py
@@ -138,7 +138,9 @@ Suggested config to use (important piece commented):
 
     # Crucial tabs:
     chdir $HOME/pilight/pilight
-    screen -t pl 2 sh -c 'python manage.py runserver --noreload 0.0.0.0:8000; exec bash'
+    # --insecure is important if Django's DEBUG is set to False - allows serving
+    # static files
+    screen -t pl 2 sh -c 'python manage.py runserver --noreload --insecure 0.0.0.0:8000; exec bash'
     screen -t pl-driver 3 sh -c 'sudo python manage.py lightdriver; exec bash'
 
     chdir $HOME
