@@ -1,15 +1,16 @@
 ############
 # App config
 
-# Mode that the driver runs in:
+# Device type that the driver outputs to:
 #   noop = The driver does not make any attempt to
 #          output its colors - useful for development
-#   standalone = The driver outputs color data directly to
-#                the device specified by LIGHTS_DEV_NAME
-#   server = The driver pushes its color data to a
+#   client = The driver pushes its color data to a
 #            message queue. Intended for use with
 #            pilight-client
-LIGHTS_DRIVER_MODE = 'standalone'
+#   ws2801 = WS2801 LED string
+#   ws281x = WS281X LED string
+# Configure device-specific settings below.
+LIGHTS_DEVICE = 'noop'
 
 # If true, outputs additional driver logging, such as FPS
 LIGHTS_DRIVER_DEBUG = False
@@ -68,13 +69,6 @@ LIGHTS_MULTIPLIER_B = 0.66
 # Set to True to enable the audio variable based on mic level
 ENABLE_AUDIO_VAR = False
 
-# Microcontroller type used on the LED string
-# Known values:
-#  - 'ws2801'
-#  - 'ws281x'
-# Configure related settings for your microcontroller below.
-LIGHTS_MICROCONTROLLER = 'ws2801'
-
 #################
 # WS2801 settings
 
@@ -124,7 +118,7 @@ DRIVER_CACHE_EXPIRY = 5 * 60
 
 ######################
 # Django core settings
-DEBUG = False
+DEBUG = True
 
 ADMINS = (
     # ('Your Name', 'your_email@example.com'),

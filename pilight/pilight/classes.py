@@ -42,7 +42,7 @@ class PikaConnection(object):
                 auto_delete=False,
                 durable=True
             )
-            if settings.LIGHTS_DRIVER_MODE == 'server':
+            if settings.LIGHTS_DEVICE == 'client':
                 PikaConnection.connection_obj.channel().queue_declare(
                     queue=settings.PIKA_QUEUE_NAME_COLORS,
                     auto_delete=False,
@@ -88,7 +88,10 @@ class Color(object):
         if len(hex_val) == 7:
             hex_val = hex_val[1:]
         if len(hex_val) == 6:
-            return Color(float(int(hex_val[0:2], 16)) / 255.0, float(int(hex_val[2:4], 16)) / 255.0, float(int(hex_val[4:6], 16)) / 255.0)
+            return Color(
+                float(int(hex_val[0:2], 16)) / 255.0,
+                float(int(hex_val[2:4], 16)) / 255.0,
+                float(int(hex_val[4:6], 16)) / 255.0)
         else:
             return Color.get_default()
 
@@ -122,7 +125,10 @@ class Color(object):
         elif bg_a == 0:
             return fg.clone()
         elif bg_a == 1.0:
-            return Color(bg.r * (1 - fg_a) + fg.r * fg_a, bg.g * (1 - fg_a) + fg.g * fg_a, bg.b * (1 - fg_a) + fg.b * fg_a)
+            return Color(
+                bg.r * (1 - fg_a) + fg.r * fg_a,
+                bg.g * (1 - fg_a) + fg.g * fg_a,
+                bg.b * (1 - fg_a) + fg.b * fg_a)
 
         # Both channels have alpha
         a = fg_a + bg_a - fg_a * bg_a
