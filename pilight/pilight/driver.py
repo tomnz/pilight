@@ -24,7 +24,7 @@ class LightDriver(object):
             import Adafruit_WS2801
             from Adafruit_GPIO import SPI
             self.strip = Adafruit_WS2801.WS2801Pixels(
-                settings.LIGHTS_NUM_LEDS,
+                settings.LIGHTS_NUM_LEDS * settings.LIGHTS_SCALE,
                 spi=SPI.SpiDev(0, 0))
             self.strip.clear()
             self.strip.show()
@@ -34,7 +34,7 @@ class LightDriver(object):
             strip_type = getattr(neopixel.ws, settings.WS281X_STRIP)
 
             self.strip = neopixel.Adafruit_NeoPixel(
-                num=settings.LIGHTS_NUM_LEDS,
+                num=settings.LIGHTS_NUM_LEDS * settings.LIGHTS_SCALE,
                 pin=settings.WS281X_LED_PIN,
                 freq_hz=settings.WS281X_FREQ_HZ,
                 dma=settings.WS281X_DMA,
@@ -187,16 +187,23 @@ class LightDriver(object):
             # TODO: Could abstract this if we add more chips
             if settings.LIGHTS_MICROCONTROLLER == 'ws2801':
                 for idx, color in enumerate(colors):
-                    self.strip.set_pixel(idx, color.to_raw_corrected())
+                    out_color = color.to_raw_corrected()
+                    for light_num in range(settings.LIGHTS_SCALE):
+                        self.strip.set_pixel(idx * settings.LIGHTS_SCALE + light_num, out_color)
+
                 self.strip.show()
 
             elif settings.LIGHTS_MICROCONTROLLER == 'ws281x':
                 for idx, color in enumerate(colors):
-                    self.strip.setPixelColorRGB(
-                        idx,
-                        int(color.safe_corrected_r() * 255),
-                        int(color.safe_corrected_g() * 255),
-                        int(color.safe_corrected_b() * 255))
+                    out_r = int(color.safe_corrected_r() * 255)
+                    out_g = int(color.safe_corrected_g() * 255)
+                    out_b = int(color.safe_corrected_b() * 255)
+
+                    for light_num in range(settings.LIGHTS_SCALE):
+                        self.strip.setPixelColorRGB(
+                            idx * settings.LIGHTS_SCALE + light_num,
+                            out_r, out_b, out_g)
+
                 self.strip.show()
 
         elif settings.LIGHTS_DRIVER_MODE == 'server':
@@ -242,11 +249,19 @@ class LightDriver(object):
             self.start_time = time.time()
         last_message_check = time.time()
 
+        frame_count = 0
+        last_fps = time.time()
         running = True
         while running:
             # Setup the current iteration
             current_time = time.time()
             elapsed_time = current_time - self.start_time
+            frame_count += 1
+
+            if current_time - last_fps > 10.0 and settings.LIGHTS_DRIVER_DEBUG:
+                print '      FPS: %0.1f' % (float(frame_count) / (current_time - last_fps))
+                last_fps = current_time
+                frame_count = 0
 
             # Check for messages only once couple of seconds
             # Slight optimization to stop rabbitmq being hammered

@@ -63,10 +63,10 @@ def bootstrap_client(request):
     current_lights = Light.objects.get_current()
 
     # Find average light color to use as default for paintbrush
-    tool_color = Color(0, 0, 0)
+    tool_color = Color(0.0, 0.0, 0.0)
     base_colors = []
     for light in current_lights:
-        tool_color += light.color
+        tool_color += light.color or Color(1.0, 1.0, 1.0)
         base_colors.append(light.color.safe_dict())
     tool_color /= len(current_lights)
 
@@ -301,9 +301,7 @@ def fill_color(request):
     if 'color' in req:
         color = Color.from_dict(req['color'])
 
-        for light in Light.objects.get_current():
-            light.color = color
-            light.save()
+        Light.objects.get_current().update(color=color)
 
     else:
         return HttpResponse(fail_json('Must specify color'))
