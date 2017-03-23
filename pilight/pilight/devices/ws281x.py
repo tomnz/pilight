@@ -30,6 +30,6 @@ class Device(base.DeviceBase):
             for light_num in range(self.scale):
                 self.strip.setPixelColorRGB(
                     idx * self.scale + light_num,
-                    out_r, out_b, out_g)
+                    out_r, out_g, out_b)
 
         self.strip.show()
