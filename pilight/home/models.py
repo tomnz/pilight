@@ -27,10 +27,14 @@ class LightManager(models.Manager):
         # If we have the wrong number of lights, just delete the existing and replace with defaults
         if len(current_lights) != settings.LIGHTS_NUM_LEDS:
             current_lights.delete()
+            new_lights = []
             for i in range(settings.LIGHTS_NUM_LEDS):
-                light = self.create(index=i)
-                light.color = Color.get_default()
-                light.save()
+                new_lights.append(Light(
+                    index=i,
+                    color=Color.get_default(),
+                ))
+
+            Light.objects.bulk_create(new_lights)
 
 
 class Light(models.Model):
