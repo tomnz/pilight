@@ -244,6 +244,12 @@ class Color(object):
 
         delta = max_val - min_val
 
+        if delta == 0:
+            # Grayscale
+            s = 0
+            h = -1
+            return h, s, v, getattr(self, 'a', 1.0)
+
         if max_val != 0:
             s = delta / max_val
         else:
