@@ -22,7 +22,13 @@ class Device(base.DeviceBase):
         self.strip.begin()
 
     def set_color(self, index, color):
-        self.strip.setPixelColor(index, color.to_raw_corrected())
+        if color.a != 1.0:
+            color = color.flatten_alpha()
+
+        r = int(color.safe_corrected_r() * 255)
+        g = int(color.safe_corrected_g() * 255)
+        b = int(color.safe_corrected_b() * 255)
+        self.strip.setPixelColorRGB(index, r, g, b)
 
     def finish(self):
         self.strip.show()
