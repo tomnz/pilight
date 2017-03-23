@@ -30,7 +30,11 @@ class LightDriver(object):
         if settings.LIGHTS_DEVICE not in DEVICES:
             raise KeyError('Unknown device specified, please check your settings')
 
-        self.device = DEVICES[settings.LIGHTS_DEVICE](settings.LIGHTS_NUM_LEDS, settings.LIGHTS_SCALE)
+        self.device = DEVICES[settings.LIGHTS_DEVICE](
+            settings.LIGHTS_NUM_LEDS,
+            settings.LIGHTS_SCALE,
+            settings.LIGHTS_REPEAT,
+        )
 
     @staticmethod
     def pop_message():
@@ -137,7 +141,7 @@ class LightDriver(object):
             self.start_time = None
 
     def set_colors(self, colors):
-        self.device.set_colors(colors)
+        self.device.show_colors(colors)
 
     def clear_lights(self):
         black = [Color(0, 0, 0)] * settings.LIGHTS_NUM_LEDS
