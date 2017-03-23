@@ -5,7 +5,7 @@ from django.conf import settings
 from home.models import Light, TransformInstance
 from pilight.devices import client, noop, ws2801, ws281x
 from pilight.classes import PikaConnection, Color
-from pilight.light.transforms import AVAILABLE_TRANSFORMS, BrightnessVariableTransform
+from pilight.light.transforms import TRANSFORMS, BrightnessVariableTransform
 from pilight.light.variables import AudioVariable
 
 
@@ -271,14 +271,15 @@ class LightDriver(object):
 
         return colors
 
-    def get_transforms(self, variables):
+    @staticmethod
+    def get_transforms(variables):
         # Grab transform instances out of the database, and
         # instantiate the corresponding classes
         transform_items = TransformInstance.objects.get_current()
         current_transforms = []
 
         for transform_item in transform_items:
-            transform_obj = AVAILABLE_TRANSFORMS[transform_item.transform.name](transform_item)
+            transform_obj = TRANSFORMS[transform_item.transform.name](transform_item)
 
             current_transforms.append(transform_obj)
 
@@ -287,7 +288,8 @@ class LightDriver(object):
 
         return current_transforms
 
-    def get_colors(self):
+    @staticmethod
+    def get_colors():
         Light.objects.reset()
         current_lights = list(Light.objects.get_current())
         current_colors = []

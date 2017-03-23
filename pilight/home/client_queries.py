@@ -1,30 +1,33 @@
 import json
 
-from home.models import Transform, Light, TransformInstance, Store
+from home.models import Light, TransformInstance, Store
+from pilight.light.transforms import TRANSFORMS
 
 
 def active_transforms():
     active_transforms_query = TransformInstance.objects.get_current()
     result = []
     for current_transform in active_transforms_query:
+        transform = TRANSFORMS.get(current_transform.transform, default=None)
+        if not transform:
+            # Invalid transform? Just scrap the existing one
+            current_transform.delete()
+            continue
+
         result.append({
-            'id': current_transform.id,
-            'transformId': current_transform.transform.id,
-            'name': current_transform.transform.name,
-            'longName': current_transform.transform.long_name,
+            'transform': current_transform.transform,
+            'name': transform.name,
             'params': json.loads(current_transform.params),
         })
     return result
 
 
 def available_transforms():
-    transforms_query = Transform.objects.all()
     result = []
-    for transform in transforms_query:
+    for name, transform in TRANSFORMS.iteritems():
         result.append({
-            'id': transform.id,
+            'transform': name,
             'name': transform.name,
-            'longName': transform.long_name,
             'description': transform.description,
         })
     return result

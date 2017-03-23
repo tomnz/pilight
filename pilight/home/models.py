@@ -60,32 +60,6 @@ class Light(models.Model):
         return self.color.to_hex_web()
 
 
-# Descriptor for different transform types
-class Transform(models.Model):
-
-    name = models.CharField(max_length=15)
-    long_name = models.CharField(max_length=60)
-    description = models.TextField(blank=True, null=True)
-
-    def __unicode__(self):
-        return self.long_name
-
-    @property
-    def default_params(self):
-        """
-        Builds a parameter string based on the fields assigned
-        to this transform type, and their defaults
-        """
-
-        params = {}
-
-        for transformfield in self.transformfield_set.all():
-            default_value = transformfield.format_value(transformfield.default_value)
-            params[transformfield.name] = default_value
-
-        return params
-
-
 # Stores information about a given transform instance
 class TransformInstanceManager(models.Manager):
     use_for_related_fields = True
@@ -96,7 +70,7 @@ class TransformInstanceManager(models.Manager):
 
 class TransformInstance(models.Model):
 
-    transform = models.ForeignKey(Transform)
+    transform = models.TextField(blank=False, null=False)
     order = models.IntegerField()
     params = models.TextField(blank=True, null=True)
     store = models.ForeignKey(Store, blank=True, null=True)
@@ -104,65 +78,56 @@ class TransformInstance(models.Model):
     objects = TransformInstanceManager()
 
     def __unicode__(self):
-        return self.transform.long_name
+        return self.transform
 
     @property
     def decoded_params(self):
         """
         Decodes the params field and returns an object
-        containing
+        containing any values that are set
         """
-
-        decoded_params = {}
 
         try:
             params = json.loads(self.params)
         except ValueError:
             params = {}
 
-        for transformfield in self.transform.transformfield_set.all():
-            field_name = transformfield.name
-            if field_name in params.keys():
-                decoded_params[field_name] = transformfield.format_value(params[field_name])
-            else:
-                decoded_params[field_name] = transformfield.format_value(transformfield.default_value)
-
-        return decoded_params
-
-
-FIELD_TYPE_CHOICES = (
-    ('boolean', 'True/False'),
-    ('long', 'Number'),
-    ('float', 'Decimal'),
-    ('color', 'Color'),
-    ('percentage', 'Percent'),
-    ('string', 'String'),
-)
-
-
-class TransformField(models.Model):
-
-    transform = models.ForeignKey(Transform)
-    name = models.CharField(max_length=15)
-    long_name = models.CharField(max_length=60)
-    description = models.CharField(max_length=255, blank=True, null=True)
-    field_type = models.CharField(max_length=10, choices=FIELD_TYPE_CHOICES, default='float')
-    default_value = models.TextField(default='')
-
-    def __unicode__(self):
-        return u'%s - %s' % (self.transform.long_name, self.long_name)
-
-    def format_value(self, value):
-        if self.field_type == 'boolean':
-            if str(value).lower() == 'false':
-                return False
-            else:
-                return bool(value)
-        elif self.field_type == 'long':
-            return long(value)
-        elif self.field_type in ('float', 'percentage'):
-            return float(value)
-        elif self.field_type == 'string':
-            return str(value)
-        else:
-            return value
+        return params
+#
+#
+# FIELD_TYPE_CHOICES = (
+#     ('boolean', 'True/False'),
+#     ('long', 'Number'),
+#     ('float', 'Decimal'),
+#     ('color', 'Color'),
+#     ('percentage', 'Percent'),
+#     ('string', 'String'),
+# )
+#
+#
+# class TransformField(models.Model):
+#
+#     transform = models.ForeignKey(Transform)
+#     name = models.CharField(max_length=15)
+#     long_name = models.CharField(max_length=60)
+#     description = models.CharField(max_length=255, blank=True, null=True)
+#     field_type = models.CharField(max_length=10, choices=FIELD_TYPE_CHOICES, default='float')
+#     default_value = models.TextField(default='')
+#
+#     def __unicode__(self):
+#         return u'%s - %s' % (self.transform.long_name, self.long_name)
+#
+#     def format_value(self, value):
+#         if self.field_type == 'boolean':
+#             if str(value).lower() == 'false':
+#                 return False
+#             else:
+#                 return bool(value)
+#         elif self.field_type == 'long':
+#             return long(value)
+#         elif self.field_type in ('float', 'percentage'):
+#             return float(value)
+#         elif self.field_type == 'string':
+#             return str(value)
+#         else:
+#             return value

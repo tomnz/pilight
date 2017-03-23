@@ -1,19 +1,36 @@
+import abc
 import json
 import math
 import random
+
 from pilight.classes import Color
+from pilight.light.params import BooleanParam, LongParam, FloatParam, PercentParam,\
+    ColorParam, StringParam, param_from_dict, param_to_dict
 
 
 class TransformBase(object):
+    __metaclass__ = abc.ABCMeta
+
     def __init__(self, transforminstance):
         # Base classes should override this - and do something with params if need be
         self.transforminstance = transforminstance
-        if hasattr(transforminstance, 'decoded_params'):
-            self.params = transforminstance.decoded_params
-        else:
-            self.params = {}
+        self.params = param_from_dict(
+            getattr(transforminstance, 'decoded_params', default={}), self.params_def)
         self.color_channel = None
 
+    @abc.abstractproperty
+    def name(self):
+        pass
+
+    @property
+    def description(self):
+        return ''
+
+    @property
+    def params_def(self):
+        return {}
+
+    @abc.abstractmethod
     def transform(self, time, input_colors):
         """
         Performs the actual color transformation for this transform step
@@ -45,6 +62,8 @@ class TransformBase(object):
 
 
 class LayerBase(TransformBase):
+    __metaclass__ = abc.ABCMeta
+
     """
     Specialized type of transform - produces color information
     independently of any prior colors (like a layer in an image
@@ -57,6 +76,21 @@ class LayerBase(TransformBase):
 
         self.opacity = self.params['opacity']
         self.blend_mode = self.params['blend_mode']
+
+    @property
+    def params_def(self):
+        return {
+            'opacity': PercentParam(
+                'Opacity',
+                1.0,
+                'Opacity to blend layer',
+            ),
+            'blend_mode': StringParam(
+                'Blend Mode',
+                'multiply',
+                'Blend mode (valid: "multiply" or "normal")',
+            ),
+        }
 
     def transform(self, time, input_colors):
         """
@@ -84,6 +118,7 @@ class LayerBase(TransformBase):
 
         return input_colors
 
+    @abc.abstractmethod
     def get_color(self, time, position, num_positions):
         """
         Main method that inherited classes should implement - returns a
@@ -93,6 +128,33 @@ class LayerBase(TransformBase):
 
 
 class ExternalColorLayer(LayerBase):
+    @property
+    def name(self):
+        return 'External Color'
+
+    @property
+    def description(self):
+        return 'Designed to accept color updates from an external source - applying the given color ' +\
+               'to all of the LEDs. Do not use unless you know what you are doing! Make sure color_channel ' +\
+               'matches what the external source is providing.'
+
+    @property
+    def params_def(self):
+        result = super(ExternalColorLayer, self).params_def.copy()
+        result.update({
+            'color_channel': StringParam(
+                'Color Channel',
+                'unknown',
+                'Key for the color channel that the transform should read from',
+            ),
+            'default_color': ColorParam(
+                'Default Color',
+                Color.get_default(),
+                'Color to use when none has been provided for the channel',
+            ),
+        })
+        return result
+
     def __init__(self, transforminstance):
         super(ExternalColorLayer, self).__init__(transforminstance)
 
@@ -108,6 +170,48 @@ class ExternalColorLayer(LayerBase):
 
 
 class ExternalColorBurstLayer(LayerBase):
+    @property
+    def name(self):
+        return 'External Color Burst'
+
+    @property
+    def description(self):
+        return 'Designed to accept color updates from an external source - applying the given color ' +\
+               'to all of the LEDs. Do not use unless you know what you are doing! Make sure color_channel ' +\
+               'matches what the external source is providing. Adds a burst effect to the color.'
+
+    @property
+    def params_def(self):
+        result = super(ExternalColorBurstLayer, self).params_def.copy()
+        result.update({
+            'color_channel': StringParam(
+                'Color Channel',
+                'unknown',
+                'Key for the color channel that the transform should read from',
+            ),
+            'default_color': ColorParam(
+                'Default Color',
+                Color.get_default(),
+                'Color to use when none has been provided for the channel',
+            ),
+            'burst_rate': FloatParam(
+                'Burst Rate',
+                4.0,
+                'Rate at which to spawn new sparks (num/sec)',
+            ),
+            'burst_length': FloatParam(
+                'Burst Length',
+                2.0,
+                'Length of time that sparks live (sec)',
+            ),
+            'burst_radius': FloatParam(
+                'Burst Radius',
+                3.0,
+                'Falloff radius for sparks',
+            ),
+        })
+        return result
+
     def __init__(self, transforminstance):
         super(ExternalColorBurstLayer, self).__init__(transforminstance)
 
@@ -161,7 +265,43 @@ class ExternalColorBurstLayer(LayerBase):
         return result
 
 
-class ColorFlashTransform(TransformBase):
+class ColorFlashTransform(LayerBase):
+    @property
+    def name(self):
+        return 'Color Flash'
+
+    @property
+    def description(self):
+        return 'Alternates between two colors, over the given time period, blending into the base ' +\
+               'color. Can produce either a sine wave (smooth) effect, or triangle wave effect.'
+
+    @property
+    def params_def(self):
+        result = super(ColorFlashTransform, self).params_def.copy()
+        result.update({
+            'start_color': ColorParam(
+                'Start Color',
+                Color.get_default(),
+                'Color to use for start of animation',
+            ),
+            'end_color': ColorParam(
+                'End Color',
+                Color(0.5, 0.5, 0.5),
+                'Color to use for end of animation',
+            ),
+            'length': FloatParam(
+                'Duration',
+                2.0,
+                'Duration of flash cycle (secs)',
+            ),
+            'sine': BooleanParam(
+                'Smooth',
+                True,
+                'Use a sine wave profile to smooth the flash',
+            ),
+        })
+        return result
+
     def transform(self, time, input_colors):
         # Transform time/rate into a percentage for the current oscillation
         length = self.params['length']
@@ -191,6 +331,40 @@ class ColorFlashTransform(TransformBase):
 
 
 class FlashTransform(TransformBase):
+    @property
+    def name(self):
+        return 'Flash'
+
+    @property
+    def description(self):
+        return 'Flashes all lights between two brightness percentages, over the given time period. ' +\
+               'Can produce either a sine wave (smooth) effect, or triangle wave effect.'
+
+    @property
+    def params_def(self):
+        return {
+            'start_value': FloatParam(
+                'Start Brightness',
+                1.0,
+                'Brightness to use for start of animation',
+            ),
+            'end_value': FloatParam(
+                'End Brightness',
+                1.0,
+                'Brightness to use for end of animation',
+            ),
+            'length': FloatParam(
+                'Duration',
+                2.0,
+                'Duration of flash cycle (secs)',
+            ),
+            'sine': BooleanParam(
+                'Smooth',
+                True,
+                'Use a sine wave profile to smooth the flash',
+            ),
+        }
+
     def transform(self, time, input_colors):
         # Transform time/rate into a percentage for the current oscillation
         length = self.params['length']
@@ -216,6 +390,29 @@ class FlashTransform(TransformBase):
 
 
 class StrobeTransform(TransformBase):
+    @property
+    def name(self):
+        return 'Strobe'
+
+    @property
+    def description(self):
+        return 'Alternates the lights on and off completely.'
+
+    @property
+    def params_def(self):
+        return {
+            'frames_on': LongParam(
+                'Frames On',
+                1,
+                'Number of frames to turn lights on for',
+            ),
+            'frames_off': LongParam(
+                'Frames Off',
+                4,
+                'Number of frames to turn lights off for',
+            ),
+        }
+
     def __init__(self, transforminstance):
         super(StrobeTransform, self).__init__(transforminstance)
 
@@ -241,6 +438,34 @@ class StrobeTransform(TransformBase):
 
 
 class ScrollTransform(TransformBase):
+    @property
+    def name(self):
+        return 'Scroll'
+
+    @property
+    def description(self):
+        return 'Scrolls all the lights over the given time period. Can be reversed.'
+
+    @property
+    def params_def(self):
+        return {
+            'length': FloatParam(
+                'Duration',
+                10.0,
+                'Duration of a full scroll (secs)',
+            ),
+            'reverse': BooleanParam(
+                'Reverse',
+                False,
+                'Scroll in the opposite direction',
+            ),
+            'blend': BooleanParam(
+                'Blend',
+                True,
+                'Smoothly blend the scroll effect between lights',
+            ),
+        }
+
     def transform(self, time, input_colors):
         total = len(input_colors)
 
@@ -267,6 +492,24 @@ class ScrollTransform(TransformBase):
 
 
 class RotateHueTransform(TransformBase):
+    @property
+    def name(self):
+        return 'Rotate Hue'
+
+    @property
+    def description(self):
+        return 'Rotates hue through the full set of colors over the given time period.'
+
+    @property
+    def params_def(self):
+        return {
+            'length': FloatParam(
+                'Duration',
+                10.0,
+                'Duration of a full rotation (secs)',
+            ),
+        }
+
     def transform(self, time, input_colors):
         # Transform time/rate into a percentage
         length = self.params['length']
@@ -286,6 +529,25 @@ class RotateHueTransform(TransformBase):
 
 
 class GaussianBlurTransform(TransformBase):
+    @property
+    def name(self):
+        return 'Gaussian Blur'
+
+    @property
+    def description(self):
+        return 'Applies a gaussian blur across the entire set of lights, with the given standard ' +\
+               'deviation. Note that this is an expensive transform, use with care.'
+
+    @property
+    def params_def(self):
+        return {
+            'standarddev': FloatParam(
+                'Standard Deviation',
+                1.0,
+                'Standard deviation to be applied',
+            ),
+        }
+
     def is_animated(self):
         return False
 
@@ -325,6 +587,34 @@ class GaussianBlurTransform(TransformBase):
 
 
 class BurstTransform(TransformBase):
+    @property
+    def name(self):
+        return 'Burst'
+
+    @property
+    def description(self):
+        return 'Generates "bursts" or "sparks" of light, allowing the underlying color to show through.'
+
+    @property
+    def params_def(self):
+        return {
+            'burst_rate': FloatParam(
+                'Burst Rate',
+                4.0,
+                'Rate at which to spawn new sparks (num/sec)',
+            ),
+            'burst_length': FloatParam(
+                'Burst Length',
+                2.0,
+                'Length of time that sparks live (sec)',
+            ),
+            'burst_radius': FloatParam(
+                'Burst Radius',
+                3.0,
+                'Falloff radius for sparks',
+            ),
+        }
+
     def __init__(self, transforminstance):
         super(BurstTransform, self).__init__(transforminstance)
 
@@ -373,6 +663,40 @@ class BurstTransform(TransformBase):
 
 
 class NoiseTransform(TransformBase):
+    @property
+    def name(self):
+        return 'Noise'
+
+    @property
+    def description(self):
+        return 'Introduces random variations to each light, each frame. Strength defines the ' +\
+               'maximum amount that the light can vary by in each of the base colors.'
+
+    @property
+    def params_def(self):
+        return {
+            'length': FloatParam(
+                'Duration',
+                0.5,
+                'Time between new noise patterns (secs)',
+            ),
+            'blue_strength': FloatParam(
+                'Blue Strength',
+                0.5,
+                'Amount that the color will randomly vary by in blue',
+            ),
+            'green_strength': FloatParam(
+                'Green Strength',
+                0.5,
+                'Amount that the color will randomly vary by in green',
+            ),
+            'red_strength': FloatParam(
+                'Red Strength',
+                0.5,
+                'Amount that the color will randomly vary by in red',
+            ),
+        }
+
     def __init__(self, transforminstance):
         super(NoiseTransform, self).__init__(transforminstance)
 
@@ -419,6 +743,25 @@ class NoiseTransform(TransformBase):
 
 
 class BrightnessTransform(TransformBase):
+    @property
+    def name(self):
+        return 'Brightness'
+
+    @property
+    def description(self):
+        return 'Scales the brightness of each light. Use a number greater than one to increase ' +\
+               'brightness, or a fraction to decrease.'
+
+    @property
+    def params_def(self):
+        return {
+            'brightness': FloatParam(
+                'Brightness',
+                1.0,
+                'Brightness to apply to each light',
+            ),
+        }
+
     def is_animated(self):
         return False
 
@@ -447,7 +790,7 @@ class BrightnessVariableTransform(TransformBase):
                 color.a)
 
 
-AVAILABLE_TRANSFORMS = {
+TRANSFORMS = {
     'flash': FlashTransform,
     'scroll': ScrollTransform,
     'colorflash': ColorFlashTransform,

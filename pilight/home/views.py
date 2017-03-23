@@ -10,9 +10,10 @@ from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 from django.views.decorators.http import require_POST
 
 from home import client_queries, driver
-from home.models import Transform, Light, TransformInstance, Store
+from home.models import Light, TransformInstance, Store
 from pilight.classes import Color
 from pilight.driver import LightDriver
+from pilight.light.transforms import TRANSFORMS
 
 
 def success_json(data_dict):
@@ -393,16 +394,17 @@ def add_transform(request):
     req = json.loads(request.body)
 
     error = None
-    if 'id' in req:
-        transform = Transform.objects.get(id=req['id'])
+    if 'name' in req:
+        transform_name = req['name']
+        transform = TRANSFORMS.get(transform_name, default=None)
         if transform:
             transform_instance = TransformInstance()
-            transform_instance.transform = transform
+            transform_instance.transform = transform.name
             transform_instance.params = json.dumps(transform.default_params)
             transform_instance.order = 0
             transform_instance.save()
         else:
-            error = 'Invalid transform specified'
+            error = 'Invalid transform specified: %s' % transform_name
     else:
         error = 'No transform specified'
 
