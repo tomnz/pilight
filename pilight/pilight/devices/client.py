@@ -7,11 +7,12 @@ from pilight.devices import base
 
 
 class Device(base.DeviceBase):
-    def __init__(self, num_leds, scale):
-        super(Device, self).__init__(num_leds, scale)
+    def __init__(self, num_leds, scale, repeat):
+        super(Device, self).__init__(num_leds, scale, repeat)
         self.messages_since_last_queue_check = 0
 
-    def set_colors(self, colors):
+    # Override the whole show_colors method for this device
+    def show_colors(self, colors):
         """
         Publishes the color data to a Pika queue for ingestion
         by a client - usually pilight-client

@@ -20,7 +20,8 @@ LIGHTS_DRIVER_DEBUG = False
 LIGHTS_INSTALLATION_NAME = 'PiLight'
 
 # Number of lights in the string
-# The true number of LED data points emitted is NUM_LEDS * SCALE
+# The true number of LED data points emitted is:
+#   NUM_LEDS * SCALE * REPEAT
 LIGHTS_NUM_LEDS = 50
 
 # Scale up the light pattern by the given amount
@@ -29,6 +30,13 @@ LIGHTS_NUM_LEDS = 50
 # more efficient. This is especially useful for large numbers
 # of LEDs
 LIGHTS_SCALE = 1
+
+# Repeat the light pattern a given number of times
+# If this is 1, the pattern is only output once. If larger numbers
+# are used, the pattern is output multiple times, and the
+# calculation becomes more efficient. Useful for large numbers
+# of LEDs.
+LIGHTS_REPEAT = 1
 
 # Require a valid Django user to change the lights?
 # Recommend setting this to True for externally

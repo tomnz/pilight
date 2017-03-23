@@ -4,14 +4,14 @@ from pilight.devices import base
 
 
 class Device(base.DeviceBase):
-    def __init__(self, num_leds, scale):
-        super(Device, self).__init__(num_leds, scale)
+    def __init__(self, num_leds, scale, repeat):
+        super(Device, self).__init__(num_leds, scale, repeat)
 
         import neopixel
         strip_type = getattr(neopixel.ws, settings.WS281X_STRIP)
 
         self.strip = neopixel.Adafruit_NeoPixel(
-            num=num_leds * scale,
+            num=num_leds * scale * repeat,
             pin=settings.WS281X_LED_PIN,
             freq_hz=settings.WS281X_FREQ_HZ,
             dma=settings.WS281X_DMA,
@@ -21,15 +21,14 @@ class Device(base.DeviceBase):
             strip_type=strip_type)
         self.strip.begin()
 
-    def set_colors(self, colors):
-        for idx, color in enumerate(colors):
-            out_r = int(color.safe_corrected_r() * 255)
-            out_g = int(color.safe_corrected_g() * 255)
-            out_b = int(color.safe_corrected_b() * 255)
+    def set_color(self, index, color):
+        if color.a != 1.0:
+            color = color.flatten_alpha()
 
-            for light_num in range(self.scale):
-                self.strip.setPixelColorRGB(
-                    idx * self.scale + light_num,
-                    out_r, out_g, out_b)
+        r = int(color.safe_corrected_r() * 255)
+        g = int(color.safe_corrected_g() * 255)
+        b = int(color.safe_corrected_b() * 255)
+        self.strip.setPixelColorRGB(index, r, g, b)
 
+    def finish(self):
         self.strip.show()
