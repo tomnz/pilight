@@ -166,10 +166,10 @@ class ExternalColorBurstLayer(LayerBase):
             4.0,
             'Rate at which to spawn new sparks (num/sec)',
         ),
-        burst_length=FloatParam(
-            'Burst Length',
+        burst_duration=FloatParam(
+            'Burst Duration',
             2.0,
-            'Length of time that sparks live (sec)',
+            'Duration of time that sparks live (sec)',
         ),
         burst_radius=FloatParam(
             'Burst Radius',
@@ -198,7 +198,7 @@ class ExternalColorBurstLayer(LayerBase):
         # Advance existing sparks
         elapsed_time = time - self.last_time
         for i in self.sparks.keys():
-            self.sparks[i] += elapsed_time / self.params.burst_length
+            self.sparks[i] += elapsed_time / self.params.burst_duration
             if self.sparks[i] >= 1:
                 del self.sparks[i]
 
@@ -262,8 +262,8 @@ class ColorFlashTransform(LayerBase):
 
     def transform(self, time, input_colors):
         # Transform time/rate into a percentage for the current oscillation
-        length = self.params.length
-        progress = float(time) / float(length) - int(time / length)
+        duration = self.params.duration
+        progress = float(time) / float(duration) - int(time / duration)
 
         # Optional: Transform here to a sine wave
         if self.params.sine:
@@ -317,8 +317,8 @@ class FlashTransform(TransformBase):
 
     def transform(self, time, input_colors):
         # Transform time/rate into a percentage for the current oscillation
-        length = self.params.length
-        progress = float(time) / float(length) - int(time / length)
+        duration = self.params.duration
+        progress = float(time) / float(duration) - int(time / duration)
 
         # Optional: Transform here to a sine wave
         if self.params.sine:
@@ -404,8 +404,8 @@ class ScrollTransform(TransformBase):
         total = len(input_colors)
 
         # Transform time/rate into a percentage
-        length = self.params.length
-        progress = float(time) / float(length) - int(time / length)
+        duration = self.params.duration
+        progress = float(time) / float(duration) - int(time / duration)
 
         # Calculate offset to source from
         offset = progress * total
@@ -438,8 +438,8 @@ class RotateHueTransform(TransformBase):
 
     def transform(self, time, input_colors):
         # Transform time/rate into a percentage
-        length = self.params.length
-        progress = float(time) / float(length) - int(time / length)
+        duration = self.params.duration
+        progress = float(time) / float(duration) - int(time / duration)
 
         for index, input_color in enumerate(input_colors):
             # Get color as HSV
@@ -539,7 +539,7 @@ class BurstTransform(TransformBase):
         # Advance existing sparks
         elapsed_time = time - self.last_time
         for i in self.sparks.keys():
-            self.sparks[i] += elapsed_time / float(self.params.burst_length)
+            self.sparks[i] += elapsed_time / float(self.params.burst_duration)
             if self.sparks[i] >= 1:
                 del self.sparks[i]
 
@@ -620,14 +620,15 @@ class NoiseTransform(TransformBase):
         if self.last_time == 0 or len(self.current_colors) != num_positions or len(self.next_colors) != num_positions:
             self.current_colors = self.get_random_colors(num_positions)
             self.next_colors = self.get_random_colors(num_positions)
+            self.last_time = time
 
         # Have we passed the next time to update colors?
-        if time - self.last_time > self.params.length:
+        if time - self.last_time > self.params.duration:
             self.last_time = time
             self.current_colors = self.next_colors
             self.next_colors = self.get_random_colors(num_positions)
 
-        self.progress = (float(time) - float(self.last_time)) / self.params.length
+        self.progress = (float(time) - float(self.last_time)) / self.params.duration
 
     def transform(self, time, input_colors):
 
