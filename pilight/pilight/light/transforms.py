@@ -13,6 +13,7 @@ class TransformBase(object):
     name = 'Unknown'
     description = ''
     params_def = ParamsDef()
+    display_order = 100
 
     def __init__(self, transforminstance):
         # Base classes should override this - and do something with params if need be
@@ -65,18 +66,17 @@ class LayerBase(TransformBase):
         self.opacity = self.params.opacity
         self.blend_mode = self.params.blend_mode
 
-    params_def = ParamsDef(**{
-        'opacity': PercentParam(
+    params_def = ParamsDef(
+        opacity=PercentParam(
             'Opacity',
             1.0,
             'Opacity to blend layer',
         ),
-        'blend_mode': StringParam(
+        blend_mode=StringParam(
             'Blend Mode',
             'multiply',
             'Blend mode (valid: "multiply" or "normal")',
-        ),
-    })
+        ))
 
     def transform(self, time, input_colors):
         """
@@ -129,6 +129,7 @@ class ExternalColorLayer(LayerBase):
             'Color to use when none has been provided for the channel',
         ),
         **LayerBase.params_def.params_def.copy())
+    display_order = 300
 
     def __init__(self, transforminstance):
         super(ExternalColorLayer, self).__init__(transforminstance)
@@ -176,6 +177,7 @@ class ExternalColorBurstLayer(LayerBase):
             'Falloff radius for sparks',
         ),
         **LayerBase.params_def.params_def.copy())
+    display_order = 301
 
     def __init__(self, transforminstance):
         super(ExternalColorBurstLayer, self).__init__(transforminstance)
@@ -245,7 +247,7 @@ class ColorFlashTransform(LayerBase):
             Color(0.5, 0.5, 0.5),
             'Color to use for end of animation',
         ),
-        length=FloatParam(
+        duration=FloatParam(
             'Duration',
             2.0,
             'Duration of flash cycle (secs)',
@@ -256,6 +258,7 @@ class ColorFlashTransform(LayerBase):
             'Use a sine wave profile to smooth the flash',
         ),
         **LayerBase.params_def.params_def.copy())
+    display_order = 200
 
     def transform(self, time, input_colors):
         # Transform time/rate into a percentage for the current oscillation
@@ -300,7 +303,7 @@ class FlashTransform(TransformBase):
             0.5,
             'Brightness to use for end of animation',
         ),
-        length=FloatParam(
+        duration=FloatParam(
             'Duration',
             2.0,
             'Duration of flash cycle (secs)',
@@ -310,6 +313,7 @@ class FlashTransform(TransformBase):
             True,
             'Use a sine wave profile to smooth the flash',
         ))
+    display_order = 10
 
     def transform(self, time, input_colors):
         # Transform time/rate into a percentage for the current oscillation
@@ -338,18 +342,18 @@ class FlashTransform(TransformBase):
 class StrobeTransform(TransformBase):
     name = 'Strobe'
     description = 'Alternates the lights on and off completely.'
-    params_def = ParamsDef(**{
-        'frames_on': LongParam(
+    params_def = ParamsDef(
+        frames_on=LongParam(
             'Frames On',
             1,
             'Number of frames to turn lights on for',
         ),
-        'frames_off': LongParam(
+        frames_off=LongParam(
             'Frames Off',
             4,
             'Number of frames to turn lights off for',
-        ),
-    })
+        ))
+    display_order = 12
 
     def __init__(self, transforminstance):
         super(StrobeTransform, self).__init__(transforminstance)
@@ -378,23 +382,23 @@ class StrobeTransform(TransformBase):
 class ScrollTransform(TransformBase):
     name = 'Scroll'
     description = 'Scrolls all the lights over the given time period. Can be reversed.'
-    params_def = ParamsDef(**{
-        'length': FloatParam(
+    params_def = ParamsDef(
+        duration=FloatParam(
             'Duration',
             10.0,
             'Duration of a full scroll (secs)',
         ),
-        'reverse': BooleanParam(
+        reverse=BooleanParam(
             'Reverse',
             False,
             'Scroll in the opposite direction',
         ),
-        'blend': BooleanParam(
+        blend=BooleanParam(
             'Blend',
             True,
             'Smoothly blend the scroll effect between lights',
-        ),
-    })
+        ))
+    display_order = 1
 
     def transform(self, time, input_colors):
         total = len(input_colors)
@@ -424,13 +428,13 @@ class ScrollTransform(TransformBase):
 class RotateHueTransform(TransformBase):
     name = 'Rotate Hue'
     description = 'Rotates hue through the full set of colors over the given time period.'
-    params_def = ParamsDef(**{
-        'length': FloatParam(
+    params_def = ParamsDef(
+        duration=FloatParam(
             'Duration',
             10.0,
             'Duration of a full rotation (secs)',
-        ),
-    })
+        ))
+    display_order = 2
 
     def transform(self, time, input_colors):
         # Transform time/rate into a percentage
@@ -454,13 +458,13 @@ class GaussianBlurTransform(TransformBase):
     name = 'Gaussian Blur'
     description = 'Applies a gaussian blur across the entire set of lights, with the given standard ' + \
                   'deviation. Note that this is an expensive transform, use with care.'
-    params_def = ParamsDef(**{
-        'standarddev': FloatParam(
+    params_def = ParamsDef(
+        standarddev=FloatParam(
             'Standard Deviation',
             1.0,
             'Standard deviation to be applied',
-        ),
-    })
+        ))
+    display_order = 140
 
     def is_animated(self):
         return False
@@ -503,23 +507,23 @@ class GaussianBlurTransform(TransformBase):
 class BurstTransform(TransformBase):
     name = 'Burst'
     description = 'Generates "bursts" or "sparks" of light, allowing the underlying color to show through.'
-    params_def = ParamsDef(**{
-        'burst_rate': FloatParam(
+    params_def = ParamsDef(
+        burst_rate=FloatParam(
             'Burst Rate',
             4.0,
             'Rate at which to spawn new sparks (num/sec)',
         ),
-        'burst_length': FloatParam(
-            'Burst Length',
+        burst_duration=FloatParam(
+            'Burst Duration',
             2.0,
-            'Length of time that sparks live (sec)',
+            'Duration of time that sparks live (sec)',
         ),
-        'burst_radius': FloatParam(
+        burst_radius=FloatParam(
             'Burst Radius',
             3.0,
             'Falloff radius for sparks',
-        ),
-    })
+        ))
+    display_order = 3
 
     def __init__(self, transforminstance):
         super(BurstTransform, self).__init__(transforminstance)
@@ -573,28 +577,28 @@ class NoiseTransform(TransformBase):
     description = 'Introduces random variations to each light, each frame. Strength defines the ' + \
                   'maximum amount that the light can vary by in each of the base colors.'
 
-    params_def = ParamsDef(**{
-        'length': FloatParam(
+    params_def = ParamsDef(
+        duration=FloatParam(
             'Duration',
             0.5,
             'Time between new noise patterns (secs)',
         ),
-        'blue_strength': FloatParam(
+        blue_strength=FloatParam(
             'Blue Strength',
             0.5,
             'Amount that the color will randomly vary by in blue',
         ),
-        'green_strength': FloatParam(
+        green_strength=FloatParam(
             'Green Strength',
             0.5,
             'Amount that the color will randomly vary by in green',
         ),
-        'red_strength': FloatParam(
+        red_strength=FloatParam(
             'Red Strength',
             0.5,
             'Amount that the color will randomly vary by in red',
-        ),
-    })
+        ))
+    display_order = 8
 
     def __init__(self, transforminstance):
         super(NoiseTransform, self).__init__(transforminstance)
@@ -645,13 +649,13 @@ class BrightnessTransform(TransformBase):
     name = 'Brightness'
     description = 'Scales the brightness of each light. Use a number greater than one to increase ' + \
                   'brightness, or a fraction to decrease.'
-    params_def = ParamsDef(**{
-        'brightness': FloatParam(
+    params_def = ParamsDef(
+        brightness=FloatParam(
             'Brightness',
             1.0,
             'Brightness to apply to each light',
-        ),
-    })
+        ))
+    display_order = 0
 
     def is_animated(self):
         return False

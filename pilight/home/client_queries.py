@@ -31,7 +31,10 @@ def available_transforms():
             'name': transform.name,
             'description': transform.description,
             'paramsDef': transform.params_def.to_dict(),
+            'order': transform.display_order,
         })
+
+    result.sort(key=lambda t: t['order'])
     return result
 
 
