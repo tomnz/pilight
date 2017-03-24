@@ -365,7 +365,7 @@ def update_transform(request):
     if 'id' in req and 'params' in req:
         transform_instance = TransformInstance.objects.get(id=req['id'])
         if transform_instance:
-            transform = TRANSFORMS.get(transform_instance.transform, default=None)
+            transform = TRANSFORMS.get(transform_instance.transform, None)
             if transform:
                 transform_instance.params = json.dumps(params.params_from_dict(
                     req['params'], transform.params_def).to_dict())
@@ -374,6 +374,7 @@ def update_transform(request):
                 result = {
                     'id': transform_instance.id,
                     'transform': transform_instance.transform,
+                    'name': transform.name,
                     'params': json.loads(transform_instance.params),
                 }
             else:
