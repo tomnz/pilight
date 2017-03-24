@@ -7,17 +7,18 @@ from pilight.light.transforms import TRANSFORMS
 def active_transforms():
     active_transforms_query = TransformInstance.objects.get_current()
     result = []
-    for current_transform in active_transforms_query:
-        transform = TRANSFORMS.get(current_transform.transform, default=None)
+    for transform_instance in active_transforms_query:
+        transform = TRANSFORMS.get(transform_instance.transform, None)
         if not transform:
             # Invalid transform? Just scrap the existing one
-            current_transform.delete()
+            transform_instance.delete()
             continue
 
         result.append({
-            'transform': current_transform.transform,
+            'id': transform_instance.id,
+            'transform': transform_instance.transform,
             'name': transform.name,
-            'params': json.loads(current_transform.params),
+            'params': json.loads(transform_instance.params),
         })
     return result
 
@@ -29,6 +30,7 @@ def available_transforms():
             'transform': name,
             'name': transform.name,
             'description': transform.description,
+            'paramsDef': transform.params_def.to_dict(),
         })
     return result
 

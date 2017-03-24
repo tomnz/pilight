@@ -13,6 +13,7 @@ from home import client_queries, driver
 from home.models import Light, TransformInstance, Store
 from pilight.classes import Color
 from pilight.driver import LightDriver
+from pilight.light import params
 from pilight.light.transforms import TRANSFORMS
 
 
@@ -362,17 +363,23 @@ def update_transform(request):
     error = None
     result = None
     if 'id' in req and 'params' in req:
-        transform = TransformInstance.objects.get(id=req['id'])
-        if transform:
-            transform.params = json.dumps(req['params'])
-            transform.save()
-            result = {
-                'id': transform.id,
-                'transformId': transform.transform.id,
-                'name': transform.transform.name,
-                'longName': transform.transform.long_name,
-                'params': json.loads(transform.params),
-            }
+        transform_instance = TransformInstance.objects.get(id=req['id'])
+        if transform_instance:
+            transform = TRANSFORMS.get(transform_instance.transform, default=None)
+            if transform:
+                transform_instance.params = json.dumps(params.params_from_dict(
+                    req['params'], transform.params_def).to_dict())
+
+                transform_instance.save()
+                result = {
+                    'id': transform_instance.id,
+                    'transform': transform_instance.transform,
+                    'params': json.loads(transform_instance.params),
+                }
+            else:
+                # Invalid transform? Scrap the existing one
+                transform_instance.delete()
+                error = 'Invalid transform'
         else:
             error = 'Invalid transform specified'
     else:
@@ -394,13 +401,13 @@ def add_transform(request):
     req = json.loads(request.body)
 
     error = None
-    if 'name' in req:
-        transform_name = req['name']
-        transform = TRANSFORMS.get(transform_name, default=None)
+    if 'transform' in req:
+        transform_name = req['transform']
+        transform = TRANSFORMS.get(transform_name, None)
         if transform:
             transform_instance = TransformInstance()
-            transform_instance.transform = transform.name
-            transform_instance.params = json.dumps(transform.default_params)
+            transform_instance.transform = transform_name
+            transform_instance.params = json.dumps(params.params_from_dict({}, transform.params_def).to_dict())
             transform_instance.order = 0
             transform_instance.save()
         else:

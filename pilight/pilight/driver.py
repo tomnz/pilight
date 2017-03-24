@@ -279,7 +279,7 @@ class LightDriver(object):
         current_transforms = []
 
         for transform_item in transform_items:
-            transform_obj = TRANSFORMS[transform_item.transform.name](transform_item)
+            transform_obj = TRANSFORMS[transform_item.transform](transform_item)
 
             current_transforms.append(transform_obj)
 

@@ -114,23 +114,58 @@ class ParamTypes(object):
     STRING = 'string'
 
 
-def param_from_dict(value, params_def):
-    result = {}
+class Params(object):
+    def __init__(self, params_def, **kwargs):
+        self.__dict__.update(**kwargs)
+        self.params_def = params_def
+        self.params = kwargs
+
+    def __getattr__(self, item):
+        return self.params[item]
+
+    def iteritems(self):
+        for key, value in self.params.iteritems():
+            yield key, value
+
+    def to_dict(self):
+        result = {}
+        for name, param in self.params_def.iteritems():
+            if name in self.params:
+                result[name] = param.to_dict_value(self.params[name])
+            else:
+                result[name] = param.default
+
+        return result
+
+
+class ParamsDef(object):
+    def __init__(self, **kwargs):
+        self.params_def = kwargs
+
+    def __getattr__(self, item):
+        return self.params_def[item]
+
+    def iteritems(self):
+        for key, value in self.params_def.iteritems():
+            yield key, value
+
+    def to_dict(self):
+        result = {}
+        for name, param_def in self.params_def.iteritems():
+            result[name] = {
+                'name': param_def.name,
+                'description': param_def.description,
+                'type': param_def.param_type,
+            }
+        return result
+
+
+def params_from_dict(value, params_def):
+    params = {}
     for name, param in params_def.iteritems():
         if name in value:
-            result[name] = param.from_dict_value(value[name])
+            params[name] = param.from_dict_value(value[name])
         else:
-            result[name] = param.default
+            params[name] = param.default
 
-    return result
-
-
-def param_to_dict(value, params_def):
-    result = {}
-    for name, param in params_def.iteritems():
-        if name in value:
-            result[name] = param.to_dict_value(value[name])
-        else:
-            result[name] = param.default
-
-    return result
+    return Params(params_def, **params)

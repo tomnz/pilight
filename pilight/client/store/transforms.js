@@ -15,10 +15,10 @@ export const setActiveTransform = createAction(SET_ACTIVE_TRANSFORM, (id, transf
     transform: transform,
 }));
 
-export const addTransformAsync = (id) => (dispatch) => {
+export const addTransformAsync = (transform) => (dispatch) => {
     return postObjectPromise(
         `/api/transform/add/`,
-        {id: id},
+        {transform: transform},
         (data) => {
             dispatch(setActiveTransforms(data.activeTransforms));
         },
