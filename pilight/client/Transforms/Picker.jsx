@@ -13,21 +13,21 @@ import {addTransformAsync} from '../store/transforms';
 
 
 class Picker extends React.Component {
-    addTransform = (id) => () => {
-        this.props.addTransformAsync(id);
+    addTransform = (transform) => () => {
+        this.props.addTransformAsync(transform);
     };
 
     render() {
         const availableRows = this.props.transforms.map((transform) => {
            return (
-               <tr key={transform.id}>
-                   <td>{transform.longName}</td>
+               <tr key={transform.transform}>
+                   <td>{transform.name}</td>
                    <td>{transform.description}</td>
                    <td>
                        <Button
                            bsStyle="primary"
                            bsSize="xs"
-                           onClick={this.addTransform(transform.id)}
+                           onClick={this.addTransform(transform.transform)}
                        >
                            Add
                        </Button>
@@ -68,10 +68,16 @@ class Picker extends React.Component {
 Picker.propTypes = {
     transforms: PropTypes.arrayOf(
         PropTypes.shape({
-            id: PropTypes.number.isRequired,
+            transform: PropTypes.string.isRequired,
             name: PropTypes.string.isRequired,
-            longName: PropTypes.string.isRequired,
             description: PropTypes.string,
+            paramsDef: PropTypes.arrayOf(
+                PropTypes.shape({
+                    type: PropTypes.string.isRequired,
+                    name: PropTypes.string,
+                    description: PropTypes.string,
+                }),
+            ),
         }).isRequired,
     ),
 };

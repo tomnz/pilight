@@ -71,7 +71,6 @@ Copy the settings file and make required changes (particularly set up your outpu
 Setup the database:
 
     python manage.py migrate
-    python manage.py loaddata fixtures/initial_data.json
     python manage.py createcachetable pilight_cache
 
 
@@ -191,7 +190,6 @@ Periodically you may want to update PiLight to get the latest features and bug f
     git pull
     git update
     python manage.py migrate
-    python manage.py loaddata fixtures/initial_data.json
 
 
 Development

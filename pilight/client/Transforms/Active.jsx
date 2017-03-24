@@ -34,7 +34,7 @@ class Active extends React.Component {
         const activeRows = this.props.transforms.map((transform) => {
             return (
                 <tr key={transform.id}>
-                    <td>{transform.longName}</td>
+                    <td>{transform.name}</td>
                     <td>
                         <ParamEditor
                             onSave={this.saveParams(transform.id)}
