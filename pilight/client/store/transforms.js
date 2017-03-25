@@ -48,6 +48,50 @@ export const updateTransformAsync = ({id, params}) => (dispatch) => {
     );
 };
 
+export const moveTransformDownAsync = (id) => (dispatch, getState) => {
+    const {transforms} = getState();
+
+    // Figure out new order
+    const ids = transforms.active.map((transform) => transform.id);
+    const index = ids.findIndex((transformId) => transformId === id);
+    if (index === -1 || index === ids.length - 1) {
+        // No order change - item is not found, or already bottom
+        return;
+    }
+    ids[index] = ids[index + 1];
+    ids[index + 1] = id;
+
+    postOrder(ids, dispatch);
+};
+
+export const moveTransformUpAsync = (id) => (dispatch, getState) => {
+    const {transforms} = getState();
+
+    // Figure out new order
+    const ids = transforms.active.map((transform) => transform.id);
+    const index = ids.findIndex((transformId) => transformId === id);
+    if (index <= 0) {
+        // No order change - item is not found, or already top
+        return;
+    }
+    ids[index] = ids[index - 1];
+    ids[index - 1] = id;
+
+    postOrder(ids, dispatch);
+};
+
+function postOrder(ids, dispatch) {
+    return postObjectPromise(
+        `/api/transform/reorder/`,
+        {order: ids},
+        (data) => {
+            dispatch(setActiveTransforms(data.activeTransforms));
+        },
+        (error) => { dispatch(setError(error)); },
+    );
+}
+
+
 const INITIAL_STATE = {
     available: [],
     active: [],

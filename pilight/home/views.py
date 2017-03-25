@@ -386,7 +386,6 @@ def update_transform(request):
     else:
         error = 'Must supply transform and params'
 
-    print result
     if error:
         return HttpResponse(fail_json(error), content_type='application/json')
 
@@ -406,10 +405,14 @@ def add_transform(request):
         transform_name = req['transform']
         transform = TRANSFORMS.get(transform_name, None)
         if transform:
+            # Get the number of current transforms, so we can order the new
+            # one at the end
+            num_transforms = TransformInstance.objects.get_current().count()
+
             transform_instance = TransformInstance()
             transform_instance.transform = transform_name
             transform_instance.params = json.dumps(params.params_from_dict({}, transform.params_def).to_dict())
-            transform_instance.order = 0
+            transform_instance.order = num_transforms
             transform_instance.save()
         else:
             error = 'Invalid transform specified: %s' % transform_name
@@ -418,6 +421,26 @@ def add_transform(request):
 
     if error:
         return HttpResponse(fail_json(error), content_type='application/json')
+
+    driver.message_restart()
+    return HttpResponse(success_json({
+        'activeTransforms': client_queries.active_transforms(),
+    }), content_type='application/json')
+
+
+@require_POST
+@user_passes_test(auth_check)
+def reorder_transforms(request):
+    req = json.loads(request.body)
+
+    if 'order' in req:
+        for order, transform_id in enumerate(req['order']):
+            transform_instance = TransformInstance.objects.get(id=transform_id)
+            if transform_instance:
+                transform_instance.order = order
+                transform_instance.save()
+    else:
+        return HttpResponse(fail_json('No order specified'), content_type='application/json')
 
     driver.message_restart()
     return HttpResponse(success_json({

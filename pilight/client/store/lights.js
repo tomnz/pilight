@@ -1,6 +1,6 @@
 import {createAction, handleActions} from 'redux-actions';
 
-import {fetchObjectPromise, postObjectPromise} from './async';
+import {postObjectPromise} from './async';
 import {setError} from './client';
 
 
@@ -12,16 +12,7 @@ const clearPreview = createAction(CLEAR_PREVIEW);
 export const setBaseColors = createAction(SET_BASE_COLORS);
 const setPreviewFrame = createAction(SET_PREVIEW_FRAME);
 
-export const getBaseColorsAsync = () => (dispatch) => {
-    return fetchObjectPromise(
-        `/api/light/base-colors/`,
-        (data) => {
-            dispatch(setBaseColors(data.baseColors));
-        },
-        (error) => { dispatch(setError(error)); },
-    );
-};
-
+const PREVIEW_FRAME_TIME = 50;
 function nextFrame(frames, dispatch) { return () => {
     if (frames.length === 0) {
         dispatch(clearPreview());
@@ -32,7 +23,6 @@ function nextFrame(frames, dispatch) { return () => {
     setTimeout(nextFrame(frames, dispatch), PREVIEW_FRAME_TIME);
 }}
 
-const PREVIEW_FRAME_TIME = 50;
 export const doPreviewAsync = () => (dispatch) => {
     return postObjectPromise(
         `/api/light/preview/`,

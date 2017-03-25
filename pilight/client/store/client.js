@@ -30,7 +30,7 @@ export const saveConfigAsync = (configName) => (dispatch) => {
 };
 
 export const loadConfigAsync = (id) => (dispatch) => {
-    // The response from the server takes a second, so we immediate display loading
+    // The response from the server takes a second, so we immediately display loading
     // to make it feel snappy
     dispatch(startBootstrap());
 
