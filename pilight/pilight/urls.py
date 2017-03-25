@@ -19,6 +19,7 @@ urlpatterns = [
     url(r'^api/transform/add/?$', views.add_transform, name='add_transform'),
     url(r'^api/transform/delete/?$', views.delete_transform, name='delete_transform'),
     url(r'^api/transform/update/?$', views.update_transform, name='update_transform'),
+    url(r'^api/transform/reorder/?$', views.reorder_transforms, name='reorder_transforms'),
     url(r'^api/config/load/?$', views.load_config, name='load_config'),
     url(r'^api/config/save/?$', views.save_config, name='save_config'),
     url(r'^api/channel/set/?$', views.update_color_channel, name='update_color_channel'),

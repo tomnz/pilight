@@ -19,6 +19,7 @@ def active_transforms():
             'transform': transform_instance.transform,
             'name': transform.name,
             'params': json.loads(transform_instance.params),
+            'order': transform_instance.order,
         })
     return result
 

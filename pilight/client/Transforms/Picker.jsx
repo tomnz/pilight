@@ -71,7 +71,7 @@ Picker.propTypes = {
             transform: PropTypes.string.isRequired,
             name: PropTypes.string.isRequired,
             description: PropTypes.string,
-            paramsDef: PropTypes.arrayOf(
+            paramsDef: PropTypes.objectOf(
                 PropTypes.shape({
                     type: PropTypes.string.isRequired,
                     name: PropTypes.string,
