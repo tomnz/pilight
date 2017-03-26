@@ -3,8 +3,6 @@ import {Button, FormGroup} from 'react-bootstrap';
 import {SketchPicker} from 'react-color';
 import {connect} from 'react-redux';
 
-import {setColor} from '../store/palette';
-
 import css from './ColorPicker.scss';
 
 
@@ -23,12 +21,12 @@ class ColorPicker extends React.Component {
 
     onChangeComplete = (color) => {
         const rgb = color.rgb;
-        this.props.dispatch(setColor({
+        this.props.onChange({
             r: rgb.r / 255,
             g: rgb.g / 255,
             b: rgb.b / 255,
             a: rgb.a,
-        }));
+        });
     };
 
     render() {
@@ -41,8 +39,9 @@ class ColorPicker extends React.Component {
         const colorString = `rgb(${Math.round(pickerColor.r)}, ${Math.round(pickerColor.g)}, ${Math.round(pickerColor.b)})`;
 
         return (
-            <FormGroup>
+            <FormGroup className={css.formGroup}>
                 <Button
+                    bsSize={!!this.props.bsSize ? this.props.bsSize : null}
                     onClick={this.togglePicker}
                     style={{backgroundColor: colorString}}
                 >
@@ -63,19 +62,13 @@ class ColorPicker extends React.Component {
 }
 
 ColorPicker.propTypes = {
+    bsSize: PropTypes.string,
     color: PropTypes.shape({
         r: PropTypes.number,
         g: PropTypes.number,
         b: PropTypes.number,
-    })
+    }).isRequired,
+    onChange: PropTypes.func,
 };
 
-const mapStateToProps = (state) => {
-    const {palette} = state;
-    return {
-        color: palette.color,
-    }
-};
-const ColorPickerRedux = connect(mapStateToProps)(ColorPicker);
-
-export {ColorPickerRedux as ColorPicker};
+export {ColorPicker};

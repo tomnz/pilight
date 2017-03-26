@@ -36,6 +36,7 @@ class Active extends React.Component {
     };
 
     saveParams = (id) => (params) => {
+        console.log(params);
         this.props.updateTransformAsync({
             id: id,
             params: params,
@@ -47,6 +48,13 @@ class Active extends React.Component {
         orderedTransforms.sort((a, b) => a.order - b.order);
 
         const transforms = orderedTransforms.map((transform) => {
+            let paramsDef = null;
+            if (this.props.paramsDefs.hasOwnProperty(transform.transform)) {
+                paramsDef = this.props.paramsDefs[transform.transform];
+            } else {
+                return null;
+            }
+
             return (
                 <Transform
                     key={transform.id}
@@ -54,6 +62,7 @@ class Active extends React.Component {
                     moveUp={this.moveUp(transform.id)}
                     onDelete={this.deleteTransform(transform.id)}
                     onSave={this.saveParams(transform.id)}
+                    paramsDef={paramsDef}
                     transform={transform}
                 />
             );
@@ -86,12 +95,29 @@ Active.propTypes = {
             params: PropTypes.any,
         }).isRequired,
     ),
+    paramsDefs: PropTypes.objectOf(
+        PropTypes.objectOf(
+            PropTypes.shape({
+                type: PropTypes.string.isRequired,
+                name: PropTypes.string,
+                description: PropTypes.string,
+            }),
+        ),
+    ).isRequired
 };
 
 const mapStateToProps = (state) => {
     const {transforms} = state;
+
+    // Convert list of available transforms into a map of transform -> paramsDef
+    const paramsDefs = {};
+    transforms.available.forEach((transform) => {
+        paramsDefs[transform.transform] = transform.paramsDef;
+    });
+
     return {
         transforms: transforms.active,
+        paramsDefs: paramsDefs,
     }
 };
 

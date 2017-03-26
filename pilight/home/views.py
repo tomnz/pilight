@@ -343,6 +343,13 @@ def delete_transform(request):
             transform.delete()
         else:
             error = 'Invalid transform specified'
+
+        # Reorder existing transform
+        transforms = TransformInstance.objects.get_current()
+        for order, transform in enumerate(transforms):
+            transform.order = order
+            transform.save()
+
     else:
         error = 'No transform specified'
 
@@ -376,6 +383,7 @@ def update_transform(request):
                     'transform': transform_instance.transform,
                     'name': transform.name,
                     'params': json.loads(transform_instance.params),
+                    'order': transform_instance.order,
                 }
             else:
                 # Invalid transform? Scrap the existing one

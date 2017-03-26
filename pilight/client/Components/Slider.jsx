@@ -15,11 +15,11 @@ export class Slider extends React.Component {
         }
     };
 
-   render() {
+    render() {
+        const label = !!this.props.label ? <ControlLabel className={css.label}>{this.props.label}</ControlLabel> : null;
         return (
             <FormGroup className={css.wrapper}>
-                <ControlLabel>{this.props.label}</ControlLabel>
-                &nbsp;&nbsp;
+                {label}
                 <ReactBootstrapSlider
                     min={this.props.min}
                     max={this.props.max}
@@ -33,8 +33,8 @@ export class Slider extends React.Component {
 
 Slider.propTypes = {
     label: PropTypes.string,
-    min: PropTypes.number,
-    max: PropTypes.number,
-    value: PropTypes.number,
+    min: PropTypes.number.isRequired,
+    max: PropTypes.number.isRequired,
+    value: PropTypes.number.isRequired,
     onChange: PropTypes.func,
 };

@@ -16,7 +16,7 @@ import {
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 
-import {fillAsync, setOpacity, setRadius, setTool} from '../store/palette';
+import {fillAsync, setColor, setOpacity, setRadius, setTool} from '../store/palette';
 
 import {ColorPicker} from '../Components/ColorPicker';
 import {Slider} from '../Components/Slider';
@@ -81,7 +81,10 @@ class Palette extends React.Component {
                                 value={this.props.opacity}
                             />
                             &nbsp;&nbsp;&nbsp;
-                            <ColorPicker />
+                            <ColorPicker
+                                color={this.props.color}
+                                onChange={this.props.setColor}
+                            />
                             {' '}
                             <Button onClick={this.props.fillAsync}>Fill</Button>
                         </Form>
@@ -120,6 +123,7 @@ const mapStateToProps = (state) => {
 const mapDispatchToProps = (dispatch) => {
     return bindActionCreators({
         fillAsync,
+        setColor,
         setOpacity,
         setRadius,
         setTool,
