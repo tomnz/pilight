@@ -2,3 +2,16 @@
   display: inline-block;
   float: right;
 }
+
+.paramName {
+  white-space: nowrap;
+}
+
+.paramDescription {
+  width: 99%;
+}
+
+.paramEditor {
+  white-space: nowrap;
+  text-align: right;
+}

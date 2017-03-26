@@ -36,6 +36,7 @@ class Active extends React.Component {
     };
 
     saveParams = (id) => (params) => {
+        console.log(params);
         this.props.updateTransformAsync({
             id: id,
             params: params,

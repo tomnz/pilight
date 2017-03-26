@@ -1,4 +1,3 @@
-import abc
 import json
 import math
 import random
@@ -86,9 +85,10 @@ class LayerBase(TransformBase):
         """
 
         total = len(input_colors)
+        colors = self.get_colors(time, total)
         for index, input_color in enumerate(input_colors):
             # Grab the color from the layer and apply the opacity
-            color = self.get_color(time, index, total)
+            color = colors[index].clone()
             color.a *= self.opacity
 
             # Perform blending with the given blend mode
@@ -104,7 +104,7 @@ class LayerBase(TransformBase):
 
         return input_colors
 
-    def get_color(self, time, position, num_positions):
+    def get_colors(self, time, num_positions):
         """
         Main method that inherited classes should implement - returns a
         color for the given position
@@ -135,14 +135,14 @@ class ExternalColorLayer(LayerBase):
         super(ExternalColorLayer, self).__init__(transforminstance)
 
         self.color_channel = self.params.color_channel
-        self.color = Color.from_hex(self.params.default_color)
+        self.color = self.params.default_color
 
     def tick_frame(self, time, num_positions, color_param=None):
         if color_param:
             self.color = color_param
 
-    def get_color(self, time, position, num_positions):
-        return self.color
+    def get_colors(self, time, num_positions):
+        return [self.color] * num_positions
 
 
 class ExternalColorBurstLayer(LayerBase):
@@ -183,7 +183,7 @@ class ExternalColorBurstLayer(LayerBase):
         super(ExternalColorBurstLayer, self).__init__(transforminstance)
 
         self.color_channel = self.params.color_channel
-        self.color = Color.from_hex(self.params.default_color)
+        self.color = self.params.default_color
         self.sparks = {}
         self.brightnesses = []
         self.last_time = 0
@@ -225,10 +225,14 @@ class ExternalColorBurstLayer(LayerBase):
         # Save this time for the next iteration
         self.last_time = time
 
-    def get_color(self, time, position, num_positions):
+    def get_colors(self, time, num_positions):
         # Apply the saved brightnesses
-        result = self.color.clone()
-        result.a = self.brightnesses[position]
+        result = []
+        for idx in range(num_positions):
+            color = self.color.clone()
+            color.a = self.brightnesses[idx]
+            result.append(color)
+
         return result
 
 
@@ -260,7 +264,11 @@ class ColorFlashTransform(LayerBase):
         **LayerBase.params_def.params_def.copy())
     display_order = 200
 
-    def transform(self, time, input_colors):
+    def __init__(self, transforminstance):
+        super(ColorFlashTransform, self).__init__(transforminstance)
+        self.color = Color.get_default()
+
+    def tick_frame(self, time, num_positions, color_param=None):
         # Transform time/rate into a percentage for the current oscillation
         duration = self.params.duration
         progress = float(time) / float(duration) - int(time / duration)
@@ -276,16 +284,14 @@ class ColorFlashTransform(LayerBase):
         progress = (progress + 1) / 2
 
         # Colors
-        flash_start_color = Color.from_hex(self.params.start_color)
-        flash_end_color = Color.from_hex(self.params.end_color)
+        flash_start_color = self.params.start_color
+        flash_end_color = self.params.end_color
 
         # Compute value based on progress and start/end vals
-        mult_color = flash_start_color * (1 - progress) + flash_end_color * progress
+        self.color = flash_start_color * (1 - progress) + flash_end_color * progress
 
-        for index, color in enumerate(input_colors):
-            input_colors[index] = Color.blend_mult(color, mult_color)
-
-        return input_colors
+    def get_colors(self, time, num_positions):
+        return [self.color] * num_positions
 
 
 class FlashTransform(TransformBase):
@@ -603,7 +609,7 @@ class NoiseTransform(TransformBase):
     def __init__(self, transforminstance):
         super(NoiseTransform, self).__init__(transforminstance)
 
-        self.last_time = 0
+        self.last_time = -1
         self.progress = 0.0
         self.current_colors = []
         self.next_colors = []
@@ -617,7 +623,7 @@ class NoiseTransform(TransformBase):
 
     def tick_frame(self, time, num_positions, color_param=None):
         # Do we need to initialize?
-        if self.last_time == 0 or len(self.current_colors) != num_positions or len(self.next_colors) != num_positions:
+        if self.last_time == -1 or len(self.current_colors) != num_positions or len(self.next_colors) != num_positions:
             self.current_colors = self.get_random_colors(num_positions)
             self.next_colors = self.get_random_colors(num_positions)
             self.last_time = time

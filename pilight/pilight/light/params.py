@@ -1,6 +1,15 @@
 from pilight.classes import Color
 
 
+class ParamTypes(object):
+    BOOLEAN = 'boolean'
+    LONG = 'long'
+    FLOAT = 'float'
+    COLOR = 'color'
+    PERCENT = 'percent'
+    STRING = 'string'
+
+
 class Param(object):
     def __init__(self, name, default=None, param_type=None, description=None):
         self.name = name
@@ -103,15 +112,6 @@ class StringParam(Param):
     @staticmethod
     def from_dict_value(value):
         return str(value)
-
-
-class ParamTypes(object):
-    BOOLEAN = 'boolean'
-    LONG = 'long'
-    FLOAT = 'float'
-    COLOR = 'color'
-    PERCENT = 'percent'
-    STRING = 'string'
 
 
 class Params(object):

@@ -129,6 +129,7 @@ if (process.argv.indexOf('-p') !== -1) {
                 "/api/*": {
                     host: "localhost:8081",
                     target: "http://localhost:8000",
+                    proxyTimeout: 2000,
                 },
             },
         },
