@@ -5,18 +5,46 @@ import {
     Table,
 } from 'react-bootstrap';
 
-import {ParamEditor} from './ParamEditor';
+import {ParamFactory} from './ParamFactory';
 
 import css from './Transform.scss';
 
 
 class Transform extends React.Component {
     render() {
+        const paramRows = [];
+        const params = this.props.transform.params;
+        for (let name in params) {
+            if (params.hasOwnProperty(name)) {
+                let paramDef = null;
+                if (this.props.paramsDef.hasOwnProperty(name)) {
+                    paramDef = this.props.paramsDef[name];
+                } else {
+                    // Unknown param?
+                    continue;
+                }
+
+                const param = params[name];
+                paramRows.push(
+                    <tr key={name}>
+                        <td>{paramDef.name}</td>
+                        <td>{paramDef.description}</td>
+                        <td>
+                            <ParamFactory
+                                paramDef={paramDef}
+                                value={param}
+                            />
+                        </td>
+                    </tr>
+                );
+            }
+        }
+
         return (
             <Table bordered striped>
                 <thead>
                     <tr>
-                        <th colSpan={2}>
+                        <th colSpan={3}>
                             {this.props.transform.name}
                             <div className={css.buttons}>
                                 <ButtonGroup>
@@ -34,15 +62,7 @@ class Transform extends React.Component {
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td>Params</td>
-                        <td>
-                            <ParamEditor
-                                onSave={this.props.onSave}
-                                value={this.props.transform.params}
-                            />
-                        </td>
-                    </tr>
+                    {paramRows}
                 </tbody>
             </Table>
         )
@@ -56,6 +76,13 @@ Transform.propTypes = {
         name: PropTypes.string.isRequired,
         params: PropTypes.any,
     }).isRequired,
+    paramsDef: PropTypes.objectOf(
+        PropTypes.shape({
+            type: PropTypes.string.isRequired,
+            name: PropTypes.string,
+            description: PropTypes.string,
+        }),
+    ).isRequired,
     description: PropTypes.string,
     moveDown: PropTypes.func.isRequired,
     moveUp: PropTypes.func.isRequired,
