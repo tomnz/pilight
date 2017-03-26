@@ -149,6 +149,7 @@ def save_config(request):
         current_lights = Light.objects.get_current()
         current_transforms = TransformInstance.objects.get_current()
 
+        store_lights = []
         for light in current_lights:
             # By setting primary key to none, we ensure a copy of
             # the object is made
@@ -156,12 +157,17 @@ def save_config(request):
             # Set the store to None so that it's part of the "current"
             # setup
             light.store = store
-            light.save()
+            store_lights.append(light)
 
-        for transforminstance in current_transforms:
-            transforminstance.pk = None
-            transforminstance.store = store
-            transforminstance.save()
+        Light.objects.bulk_create(store_lights)
+
+        store_transforms = []
+        for transform_instance in current_transforms:
+            transform_instance.pk = None
+            transform_instance.store = store
+            store_transforms.append(transform_instance)
+
+        TransformInstance.objects.bulk_create(store_transforms)
 
     else:
         error = 'Must specify a config name'
@@ -188,6 +194,7 @@ def load_config(request):
             Light.objects.get_current().delete()
             TransformInstance.objects.get_current().delete()
 
+            new_lights = []
             for light in store.light_set.all():
                 # By setting primary key to none, we ensure a copy of
                 # the object is made
@@ -195,12 +202,17 @@ def load_config(request):
                 # Set the store to None so that it's part of the "current"
                 # setup
                 light.store = None
-                light.save()
+                new_lights.append(light)
 
-            for transforminstance in store.transforminstance_set.all():
-                transforminstance.pk = None
-                transforminstance.store = None
-                transforminstance.save()
+            Light.objects.bulk_create(new_lights)
+
+            new_transforms = []
+            for transform_instance in store.transforminstance_set.all():
+                transform_instance.pk = None
+                transform_instance.store = None
+                new_transforms.append(transform_instance)
+
+            TransformInstance.objects.bulk_create(new_transforms)
 
         else:
             error = 'Invalid config specified'
