@@ -4,12 +4,16 @@ from django.conf import settings
 import numpy as np
 import pyaudio
 
+from pilight.light.types import ParamTypes
+
 
 class Variable(object):
     """
     Defines a common interface for updating and retrieving a dynamic variable
     value.
     """
+
+    param_type = None
 
     def update(self, time):
         pass
@@ -32,7 +36,9 @@ AUDIO_SAMPLES = int(RATE * AUDIO_SECS)
 PRIOR_WEIGHT = 0.7
 LONG_TERM_WEIGHT = 0.999
 
+
 class AudioVariable(Variable):
+    param_type = ParamTypes.FLOAT
 
     def __init__(self, ):
         super(AudioVariable, self).__init__()

@@ -1,13 +1,5 @@
 from pilight.classes import Color
-
-
-class ParamTypes(object):
-    BOOLEAN = 'boolean'
-    LONG = 'long'
-    FLOAT = 'float'
-    COLOR = 'color'
-    PERCENT = 'percent'
-    STRING = 'string'
+from pilight.light.types import ParamTypes
 
 
 class Param(object):
@@ -115,12 +107,16 @@ class StringParam(Param):
 
 
 class Params(object):
-    def __init__(self, params_def, **kwargs):
+    def __init__(self, params_def, variable_params, **kwargs):
         self.__dict__.update(**kwargs)
         self.params_def = params_def
+        self.variable_params = variable_params
         self.params = kwargs
 
     def __getattr__(self, item):
+        if item in self.variable_params:
+            return self.variable_params[item].value
+
         return self.params[item]
 
     def iteritems(self):
@@ -132,6 +128,8 @@ class Params(object):
         for name, param in self.params_def.iteritems():
             if name in self.params:
                 result[name] = param.to_dict_value(self.params[name])
+            elif name in self.variable_params:
+                result[name] = {'variable': self.variable_params[name].name}
             else:
                 result[name] = param.default
 
@@ -156,16 +154,44 @@ class ParamsDef(object):
                 'name': param_def.name,
                 'description': param_def.description,
                 'type': param_def.param_type,
+                'defaultValue': param_def.to_dict_value(param_def.default),
             }
         return result
 
 
-def params_from_dict(value, params_def):
+class VariableParam(object):
+    def __init__(self, name, get_value):
+        self.name = name
+        self.get_value = get_value
+
+    @property
+    def value(self):
+        return self.get_value()
+
+
+def params_from_dict(values, params_def, variables=None, require_variables=False):
     params = {}
+    variable_params = {}
+
     for name, param in params_def.iteritems():
-        if name in value:
-            params[name] = param.from_dict_value(value[name])
+        if name in values:
+            value = values[name]
+
+            if isinstance(value, dict) and 'variable' in value:
+                variable_name = value['variable']
+
+                if require_variables:
+                    variable = variables.get(variable_name, None)
+                    # TODO: Assert is ugly... Can we have a better error?
+                    assert(variable and variable.param_type == param.param_type)
+                    variable_params[name] = VariableParam(name, variable.get_value)
+                    continue
+                else:
+                    variable_params[name] = VariableParam(name, None)
+                    continue
+
+            params[name] = param.from_dict_value(value)
         else:
             params[name] = param.default
 
-    return Params(params_def, **params)
+    return Params(params_def, variable_params, **params)

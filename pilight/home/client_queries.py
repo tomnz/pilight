@@ -56,3 +56,14 @@ def configs():
             'name': config.name,
         })
     return result
+
+
+def variables():
+    # TODO: Make this more dynamic
+    return [
+        {
+            'variable': 'audio',
+            'name': 'Audio',
+            'type': 'float',
+        }
+    ]

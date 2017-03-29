@@ -76,6 +76,7 @@ def bootstrap_client(request):
         'baseColors': base_colors,
         'activeTransforms': client_queries.active_transforms(),
         'availableTransforms': client_queries.available_transforms(),
+        'variables': client_queries.variables(),
         'configs': client_queries.configs(),
         'toolColor': tool_color.safe_dict(),
         'csrfToken': csrf.get_token(request),

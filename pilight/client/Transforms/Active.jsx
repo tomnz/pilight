@@ -64,6 +64,7 @@ class Active extends React.Component {
                     onSave={this.saveParams(transform.id)}
                     paramsDef={paramsDef}
                     transform={transform}
+                    variables={this.props.variables}
                 />
             );
         });
@@ -103,7 +104,16 @@ Active.propTypes = {
                 description: PropTypes.string,
             }),
         ),
-    ).isRequired
+    ).isRequired,
+    variables: PropTypes.objectOf(
+        PropTypes.arrayOf(
+            PropTypes.shape({
+                variable: PropTypes.string.isRequired,
+                name: PropTypes.string.isRequired,
+                type: PropTypes.string,
+            }),
+        ),
+    ).isRequired,
 };
 
 const mapStateToProps = (state) => {
@@ -118,6 +128,7 @@ const mapStateToProps = (state) => {
     return {
         transforms: transforms.active,
         paramsDefs: paramsDefs,
+        variables: transforms.variables,
     }
 };
 

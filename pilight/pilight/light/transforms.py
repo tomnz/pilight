@@ -14,11 +14,13 @@ class TransformBase(object):
     params_def = ParamsDef()
     display_order = 100
 
-    def __init__(self, transforminstance):
+    def __init__(self, transform_instance, variables):
         # Base classes should override this - and do something with params if need be
-        self.transforminstance = transforminstance
+        self.transform_instance = transform_instance
         self.params = params_from_dict(
-            getattr(transforminstance, 'decoded_params', {}), self.params_def)
+            getattr(transform_instance, 'decoded_params', {}), self.params_def,
+            variables, require_variables=True)
+
         self.color_channel = None
 
     def transform(self, time, input_colors):
@@ -59,8 +61,8 @@ class LayerBase(TransformBase):
     the color information into the existing color data.
     """
 
-    def __init__(self, transforminstance):
-        super(LayerBase, self).__init__(transforminstance)
+    def __init__(self, transform_instance, variables):
+        super(LayerBase, self).__init__(transform_instance, variables)
 
         self.opacity = self.params.opacity
         self.blend_mode = self.params.blend_mode
@@ -131,8 +133,8 @@ class ExternalColorLayer(LayerBase):
         **LayerBase.params_def.params_def.copy())
     display_order = 300
 
-    def __init__(self, transforminstance):
-        super(ExternalColorLayer, self).__init__(transforminstance)
+    def __init__(self, transform_instance, variables):
+        super(ExternalColorLayer, self).__init__(transform_instance, variables)
 
         self.color_channel = self.params.color_channel
         self.color = self.params.default_color
@@ -179,8 +181,8 @@ class ExternalColorBurstLayer(LayerBase):
         **LayerBase.params_def.params_def.copy())
     display_order = 301
 
-    def __init__(self, transforminstance):
-        super(ExternalColorBurstLayer, self).__init__(transforminstance)
+    def __init__(self, transform_instance, variables):
+        super(ExternalColorBurstLayer, self).__init__(transform_instance, variables)
 
         self.color_channel = self.params.color_channel
         self.color = self.params.default_color
@@ -264,8 +266,8 @@ class ColorFlashTransform(LayerBase):
         **LayerBase.params_def.params_def.copy())
     display_order = 200
 
-    def __init__(self, transforminstance):
-        super(ColorFlashTransform, self).__init__(transforminstance)
+    def __init__(self, transform_instance, variables):
+        super(ColorFlashTransform, self).__init__(transform_instance, variables)
         self.color = Color.get_default()
 
     def tick_frame(self, time, num_positions, color_param=None):
@@ -361,8 +363,8 @@ class StrobeTransform(TransformBase):
         ))
     display_order = 12
 
-    def __init__(self, transforminstance):
-        super(StrobeTransform, self).__init__(transforminstance)
+    def __init__(self, transform_instance, variables):
+        super(StrobeTransform, self).__init__(transform_instance, variables)
 
         self.state_on = True
         self.frames = 0
@@ -531,8 +533,8 @@ class BurstTransform(TransformBase):
         ))
     display_order = 3
 
-    def __init__(self, transforminstance):
-        super(BurstTransform, self).__init__(transforminstance)
+    def __init__(self, transform_instance, variables):
+        super(BurstTransform, self).__init__(transform_instance, variables)
 
         self.sparks = {}
         self.brightnesses = []
@@ -606,8 +608,8 @@ class NoiseTransform(TransformBase):
         ))
     display_order = 8
 
-    def __init__(self, transforminstance):
-        super(NoiseTransform, self).__init__(transforminstance)
+    def __init__(self, transform_instance, variables):
+        super(NoiseTransform, self).__init__(transform_instance, variables)
 
         self.last_time = -1
         self.progress = 0.0
@@ -675,9 +677,9 @@ class BrightnessTransform(TransformBase):
 
 
 class BrightnessVariableTransform(TransformBase):
-    def __init__(self, transforminstance, variable):
-        super(BrightnessVariableTransform, self).__init__(transforminstance)
-        self.variable = variable
+    def __init__(self, transform_instance, variables):
+        super(BrightnessVariableTransform, self).__init__(transform_instance, variables)
+        self.variable = variables
 
     def is_animated(self):
         return True
