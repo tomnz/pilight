@@ -200,7 +200,7 @@ PiLight has builtin support for audio reactivity based on a microphone input. Th
 * Set `ENABLE_AUDIO_VAR` to `True` in your settings.
 * Use the interface to connect the Audio variable to transform parameters. Recommended examples are brightness, or the strength component of a Crush Color transform.
 
-> Note: You may experience some difficulties getting the microphone to be picked up correctly. Ensure you have set the given microphone as the default input source in both alsa and PulseAudio. For WS281X strips, you may also need to disable the onboard audio as per [the instructions](https://github.com/jgarff/rpi_ws281x#limitations).
+> Note: You may experience some difficulties getting the microphone to be picked up correctly. Ensure you have set the given microphone as the default input source in both alsa and PulseAudio. For WS281X strips, you may also need to disable the onboard audio as per [the instructions](https://github.com/jgarff/rpi_ws281x#limitations). Finally, you may want to enable PulseAudio to run on startup - check out [this article](http://serendipity.ruwenzori.net/index.php/2015/06/01/sending-an-audio-stream-across-the-network-to-a-remote-raspberry-pi-with-pulseaudio-the-easy-way).
 
 > Note: There is some performance impact to using the audio variable, since it computes an FFT every frame.
 
