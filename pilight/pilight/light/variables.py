@@ -76,6 +76,7 @@ class AudioVariable(Variable):
             return
 
         while self.stream.get_read_available() >= CHUNK:
+            print('read')
             try:
                 data = self.stream.read(CHUNK)
             except:
@@ -96,12 +97,13 @@ class AudioVariable(Variable):
         fft = np.fft.fft(self.frames * np.blackman(AUDIO_SAMPLES))[0:self.total_ffts]
         fftb = np.sqrt(fft.imag ** 2 + fft.real ** 2) / 5
         new_val = np.max(fftb)
+        print(new_val)
 
         # Keep track of a long-term moving average, in order to detect spikes above background noise
-        self.long_term = self.long_term * LONG_TERM_WEIGHT + (new_val) * (1 - LONG_TERM_WEIGHT)
+        self.long_term = self.long_term * LONG_TERM_WEIGHT + new_val * (1 - LONG_TERM_WEIGHT)
 
         # Smooth the value
-        self.val = self.val * PRIOR_WEIGHT + (new_val) * (1 - PRIOR_WEIGHT)
+        self.val = self.val * PRIOR_WEIGHT + new_val * (1 - PRIOR_WEIGHT)
 
         # Normalize for output
         self.norm_val = max(0.0, min(1.0, ((self.val / self.long_term - 1.0) / 3)))
