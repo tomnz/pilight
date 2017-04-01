@@ -202,6 +202,8 @@ PiLight has builtin support for audio reactivity based on a microphone input. Th
 
 > Note: You may experience some difficulties getting the microphone to be picked up correctly. Ensure you have set the given microphone as the default input source in both alsa and PulseAudio. For WS281X strips, you may also need to disable the onboard audio as per [the instructions](https://github.com/jgarff/rpi_ws281x#limitations).
 
+> Note: There is some performance impact to using the audio variable, since it computes an FFT every frame.
+
 
 Development
 -----------
