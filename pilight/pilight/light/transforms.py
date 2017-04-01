@@ -681,6 +681,21 @@ class CrushColorTransform(TransformBase):
             'Strength',
             1.0,
             'Higher values increase brightness and color crush',
+        ),
+        red_max=PercentParam(
+            'Red Max',
+            1.0,
+            'Maximum allowed red amount',
+        ),
+        green_max=PercentParam(
+            'Green Max',
+            0.3,
+            'Maximum allowed green amount',
+        ),
+        blue_max=PercentParam(
+            'Blue Max',
+            0.1,
+            'Maximum allowed blue amount',
         ))
     display_order = 15
 
@@ -692,11 +707,15 @@ class CrushColorTransform(TransformBase):
 
     def transform(self, time, input_colors):
         strength = self.params.strength
+        red_max = self.params.red_max
+        green_max = self.params.green_max
+        blue_max = self.params.blue_max
+
         for index, color in enumerate(input_colors):
             input_colors[index] = Color(
-                color.r * strength,
-                min(color.g * strength, 0.3),
-                min(color.b * strength, 0.1),
+                min(color.r * strength, red_max),
+                min(color.g * strength, green_max),
+                min(color.b * strength, blue_max),
                 color.a)
 
         return input_colors
