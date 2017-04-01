@@ -403,20 +403,27 @@ class ScrollTransform(TransformBase):
         ))
     display_order = 1
 
+    def __init__(self, transform_instance, variables):
+        super(ScrollTransform, self).__init__(transform_instance, variables)
+        self.last_time = 0.0
+        self.offset = 0.0
+
     def transform(self, time, input_colors):
         total = len(input_colors)
 
         # Transform time/rate into a percentage
         duration = self.params.duration
-        progress = float(time) / float(duration) - int(time / duration)
+        progress = (time - self.last_time) / float(duration)
+        self.last_time = time
 
         # Calculate offset to source from
-        offset = progress * total
+        self.offset += progress * total
+        self.offset %= total
 
         colors = []
         for index, input_color in enumerate(input_colors):
-            source_position = (int(offset) + index) % total
-            percent = offset % 1
+            source_position = (int(self.offset) + index) % total
+            percent = self.offset % 1
 
             if percent == 0 or not self.params.blend:
                 colors.append(input_colors[source_position])

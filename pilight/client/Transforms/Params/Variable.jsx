@@ -36,7 +36,6 @@ class Variable extends React.Component {
                 </option>
             );
         });
-        console.log(this.props.variable);
         return (
             <div>
                 <FormControl
