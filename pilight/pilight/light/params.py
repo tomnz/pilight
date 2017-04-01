@@ -108,7 +108,6 @@ class StringParam(Param):
 
 class Params(object):
     def __init__(self, params_def, variable_params, **kwargs):
-        self.__dict__.update(**kwargs)
         self.params_def = params_def
         self.variable_params = variable_params
         self.params = kwargs
@@ -124,16 +123,19 @@ class Params(object):
             yield key, value
 
     def to_dict(self):
-        result = {}
+        params = {}
+        variable_params = {}
+
         for name, param in self.params_def.iteritems():
             if name in self.params:
-                result[name] = param.to_dict_value(self.params[name])
-            elif name in self.variable_params:
-                result[name] = {'variable': self.variable_params[name].name}
+                params[name] = param.to_dict_value(self.params[name])
             else:
-                result[name] = param.default
+                params[name] = param.default
 
-        return result
+        for name, variable_param in self.variable_params.iteritems():
+            variable_params[name] = {'variable': variable_param.name}
+
+        return params, variable_params
 
 
 class ParamsDef(object):
@@ -169,29 +171,21 @@ class VariableParam(object):
         return self.get_value()
 
 
-def params_from_dict(values, params_def, variables=None, require_variables=False):
+def params_from_dict(values, variable_values, params_def, variables=None):
     params = {}
     variable_params = {}
 
     for name, param in params_def.iteritems():
         if name in values:
-            value = values[name]
-
-            if isinstance(value, dict) and 'variable' in value:
-                variable_name = value['variable']
-
-                if require_variables:
-                    variable = variables.get(variable_name, None)
-                    # TODO: Assert is ugly... Can we have a better error?
-                    assert(variable and variable.param_type == param.param_type)
-                    variable_params[name] = VariableParam(name, variable.get_value)
-                    continue
-                else:
-                    variable_params[name] = VariableParam(name, None)
-                    continue
-
-            params[name] = param.from_dict_value(value)
+            params[name] = param.from_dict_value(values[name])
         else:
             params[name] = param.default
+
+        if name in variable_values:
+            variable_name = variable_values[name].get('variable', '')
+            if variables and variable_name in variables:
+                variable_params[name] = VariableParam(variable_name, variables[variable_name].get_value)
+            else:
+                variable_params[name] = VariableParam(variable_name, lambda: 1.0)
 
     return Params(params_def, variable_params, **params)

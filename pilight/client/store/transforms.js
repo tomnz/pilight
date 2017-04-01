@@ -39,11 +39,10 @@ export const deleteTransformAsync = (id) => (dispatch) => {
     );
 };
 
-export const updateTransformAsync = ({id, params}) => (dispatch) => {
-    console.log(params);
+export const updateTransformAsync = ({id, params, variableParams}) => (dispatch) => {
     return postObjectPromise(
         `/api/transform/update/`,
-        {id: id, params: params},
+        {id: id, params: params, variableParams: variableParams},
         (data) => {
             dispatch(setActiveTransform(id, data.transform));
         },

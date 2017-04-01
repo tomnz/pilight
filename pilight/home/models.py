@@ -6,6 +6,7 @@ import json
 
 
 # Stores metadata information about saved configurations
+# TODO: Rename to "config"
 class Store(models.Model):
 
     name = models.CharField(max_length=30)
@@ -72,62 +73,14 @@ class TransformInstance(models.Model):
 
     transform = models.TextField(blank=False, null=False)
     order = models.IntegerField()
+
+    # TODO: Switch these to a Postgres-specific JSONField
     params = models.TextField(blank=True, null=True)
+    variable_params = models.TextField(blank=True, null=True)
+
     store = models.ForeignKey(Store, blank=True, null=True)
 
     objects = TransformInstanceManager()
 
     def __unicode__(self):
         return self.transform
-
-    @property
-    def decoded_params(self):
-        """
-        Decodes the params field and returns an object
-        containing any values that are set
-        """
-
-        try:
-            params = json.loads(self.params)
-        except ValueError:
-            params = {}
-
-        return params
-#
-#
-# FIELD_TYPE_CHOICES = (
-#     ('boolean', 'True/False'),
-#     ('long', 'Number'),
-#     ('float', 'Decimal'),
-#     ('color', 'Color'),
-#     ('percentage', 'Percent'),
-#     ('string', 'String'),
-# )
-#
-#
-# class TransformField(models.Model):
-#
-#     transform = models.ForeignKey(Transform)
-#     name = models.CharField(max_length=15)
-#     long_name = models.CharField(max_length=60)
-#     description = models.CharField(max_length=255, blank=True, null=True)
-#     field_type = models.CharField(max_length=10, choices=FIELD_TYPE_CHOICES, default='float')
-#     default_value = models.TextField(default='')
-#
-#     def __unicode__(self):
-#         return u'%s - %s' % (self.transform.long_name, self.long_name)
-#
-#     def format_value(self, value):
-#         if self.field_type == 'boolean':
-#             if str(value).lower() == 'false':
-#                 return False
-#             else:
-#                 return bool(value)
-#         elif self.field_type == 'long':
-#             return long(value)
-#         elif self.field_type in ('float', 'percentage'):
-#             return float(value)
-#         elif self.field_type == 'string':
-#             return str(value)
-#         else:
-#             return value

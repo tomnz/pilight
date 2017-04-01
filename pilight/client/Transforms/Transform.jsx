@@ -9,6 +9,7 @@ import {
 import {ParamFactory} from './ParamFactory';
 
 import css from './Transform.scss';
+import {Variable} from "./Params/Variable";
 
 
 class Transform extends React.Component {
@@ -17,16 +18,18 @@ class Transform extends React.Component {
         // Do a JSON.stringify/parse to force a deep clone
         this.state = {
             params: JSON.parse(JSON.stringify(this.props.transform.params)),
-            variableParams: [],
+            variableParams: JSON.parse(JSON.stringify(this.props.transform.variableParams)),
             modified: false,
         };
     }
 
     componentWillReceiveProps(nextProps) {
-        if (JSON.stringify(nextProps.transform.params) !== JSON.stringify(this.props.transform.params)) {
+        if (JSON.stringify(nextProps.transform.params) !== JSON.stringify(this.props.transform.params) ||
+            JSON.stringify(nextProps.transform.variableParams) !== JSON.stringify(this.props.transform.variableParams)) {
             // Reset the current value
             this.setState({
                 params: JSON.parse(JSON.stringify(nextProps.transform.params)),
+                variableParams: JSON.parse(JSON.stringify(nextProps.transform.variableParams)),
                 modified: false,
             });
         }
@@ -41,19 +44,32 @@ class Transform extends React.Component {
         });
     };
 
-    onSave = () => {
-        this.props.onSave(this.state.params);
+    onVariableChange = (name) => (variable) => {
+        const newVariableParams = Object.assign({}, this.state.variableParams);
+        newVariableParams[name] = {
+            variable: variable,
+        };
+        this.setState({
+            variableParams: newVariableParams,
+            modified: true,
+        });
     };
 
-    toggleVariable = (name, defaultValue) => (event) => {
-        const newParams = Object.assign({}, this.state.params);
+    onSave = () => {
+        this.props.onSave(this.state.params, this.state.variableParams);
+    };
+
+    toggleVariable = (name) => (event) => {
+        const newVariableParams = Object.assign({}, this.state.variableParams);
         if (event.target.checked) {
-            newParams[name] = {variable: ''};
+            newVariableParams[name] = {
+                variable: '',
+            };
         } else {
-            newParams[name] = defaultValue;
+            delete newVariableParams[name];
         }
         this.setState({
-            params: newParams,
+            variableParams: newVariableParams,
             modified: true,
         });
     };
@@ -78,7 +94,33 @@ class Transform extends React.Component {
 
                 const value = this.state.params[name];
                 const origValue = params[name];
-                const isVariable = value.hasOwnProperty('variable');
+
+                let isVariable = false;
+                let variableName = null;
+                if (this.state.variableParams.hasOwnProperty(name)) {
+                    isVariable = true;
+                    variableName = this.state.variableParams[name].variable;
+                }
+
+                let paramControl = null;
+                if (isVariable) {
+                    paramControl = (
+                        <Variable
+                            onChange={this.onVariableChange(name)}
+                            value={variableName}
+                            variables={variables}
+                        />
+                    );
+                } else {
+                    paramControl = (
+                        <ParamFactory
+                            onChange={this.onValueChange(name)}
+                            origValue={origValue}
+                            paramDef={paramDef}
+                            value={value}
+                        />
+                    );
+                }
 
                 paramRows.push(
                     <tr key={name}>
@@ -91,19 +133,12 @@ class Transform extends React.Component {
                                 <Checkbox
                                     className={css.variableCheckbox}
                                     checked={isVariable}
-                                    onChange={this.toggleVariable(name, paramDef.defaultValue)}
+                                    onChange={this.toggleVariable(name)}
                                 /> : null
                             }
-
                         </td>
                         <td className={css.paramEditor}>
-                            <ParamFactory
-                                onChange={this.onValueChange(name)}
-                                origValue={origValue}
-                                paramDef={paramDef}
-                                value={value}
-                                variables={variables}
-                            />
+                            {paramControl}
                         </td>
                     </tr>
                 );
@@ -155,6 +190,11 @@ Transform.propTypes = {
         transform: PropTypes.string.isRequired,
         name: PropTypes.string.isRequired,
         params: PropTypes.any,
+        variableParams: PropTypes.objectOf(
+            PropTypes.shape({
+                variable: PropTypes.string.isRequired,
+            }).isRequired,
+        ),
     }).isRequired,
     paramsDef: PropTypes.objectOf(
         PropTypes.shape({

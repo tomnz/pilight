@@ -6,10 +6,7 @@ import css from './common.scss';
 
 class Variable extends React.Component {
     onChange = (event) => {
-        const variable = event.target.value;
-        if (variable !== '') {
-            this.props.onChange({'variable': event.target.value});
-        }
+        this.props.onChange(event.target.value);
     };
 
     render() {

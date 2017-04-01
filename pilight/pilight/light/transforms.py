@@ -18,8 +18,9 @@ class TransformBase(object):
         # Base classes should override this - and do something with params if need be
         self.transform_instance = transform_instance
         self.params = params_from_dict(
-            getattr(transform_instance, 'decoded_params', {}), self.params_def,
-            variables, require_variables=True)
+            json.loads(transform_instance.params or '{}'),
+            json.loads(transform_instance.variable_params or '{}'),
+            self.params_def, variables)
 
         self.color_channel = None
 
@@ -38,12 +39,6 @@ class TransformBase(object):
         channel (if any)
         """
         pass
-
-    def serialize_params(self):
-        """
-        Serializes all parameters back to JSON
-        """
-        return json.dumps(self.params)
 
     def is_animated(self):
         """
@@ -670,28 +665,41 @@ class BrightnessTransform(TransformBase):
         return False
 
     def transform(self, time, input_colors):
+        brightness = self.params.brightness
         for index in range(len(input_colors)):
-            input_colors[index] *= self.params.brightness
+            input_colors[index] *= brightness
 
         return input_colors
 
 
-class BrightnessVariableTransform(TransformBase):
+class CrushColorTransform(TransformBase):
+    name = 'Crush Color'
+    description = 'Crushes color and brightness according to the strength of the parameter. ' +\
+                  'Works best with a variable.'
+    params_def = ParamsDef(
+        strength=FloatParam(
+            'Strength',
+            1.0,
+            'Higher values increase brightness and color crush',
+        ))
+    display_order = 15
+
     def __init__(self, transform_instance, variables):
-        super(BrightnessVariableTransform, self).__init__(transform_instance, variables)
-        self.variable = variables
+        super(CrushColorTransform, self).__init__(transform_instance, variables)
 
     def is_animated(self):
         return True
 
     def transform(self, time, input_colors):
-        val = self.variable.get_value()
+        strength = self.params.strength
         for index, color in enumerate(input_colors):
             input_colors[index] = Color(
-                color.r * val,
-                min(color.g * val, 0.3),
-                min(color.b * val, 0.1),
+                color.r * strength,
+                min(color.g * strength, 0.3),
+                min(color.b * strength, 0.1),
                 color.a)
+
+        return input_colors
 
 
 TRANSFORMS = {
@@ -706,4 +714,5 @@ TRANSFORMS = {
     'strobe': StrobeTransform,
     'external': ExternalColorLayer,
     'externalburst': ExternalColorBurstLayer,
+    'crushcolor': CrushColorTransform,
 }

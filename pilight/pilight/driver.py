@@ -5,8 +5,8 @@ from django.conf import settings
 from home.models import Light, TransformInstance
 from pilight.devices import client, noop, ws2801, ws281x
 from pilight.classes import PikaConnection, Color
-from pilight.light.transforms import TRANSFORMS, BrightnessVariableTransform
-from pilight.light.variables import AudioVariable
+from pilight.light.transforms import TRANSFORMS
+from pilight.light.variables import AudioVariable, RandomVariable
 
 
 DEVICES = {
@@ -122,7 +122,8 @@ class LightDriver(object):
 
             # Init audio
             current_variables = {
-                'audio': AudioVariable()
+                'audio': AudioVariable(),
+                'random': RandomVariable(),
             }
 
             restart = True
@@ -135,7 +136,8 @@ class LightDriver(object):
             self.clear_lights()
 
             # Close variables
-            current_variables['audio'].close()
+            for variable in current_variables.itervalues():
+                variable.close()
 
             # Reset start_time so that we start over on the next run
             self.start_time = None
@@ -232,7 +234,8 @@ class LightDriver(object):
         # Grab the simulation parameters
         current_colors = self.get_colors()
         current_variables = {
-            'audio': AudioVariable()
+            'audio': AudioVariable(),
+            'random': RandomVariable(),
         }
         current_transforms = self.get_transforms(current_variables)
 
@@ -245,7 +248,8 @@ class LightDriver(object):
             elapsed_time = time_step * i
             result.append(self.do_step(current_colors, elapsed_time, current_transforms, current_variables))
 
-        current_variables['audio'].close()
+        for variable in current_variables.itervalues():
+            variable.close()
 
         return result
 
@@ -280,11 +284,7 @@ class LightDriver(object):
 
         for transform_item in transform_items:
             transform_obj = TRANSFORMS[transform_item.transform](transform_item, variables)
-
             current_transforms.append(transform_obj)
-
-        if settings.ENABLE_AUDIO_VAR:
-            current_transforms.append(BrightnessVariableTransform(None, variables['audio']))
 
         return current_transforms
 

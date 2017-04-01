@@ -35,11 +35,11 @@ class Active extends React.Component {
         this.props.moveTransformUpAsync(id);
     };
 
-    saveParams = (id) => (params) => {
-        console.log(params);
+    saveParams = (id) => (params, variableParams) => {
         this.props.updateTransformAsync({
             id: id,
             params: params,
+            variableParams: variableParams,
         });
     };
 

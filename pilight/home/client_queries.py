@@ -18,7 +18,8 @@ def active_transforms():
             'id': transform_instance.id,
             'transform': transform_instance.transform,
             'name': transform.name,
-            'params': json.loads(transform_instance.params),
+            'params': json.loads(transform_instance.params or '{}'),
+            'variableParams': json.loads(transform_instance.variable_params or '{}'),
             'order': transform_instance.order,
         })
     return result
@@ -64,6 +65,11 @@ def variables():
         {
             'variable': 'audio',
             'name': 'Audio',
+            'type': 'float',
+        },
+        {
+            'variable': 'random',
+            'name': 'Random',
             'type': 'float',
         }
     ]

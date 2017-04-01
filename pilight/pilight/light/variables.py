@@ -1,3 +1,4 @@
+import random
 import struct
 
 from django.conf import settings
@@ -23,6 +24,13 @@ class Variable(object):
 
     def close(self):
         pass
+
+
+class RandomVariable(Variable):
+    param_type = ParamTypes.FLOAT
+
+    def get_value(self):
+        return random.random()
 
 
 CHUNK = 1024
@@ -60,6 +68,7 @@ class AudioVariable(Variable):
         self.norm_val = 0.0
         self.long_term = 0.0
         self.determine_freqs()
+        self.total_ffts = 0
 
     def update(self, time):
         if not settings.ENABLE_AUDIO_VAR:
@@ -108,10 +117,8 @@ class AudioVariable(Variable):
 
     def determine_freqs(self):
         # Pre-compute which FFT values to include, based on their frequency
-        self.total_ffts = 0
         for freq in np.fft.rfftfreq(AUDIO_SAMPLES, d=1.0 / RATE):
             if freq < 120:
                 self.total_ffts += 1
             else:
-                print self.total_ffts
                 break
