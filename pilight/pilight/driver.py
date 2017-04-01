@@ -121,10 +121,7 @@ class LightDriver(object):
             print '   Starting'
 
             # Init audio
-            current_variables = {
-                'audio': AudioVariable(),
-                'random': RandomVariable(),
-            }
+            current_variables = self.get_variables()
 
             restart = True
             while restart:
@@ -233,10 +230,7 @@ class LightDriver(object):
 
         # Grab the simulation parameters
         current_colors = self.get_colors()
-        current_variables = {
-            'audio': AudioVariable(),
-            'random': RandomVariable(),
-        }
+        current_variables = self.get_variables()
         current_transforms = self.get_transforms(current_variables)
 
         if not current_colors:
@@ -287,6 +281,13 @@ class LightDriver(object):
             current_transforms.append(transform_obj)
 
         return current_transforms
+
+    @staticmethod
+    def get_variables():
+        return {
+            'audio': AudioVariable(),
+            'random': RandomVariable(),
+        }
 
     @staticmethod
     def get_colors():
