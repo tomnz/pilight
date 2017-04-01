@@ -75,7 +75,11 @@ class AudioVariable(Variable):
             return
 
         while self.stream.get_read_available() >= CHUNK:
-            data = self.stream.read(CHUNK, exception_on_overflow=False)
+            try:
+                data = self.stream.read(CHUNK)
+            except:
+                break
+
             self.frames = np.concatenate((self.frames, np.array(struct.unpack("%dh" % (len(data) / SAMPLE_SIZE), data)) / MAX_y))
 
         if len(self.frames) < AUDIO_SAMPLES:
