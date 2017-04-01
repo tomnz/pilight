@@ -67,8 +67,8 @@ class AudioVariable(Variable):
         self.val = 0.0
         self.norm_val = 0.0
         self.long_term = 0.0
-        self.determine_freqs()
         self.total_ffts = 0
+        self.determine_freqs()
 
     def update(self, time):
         if not settings.ENABLE_AUDIO_VAR:
