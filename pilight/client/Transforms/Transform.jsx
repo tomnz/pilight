@@ -7,9 +7,9 @@ import {
 } from 'react-bootstrap';
 
 import {ParamFactory} from './ParamFactory';
+import {Variable} from "./Params/Variable";
 
 import css from './Transform.scss';
-import {Variable} from "./Params/Variable";
 
 
 class Transform extends React.Component {
