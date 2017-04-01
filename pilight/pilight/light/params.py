@@ -133,7 +133,7 @@ class Params(object):
                 params[name] = param.default
 
         for name, variable_param in self.variable_params.iteritems():
-            variable_params[name] = {'variable': variable_param.name}
+            variable_params[name] = variable_param.to_dict()
 
         return params, variable_params
 
@@ -162,13 +162,22 @@ class ParamsDef(object):
 
 
 class VariableParam(object):
-    def __init__(self, name, get_value):
+    def __init__(self, name, get_value, multiply=1.0, add=0):
         self.name = name
         self.get_value = get_value
+        self.multiply = multiply
+        self.add = add
 
     @property
     def value(self):
-        return self.get_value()
+        return self.get_value() * self.multiply + self.add
+
+    def to_dict(self):
+        return {
+            'variable': self.name,
+            'multiply': self.multiply,
+            'add': self.add,
+        }
 
 
 def params_from_dict(values, variable_values, params_def, variables=None):
@@ -182,10 +191,17 @@ def params_from_dict(values, variable_values, params_def, variables=None):
             params[name] = param.default
 
         if name in variable_values:
-            variable_name = variable_values[name].get('variable', '')
+            variable_value = variable_values[name]
+            variable_name = variable_value.get('variable', '')
             if variables and variable_name in variables:
-                variable_params[name] = VariableParam(variable_name, variables[variable_name].get_value)
+                get_value = variables[variable_name].get_value
             else:
-                variable_params[name] = VariableParam(variable_name, lambda: 1.0)
+                get_value = lambda: 1.0
+
+            variable_params[name] = VariableParam(
+                variable_name,
+                get_value,
+                variable_value.get('multiply', 1.0),
+                variable_value.get('add', 0))
 
     return Params(params_def, variable_params, **params)

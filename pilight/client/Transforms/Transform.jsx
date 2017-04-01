@@ -46,9 +46,7 @@ class Transform extends React.Component {
 
     onVariableChange = (name) => (variable) => {
         const newVariableParams = Object.assign({}, this.state.variableParams);
-        newVariableParams[name] = {
-            variable: variable,
-        };
+        newVariableParams[name] = variable;
         this.setState({
             variableParams: newVariableParams,
             modified: true,
@@ -64,6 +62,8 @@ class Transform extends React.Component {
         if (event.target.checked) {
             newVariableParams[name] = {
                 variable: '',
+                multiply: 1.0,
+                add: 0,
             };
         } else {
             delete newVariableParams[name];
@@ -96,10 +96,10 @@ class Transform extends React.Component {
                 const origValue = params[name];
 
                 let isVariable = false;
-                let variableName = null;
+                let variable = null;
                 if (this.state.variableParams.hasOwnProperty(name)) {
                     isVariable = true;
-                    variableName = this.state.variableParams[name].variable;
+                    variable = this.state.variableParams[name];
                 }
 
                 let paramControl = null;
@@ -107,7 +107,7 @@ class Transform extends React.Component {
                     paramControl = (
                         <Variable
                             onChange={this.onVariableChange(name)}
-                            value={variableName}
+                            variable={variable}
                             variables={variables}
                         />
                     );
@@ -193,6 +193,8 @@ Transform.propTypes = {
         variableParams: PropTypes.objectOf(
             PropTypes.shape({
                 variable: PropTypes.string.isRequired,
+                multiply: PropTypes.number,
+                add: PropTypes.number,
             }).isRequired,
         ),
     }).isRequired,
