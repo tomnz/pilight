@@ -14,11 +14,14 @@ class TransformBase(object):
     params_def = ParamsDef()
     display_order = 100
 
-    def __init__(self, transforminstance):
+    def __init__(self, transform_instance, variables):
         # Base classes should override this - and do something with params if need be
-        self.transforminstance = transforminstance
+        self.transform_instance = transform_instance
         self.params = params_from_dict(
-            getattr(transforminstance, 'decoded_params', {}), self.params_def)
+            json.loads(transform_instance.params or '{}'),
+            json.loads(transform_instance.variable_params or '{}'),
+            self.params_def, variables)
+
         self.color_channel = None
 
     def transform(self, time, input_colors):
@@ -37,12 +40,6 @@ class TransformBase(object):
         """
         pass
 
-    def serialize_params(self):
-        """
-        Serializes all parameters back to JSON
-        """
-        return json.dumps(self.params)
-
     def is_animated(self):
         """
         This is used by the driver to optimize - if all transforms are
@@ -59,8 +56,8 @@ class LayerBase(TransformBase):
     the color information into the existing color data.
     """
 
-    def __init__(self, transforminstance):
-        super(LayerBase, self).__init__(transforminstance)
+    def __init__(self, transform_instance, variables):
+        super(LayerBase, self).__init__(transform_instance, variables)
 
         self.opacity = self.params.opacity
         self.blend_mode = self.params.blend_mode
@@ -131,8 +128,8 @@ class ExternalColorLayer(LayerBase):
         **LayerBase.params_def.params_def.copy())
     display_order = 300
 
-    def __init__(self, transforminstance):
-        super(ExternalColorLayer, self).__init__(transforminstance)
+    def __init__(self, transform_instance, variables):
+        super(ExternalColorLayer, self).__init__(transform_instance, variables)
 
         self.color_channel = self.params.color_channel
         self.color = self.params.default_color
@@ -179,8 +176,8 @@ class ExternalColorBurstLayer(LayerBase):
         **LayerBase.params_def.params_def.copy())
     display_order = 301
 
-    def __init__(self, transforminstance):
-        super(ExternalColorBurstLayer, self).__init__(transforminstance)
+    def __init__(self, transform_instance, variables):
+        super(ExternalColorBurstLayer, self).__init__(transform_instance, variables)
 
         self.color_channel = self.params.color_channel
         self.color = self.params.default_color
@@ -264,8 +261,8 @@ class ColorFlashTransform(LayerBase):
         **LayerBase.params_def.params_def.copy())
     display_order = 200
 
-    def __init__(self, transforminstance):
-        super(ColorFlashTransform, self).__init__(transforminstance)
+    def __init__(self, transform_instance, variables):
+        super(ColorFlashTransform, self).__init__(transform_instance, variables)
         self.color = Color.get_default()
 
     def tick_frame(self, time, num_positions, color_param=None):
@@ -361,8 +358,8 @@ class StrobeTransform(TransformBase):
         ))
     display_order = 12
 
-    def __init__(self, transforminstance):
-        super(StrobeTransform, self).__init__(transforminstance)
+    def __init__(self, transform_instance, variables):
+        super(StrobeTransform, self).__init__(transform_instance, variables)
 
         self.state_on = True
         self.frames = 0
@@ -531,8 +528,8 @@ class BurstTransform(TransformBase):
         ))
     display_order = 3
 
-    def __init__(self, transforminstance):
-        super(BurstTransform, self).__init__(transforminstance)
+    def __init__(self, transform_instance, variables):
+        super(BurstTransform, self).__init__(transform_instance, variables)
 
         self.sparks = {}
         self.brightnesses = []
@@ -606,8 +603,8 @@ class NoiseTransform(TransformBase):
         ))
     display_order = 8
 
-    def __init__(self, transforminstance):
-        super(NoiseTransform, self).__init__(transforminstance)
+    def __init__(self, transform_instance, variables):
+        super(NoiseTransform, self).__init__(transform_instance, variables)
 
         self.last_time = -1
         self.progress = 0.0
@@ -668,28 +665,60 @@ class BrightnessTransform(TransformBase):
         return False
 
     def transform(self, time, input_colors):
+        brightness = self.params.brightness
         for index in range(len(input_colors)):
-            input_colors[index] *= self.params.brightness
+            input_colors[index] *= brightness
 
         return input_colors
 
 
-class BrightnessVariableTransform(TransformBase):
-    def __init__(self, transforminstance, variable):
-        super(BrightnessVariableTransform, self).__init__(transforminstance)
-        self.variable = variable
+class CrushColorTransform(TransformBase):
+    name = 'Crush Color'
+    description = 'Crushes color and brightness according to the strength of the parameter. ' +\
+                  'Works best with a variable.'
+    params_def = ParamsDef(
+        strength=FloatParam(
+            'Strength',
+            1.0,
+            'Higher values increase brightness and color crush',
+        ),
+        red_max=PercentParam(
+            'Red Max',
+            1.0,
+            'Maximum allowed red amount',
+        ),
+        green_max=PercentParam(
+            'Green Max',
+            0.3,
+            'Maximum allowed green amount',
+        ),
+        blue_max=PercentParam(
+            'Blue Max',
+            0.1,
+            'Maximum allowed blue amount',
+        ))
+    display_order = 15
+
+    def __init__(self, transform_instance, variables):
+        super(CrushColorTransform, self).__init__(transform_instance, variables)
 
     def is_animated(self):
         return True
 
     def transform(self, time, input_colors):
-        val = self.variable.get_value()
+        strength = self.params.strength
+        red_max = self.params.red_max
+        green_max = self.params.green_max
+        blue_max = self.params.blue_max
+
         for index, color in enumerate(input_colors):
             input_colors[index] = Color(
-                color.r * val,
-                min(color.g * val, 0.3),
-                min(color.b * val, 0.1),
+                min(color.r * strength, red_max),
+                min(color.g * strength, green_max),
+                min(color.b * strength, blue_max),
                 color.a)
+
+        return input_colors
 
 
 TRANSFORMS = {
@@ -704,4 +733,5 @@ TRANSFORMS = {
     'strobe': StrobeTransform,
     'external': ExternalColorLayer,
     'externalburst': ExternalColorBurstLayer,
+    'crushcolor': CrushColorTransform,
 }

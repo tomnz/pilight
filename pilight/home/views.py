@@ -76,6 +76,7 @@ def bootstrap_client(request):
         'baseColors': base_colors,
         'activeTransforms': client_queries.active_transforms(),
         'availableTransforms': client_queries.available_transforms(),
+        'variables': client_queries.variables(),
         'configs': client_queries.configs(),
         'toolColor': tool_color.safe_dict(),
         'csrfToken': csrf.get_token(request),
@@ -386,8 +387,14 @@ def update_transform(request):
         if transform_instance:
             transform = TRANSFORMS.get(transform_instance.transform, None)
             if transform:
-                transform_instance.params = json.dumps(params.params_from_dict(
-                    req['params'], transform.params_def).to_dict())
+                params_dict, variable_params_dict = params.params_from_dict(
+                    req['params'],
+                    req.get('variableParams', {}),
+                    transform.params_def
+                ).to_dict()
+
+                transform_instance.params = json.dumps(params_dict)
+                transform_instance.variable_params = json.dumps(variable_params_dict)
 
                 transform_instance.save()
                 result = {
@@ -395,6 +402,7 @@ def update_transform(request):
                     'transform': transform_instance.transform,
                     'name': transform.name,
                     'params': json.loads(transform_instance.params),
+                    'variableParams': json.loads(transform_instance.variable_params),
                     'order': transform_instance.order,
                 }
             else:
@@ -429,9 +437,12 @@ def add_transform(request):
             # one at the end
             num_transforms = TransformInstance.objects.get_current().count()
 
+            params_dict, variable_params_dict = params.params_from_dict({}, {}, transform.params_def).to_dict()
+
             transform_instance = TransformInstance()
             transform_instance.transform = transform_name
-            transform_instance.params = json.dumps(params.params_from_dict({}, transform.params_def).to_dict())
+            transform_instance.params = json.dumps(params_dict)
+            transform_instance.variable_params = json.dumps(variable_params_dict)
             transform_instance.order = num_transforms
             transform_instance.save()
         else:

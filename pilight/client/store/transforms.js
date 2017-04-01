@@ -7,6 +7,7 @@ import {setError} from './client';
 const SET_ACTIVE_TRANSFORM = 'lights/SET_ACTIVE_TRANSFORM';
 const SET_ACTIVE_TRANSFORMS = 'lights/SET_ACTIVE_TRANSFORMS';
 const SET_AVAILABLE_TRANSFORMS = 'lights/SET_AVAILABLE_TRANSFORMS';
+const SET_VARIABLES = 'lights/SET_VARIABLES';
 
 export const setActiveTransforms = createAction(SET_ACTIVE_TRANSFORMS);
 export const setAvailableTransforms = createAction(SET_AVAILABLE_TRANSFORMS);
@@ -14,6 +15,7 @@ export const setActiveTransform = createAction(SET_ACTIVE_TRANSFORM, (id, transf
     id: id,
     transform: transform,
 }));
+export const setVariables = createAction(SET_VARIABLES);
 
 export const addTransformAsync = (transform) => (dispatch) => {
     return postObjectPromise(
@@ -37,10 +39,10 @@ export const deleteTransformAsync = (id) => (dispatch) => {
     );
 };
 
-export const updateTransformAsync = ({id, params}) => (dispatch) => {
+export const updateTransformAsync = ({id, params, variableParams}) => (dispatch) => {
     return postObjectPromise(
         `/api/transform/update/`,
-        {id: id, params: params},
+        {id: id, params: params, variableParams: variableParams},
         (data) => {
             dispatch(setActiveTransform(id, data.transform));
         },
@@ -95,6 +97,7 @@ function postOrder(ids, dispatch) {
 const INITIAL_STATE = {
     available: [],
     active: [],
+    variables: {},
 };
 
 export const transforms = handleActions({
@@ -111,6 +114,20 @@ export const transforms = handleActions({
         return {
             ...state,
             active: newActive,
-        }
-    }
+        };
+    },
+    [SET_VARIABLES]: (state, action) => {
+        // Map variables by type
+        const newVariables = {};
+        action.payload.forEach((variable) => {
+            if (!newVariables.hasOwnProperty(variable.type)) {
+                newVariables[variable.type] = [];
+            }
+            newVariables[variable.type].push(variable);
+        });
+        return {
+            ...state,
+            variables: newVariables,
+        };
+    },
 }, INITIAL_STATE);

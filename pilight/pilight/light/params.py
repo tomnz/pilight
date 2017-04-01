@@ -1,13 +1,5 @@
 from pilight.classes import Color
-
-
-class ParamTypes(object):
-    BOOLEAN = 'boolean'
-    LONG = 'long'
-    FLOAT = 'float'
-    COLOR = 'color'
-    PERCENT = 'percent'
-    STRING = 'string'
+from pilight.light.types import ParamTypes
 
 
 class Param(object):
@@ -115,12 +107,15 @@ class StringParam(Param):
 
 
 class Params(object):
-    def __init__(self, params_def, **kwargs):
-        self.__dict__.update(**kwargs)
+    def __init__(self, params_def, variable_params, **kwargs):
         self.params_def = params_def
+        self.variable_params = variable_params
         self.params = kwargs
 
     def __getattr__(self, item):
+        if item in self.variable_params:
+            return self.variable_params[item].value
+
         return self.params[item]
 
     def iteritems(self):
@@ -128,14 +123,19 @@ class Params(object):
             yield key, value
 
     def to_dict(self):
-        result = {}
+        params = {}
+        variable_params = {}
+
         for name, param in self.params_def.iteritems():
             if name in self.params:
-                result[name] = param.to_dict_value(self.params[name])
+                params[name] = param.to_dict_value(self.params[name])
             else:
-                result[name] = param.default
+                params[name] = param.default
 
-        return result
+        for name, variable_param in self.variable_params.iteritems():
+            variable_params[name] = {'variable': variable_param.name}
+
+        return params, variable_params
 
 
 class ParamsDef(object):
@@ -156,16 +156,36 @@ class ParamsDef(object):
                 'name': param_def.name,
                 'description': param_def.description,
                 'type': param_def.param_type,
+                'defaultValue': param_def.to_dict_value(param_def.default),
             }
         return result
 
 
-def params_from_dict(value, params_def):
+class VariableParam(object):
+    def __init__(self, name, get_value):
+        self.name = name
+        self.get_value = get_value
+
+    @property
+    def value(self):
+        return self.get_value()
+
+
+def params_from_dict(values, variable_values, params_def, variables=None):
     params = {}
+    variable_params = {}
+
     for name, param in params_def.iteritems():
-        if name in value:
-            params[name] = param.from_dict_value(value[name])
+        if name in values:
+            params[name] = param.from_dict_value(values[name])
         else:
             params[name] = param.default
 
-    return Params(params_def, **params)
+        if name in variable_values:
+            variable_name = variable_values[name].get('variable', '')
+            if variables and variable_name in variables:
+                variable_params[name] = VariableParam(variable_name, variables[variable_name].get_value)
+            else:
+                variable_params[name] = VariableParam(variable_name, lambda: 1.0)
+
+    return Params(params_def, variable_params, **params)

@@ -1,8 +1,11 @@
+import random
 import struct
 
 from django.conf import settings
 import numpy as np
 import pyaudio
+
+from pilight.light.types import ParamTypes
 
 
 class Variable(object):
@@ -10,6 +13,8 @@ class Variable(object):
     Defines a common interface for updating and retrieving a dynamic variable
     value.
     """
+
+    param_type = None
 
     def update(self, time):
         pass
@@ -19,6 +24,13 @@ class Variable(object):
 
     def close(self):
         pass
+
+
+class RandomVariable(Variable):
+    param_type = ParamTypes.FLOAT
+
+    def get_value(self):
+        return random.random()
 
 
 CHUNK = 1024
@@ -32,7 +44,9 @@ AUDIO_SAMPLES = int(RATE * AUDIO_SECS)
 PRIOR_WEIGHT = 0.7
 LONG_TERM_WEIGHT = 0.999
 
+
 class AudioVariable(Variable):
+    param_type = ParamTypes.FLOAT
 
     def __init__(self, ):
         super(AudioVariable, self).__init__()
@@ -54,6 +68,7 @@ class AudioVariable(Variable):
         self.norm_val = 0.0
         self.long_term = 0.0
         self.determine_freqs()
+        self.total_ffts = 0
 
     def update(self, time):
         if not settings.ENABLE_AUDIO_VAR:
@@ -102,10 +117,8 @@ class AudioVariable(Variable):
 
     def determine_freqs(self):
         # Pre-compute which FFT values to include, based on their frequency
-        self.total_ffts = 0
         for freq in np.fft.rfftfreq(AUDIO_SAMPLES, d=1.0 / RATE):
             if freq < 120:
                 self.total_ffts += 1
             else:
-                print self.total_ffts
                 break

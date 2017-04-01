@@ -66,8 +66,8 @@ class Palette extends React.Component {
                             <Slider
                                 id="radius"
                                 label="Radius"
-                                min={0}
-                                max={30}
+                                min={1}
+                                max={8}
                                 onChange={this.props.setRadius}
                                 value={this.props.radius}
                             />

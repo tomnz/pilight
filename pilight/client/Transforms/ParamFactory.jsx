@@ -10,10 +10,9 @@ import {String} from './Params/String';
 
 class ParamFactory extends React.Component {
     render() {
-        let control = null;
         switch (this.props.paramDef.type) {
             case 'boolean':
-                control = (
+                return (
                     <Boolean
                         onChange={this.props.onChange}
                         value={this.props.value}
@@ -21,7 +20,7 @@ class ParamFactory extends React.Component {
                 );
                 break;
             case 'color':
-                control = (
+                return (
                     <Color
                         onChange={this.props.onChange}
                         value={this.props.value}
@@ -29,7 +28,7 @@ class ParamFactory extends React.Component {
                 );
                 break;
             case 'float':
-                control = (
+                return (
                     <Float
                         onChange={this.props.onChange}
                         origValue={this.props.origValue}
@@ -38,7 +37,7 @@ class ParamFactory extends React.Component {
                 );
                 break;
             case 'long':
-                control = (
+                return (
                     <Long
                         onChange={this.props.onChange}
                         origValue={this.props.origValue}
@@ -47,7 +46,7 @@ class ParamFactory extends React.Component {
                 );
                 break;
             case 'percent':
-                control = (
+                return (
                     <Percent
                         onChange={this.props.onChange}
                         origValue={this.props.origValue}
@@ -56,7 +55,7 @@ class ParamFactory extends React.Component {
                 );
                 break;
             case 'string':
-                control = (
+                return (
                     <String
                         onChange={this.props.onChange}
                         origValue={this.props.origValue}
@@ -65,14 +64,12 @@ class ParamFactory extends React.Component {
                 );
                 break;
             default:
-                control = (
+                return (
                     <div>
                         Unknown type: {this.props.paramDef.type}
                     </div>
                 );
         }
-
-        return control;
     }
 }
 
