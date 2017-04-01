@@ -1,11 +1,7 @@
 PiLight
 =======
 
-Flexible LED controller designed to run on a Raspberry Pi, and drive LED strings. Has a Django web-based interface for access anywhere.
-
-Although it is more work to set up (and completely optional), PiLight is able to be run in a server/client configuration - with a powerful server driving the configuration interface, and computing color data to send to the LEDs; and a lightweight client script running on the Raspberry Pi. See the Client/Server section below for more details.
-
-For more information, check out the following sources:
+Flexible LED controller designed to run on a Raspberry Pi, and drive LED strings. Has a Django + React web-based interface for access anywhere and easy configuration. For more information, check out the following sources:
 
 * [Blog post](http://tom.net.nz/2013/10/pilight/) detailing hardware and installation of PiLight
 * [Demo video](http://www.youtube.com/watch?v=ohJMUAsssQw) showing the PiLight interface and lights running
@@ -16,7 +12,9 @@ Client/Server
 
 The instructions below describe the configuration of a "standalone" installation of PiLight, such as onto a Raspberry Pi. While the Raspberry Pi is perfectly capable of running the PiLight configuration interface, and producing color data for the LEDs, its processor can sometimes struggle with the workload, reducing "framerate" to <10 updates per second.
 
-For high-performance installations running complex animations, it's recommended to run PiLight on a more powerful server computer, and use the lightweight [PiLight Client](https://bitbucket.org/tomnz/pilight-client) as the only software running on the Raspberry Pi. If you intend to use this configuration, then pay attention to the following differences in installation:
+For high-performance installations running complex animations, it's recommended to run PiLight on a more powerful server computer, and use the lightweight [PiLight Client](https://bitbucket.org/tomnz/pilight-client) as the only software running on the Raspberry Pi. Note that this is more work to set up, and completely optional.
+
+If you intend to use this configuration, then pay attention to the following differences in installation:
 
 * Install PiLight (as per the instructions below) onto your intended server computer
 * Install [PiLight Client](https://bitbucket.org/tomnz/pilight-client) onto the Raspberry Pi, according to the instructions on that page
@@ -55,7 +53,7 @@ Install the Python dependencies:
     cd pilight
     sudo pip install -r requirements.txt
 
-> Note: If you get an error message about available space on the device, it's likely your /tmp folder is too small. Run `sudo nano /etc/default/tmpfs`, change TMP_SIZE to 200M, then try `pip install -r requirements.txt` again. You may run into this when installing on a Raspberry Pi device.
+> Note: If you get an error message about available space on the device, it's likely that your /tmp folder is too small. Run `sudo nano /etc/default/tmpfs`, change TMP_SIZE to 200M, then try `pip install -r requirements.txt` again. You may run into this when installing on a Raspberry Pi device.
 
 > Note: If setting up a server installation on Windows, with PostgreSQL, you may find it easier to install the `psycopg2` package from a binary installer instead of with pip. [Download the binary](http://www.stickpeople.com/projects/python/win-psycopg/) corresponding to your Python/PostgreSQL version.
 
