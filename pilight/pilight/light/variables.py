@@ -3,7 +3,8 @@ import struct
 
 from django.conf import settings
 import numpy as np
-import pyaudio
+if settings.ENABLE_AUDIO_VAR:
+    import pyaudio
 
 from pilight.light.types import ParamTypes
 
