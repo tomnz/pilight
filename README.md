@@ -42,7 +42,7 @@ For Raspbian or similar:
     # At the time of writing, PostgreSQL was at 9.4 in the Raspbian repo
     sudo apt-get install postgresql postgresql-server-dev-9.4 rabbitmq-server
     # Extra deps
-    sudo apt-get install python-pyaudio python-numpy
+    sudo apt-get install python-pyaudio python-numpy pulseaudio alsa-utils
 
 > Note: These instructions assume you're using a Raspberry Pi with Occidentalis for the most part - omit sudo if your flavor doesn't use it, for example. This is all tested working with a 512MB Raspberry Pi device, and Occidentalis v0.2.
 
@@ -190,6 +190,19 @@ Periodically you may want to update PiLight to get the latest features and bug f
     git pull
     git update
     python manage.py migrate
+
+
+About Audio
+-----------
+
+PiLight has builtin support for audio reactivity based on a microphone input. This is designed to pick up bass frequencies from music. It will adapt to volume changes over time, so shouldn't require any specific tweaking. To enable it:
+
+* Set `ENABLE_AUDIO_VAR` to `True` in your settings.
+* Use the interface to connect the Audio variable to transform parameters. Recommended examples are brightness, or the strength component of a Crush Color transform.
+
+> Note: You may experience some difficulties getting the microphone to be picked up correctly. Ensure you have set the given microphone as the default input source in both alsa and PulseAudio. For WS281X strips, you may also need to disable the onboard audio as per [the instructions](https://github.com/jgarff/rpi_ws281x#limitations).
+
+> Note: There is some performance impact to using the audio variable, since it computes an FFT every frame.
 
 
 Development

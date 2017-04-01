@@ -3,7 +3,8 @@ import struct
 
 from django.conf import settings
 import numpy as np
-import pyaudio
+if settings.ENABLE_AUDIO_VAR:
+    import pyaudio
 
 from pilight.light.types import ParamTypes
 
@@ -97,10 +98,10 @@ class AudioVariable(Variable):
         new_val = np.max(fftb)
 
         # Keep track of a long-term moving average, in order to detect spikes above background noise
-        self.long_term = self.long_term * LONG_TERM_WEIGHT + (new_val) * (1 - LONG_TERM_WEIGHT)
+        self.long_term = self.long_term * LONG_TERM_WEIGHT + new_val * (1 - LONG_TERM_WEIGHT)
 
         # Smooth the value
-        self.val = self.val * PRIOR_WEIGHT + (new_val) * (1 - PRIOR_WEIGHT)
+        self.val = self.val * PRIOR_WEIGHT + new_val * (1 - PRIOR_WEIGHT)
 
         # Normalize for output
         self.norm_val = max(0.0, min(1.0, ((self.val / self.long_term - 1.0) / 3)))
