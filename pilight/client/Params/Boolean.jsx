@@ -6,7 +6,6 @@ import css from './common.scss';
 
 const Boolean = ({onChange,  value}) => {
     const onChangeEvent = (event) => {
-        console.log(event.target.checked);
         onChange(event.target.checked);
     };
 

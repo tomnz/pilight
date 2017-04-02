@@ -106,7 +106,49 @@ class StringParam(Param):
         return str(value)
 
 
-class Params(object):
+class VariableParam(object):
+    def __init__(self, variable_id, get_value, multiply=1.0, add=0):
+        self.variable_id = variable_id
+        self.get_value = get_value
+        self.multiply = multiply
+        self.add = add
+
+    @property
+    def value(self):
+        return self.get_value() * self.multiply + self.add
+
+    def to_dict(self):
+        return {
+            'variableId': self.variable_id,
+            'multiply': self.multiply,
+            'add': self.add,
+        }
+
+
+class ParamsDef(object):
+    def __init__(self, **kwargs):
+        self.params_def = kwargs
+
+    def __getattr__(self, item):
+        return self.params_def[item]
+
+    def iteritems(self):
+        for key, value in self.params_def.iteritems():
+            yield key, value
+
+    def to_dict(self):
+        result = {}
+        for name, param_def in self.params_def.iteritems():
+            result[name] = {
+                'name': param_def.name,
+                'description': param_def.description,
+                'type': param_def.param_type,
+                'defaultValue': param_def.to_dict_value(param_def.default),
+            }
+        return result
+
+
+class TransformParams(object):
     def __init__(self, params_def, variable_params, **kwargs):
         self.params_def = params_def
         self.variable_params = variable_params
@@ -138,49 +180,31 @@ class Params(object):
         return params, variable_params
 
 
-class ParamsDef(object):
-    def __init__(self, **kwargs):
-        self.params_def = kwargs
+class VariableParams(object):
+    def __init__(self, params_def, **kwargs):
+        self.params_def = params_def
+        self.params = kwargs
 
     def __getattr__(self, item):
-        return self.params_def[item]
+        return self.params[item]
 
     def iteritems(self):
-        for key, value in self.params_def.iteritems():
+        for key, value in self.params.iteritems():
             yield key, value
 
     def to_dict(self):
-        result = {}
-        for name, param_def in self.params_def.iteritems():
-            result[name] = {
-                'name': param_def.name,
-                'description': param_def.description,
-                'type': param_def.param_type,
-                'defaultValue': param_def.to_dict_value(param_def.default),
-            }
-        return result
+        params = {}
+
+        for name, param in self.params_def.iteritems():
+            if name in self.params:
+                params[name] = param.to_dict_value(self.params[name])
+            else:
+                params[name] = param.default
+
+        return params
 
 
-class VariableParam(object):
-    def __init__(self, name, get_value, multiply=1.0, add=0):
-        self.name = name
-        self.get_value = get_value
-        self.multiply = multiply
-        self.add = add
-
-    @property
-    def value(self):
-        return self.get_value() * self.multiply + self.add
-
-    def to_dict(self):
-        return {
-            'variable': self.name,
-            'multiply': self.multiply,
-            'add': self.add,
-        }
-
-
-def params_from_dict(values, variable_values, params_def, variables=None):
+def transform_params_from_dict(values, variable_values, params_def, variables=None):
     params = {}
     variable_params = {}
 
@@ -192,16 +216,28 @@ def params_from_dict(values, variable_values, params_def, variables=None):
 
         if name in variable_values:
             variable_value = variable_values[name]
-            variable_name = variable_value.get('variable', '')
-            if variables and variable_name in variables:
-                get_value = variables[variable_name].get_value
+            variable_id = variable_value.get('variableId', '')
+            if variables and variable_id in variables:
+                get_value = variables[variable_id].get_value
             else:
                 get_value = lambda: 1.0
 
             variable_params[name] = VariableParam(
-                variable_name,
+                variable_id,
                 get_value,
                 variable_value.get('multiply', 1.0),
                 variable_value.get('add', 0))
 
-    return Params(params_def, variable_params, **params)
+    return TransformParams(params_def, variable_params, **params)
+
+
+def variable_params_from_dict(values, params_def):
+    params = {}
+
+    for name, param in params_def.iteritems():
+        if name in values:
+            params[name] = param.from_dict_value(values[name])
+        else:
+            params[name] = param.default
+
+    return VariableParams(params_def, **params)

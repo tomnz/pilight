@@ -64,7 +64,7 @@ class Active extends React.Component {
                     onSave={this.saveParams(transform.id)}
                     paramsDef={paramsDef}
                     transform={transform}
-                    variables={this.props.variables}
+                    variablesByType={this.props.variablesByType}
                 />
             );
         });
@@ -105,19 +105,18 @@ Active.propTypes = {
             }),
         ),
     ).isRequired,
-    variables: PropTypes.objectOf(
+    variablesByType: PropTypes.objectOf(
         PropTypes.arrayOf(
             PropTypes.shape({
-                variable: PropTypes.string.isRequired,
+                id: PropTypes.number.isRequired,
                 name: PropTypes.string.isRequired,
-                type: PropTypes.string,
             }),
         ),
     ).isRequired,
 };
 
 const mapStateToProps = (state) => {
-    const {transforms} = state;
+    const {transforms, variables} = state;
 
     // Convert list of available transforms into a map of transform -> paramsDef
     const paramsDefs = {};
@@ -128,7 +127,7 @@ const mapStateToProps = (state) => {
     return {
         transforms: transforms.active,
         paramsDefs: paramsDefs,
-        variables: transforms.variables,
+        variablesByType: variables.activeByType,
     }
 };
 

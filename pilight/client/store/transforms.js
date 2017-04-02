@@ -4,10 +4,9 @@ import {postObjectPromise} from './async';
 import {setError} from './client';
 
 
-const SET_ACTIVE_TRANSFORM = 'lights/SET_ACTIVE_TRANSFORM';
-const SET_ACTIVE_TRANSFORMS = 'lights/SET_ACTIVE_TRANSFORMS';
-const SET_AVAILABLE_TRANSFORMS = 'lights/SET_AVAILABLE_TRANSFORMS';
-const SET_VARIABLES = 'lights/SET_VARIABLES';
+const SET_ACTIVE_TRANSFORM = 'transforms/SET_ACTIVE_TRANSFORM';
+const SET_ACTIVE_TRANSFORMS = 'transforms/SET_ACTIVE_TRANSFORMS';
+const SET_AVAILABLE_TRANSFORMS = 'transforms/SET_AVAILABLE_TRANSFORMS';
 
 export const setActiveTransforms = createAction(SET_ACTIVE_TRANSFORMS);
 export const setAvailableTransforms = createAction(SET_AVAILABLE_TRANSFORMS);
@@ -15,7 +14,6 @@ export const setActiveTransform = createAction(SET_ACTIVE_TRANSFORM, (id, transf
     id: id,
     transform: transform,
 }));
-export const setVariables = createAction(SET_VARIABLES);
 
 export const addTransformAsync = (transform) => (dispatch) => {
     return postObjectPromise(
@@ -97,7 +95,6 @@ function postOrder(ids, dispatch) {
 const INITIAL_STATE = {
     available: [],
     active: [],
-    variables: {},
 };
 
 export const transforms = handleActions({
@@ -114,20 +111,6 @@ export const transforms = handleActions({
         return {
             ...state,
             active: newActive,
-        };
-    },
-    [SET_VARIABLES]: (state, action) => {
-        // Map variables by type
-        const newVariables = {};
-        action.payload.forEach((variable) => {
-            if (!newVariables.hasOwnProperty(variable.type)) {
-                newVariables[variable.type] = [];
-            }
-            newVariables[variable.type].push(variable);
-        });
-        return {
-            ...state,
-            variables: newVariables,
         };
     },
 }, INITIAL_STATE);

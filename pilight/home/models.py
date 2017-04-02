@@ -84,3 +84,23 @@ class TransformInstance(models.Model):
 
     def __unicode__(self):
         return self.transform
+
+
+class VariableInstanceManager(models.Manager):
+    use_for_related_fields = True
+
+    def get_current(self):
+        return self.filter(store=None)
+
+
+class VariableInstance(models.Model):
+    variable = models.TextField(blank=False, null=False)
+    name = models.TextField(blank=True, null=True)
+    # TODO: Switch to a Postgres-specific JSONField
+    params = models.TextField(blank=True, null=True)
+    store = models.ForeignKey(Store, blank=True, null=True)
+
+    objects = VariableInstanceManager()
+
+    def __unicode__(self):
+        return self.variable

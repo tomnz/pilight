@@ -1,7 +1,8 @@
 import json
 
-from home.models import Light, TransformInstance, Store
+from home.models import Light, TransformInstance, Store, VariableInstance
 from pilight.light.transforms import TRANSFORMS
+from pilight.light.variables import VARIABLES
 
 
 def active_transforms():
@@ -40,6 +41,42 @@ def available_transforms():
     return result
 
 
+def active_variables():
+    active_variables_query = VariableInstance.objects.get_current()
+    result = []
+    for variable_instance in active_variables_query:
+        variable = VARIABLES.get(variable_instance.variable, None)
+        if not variable:
+            # Invalid transform? Just scrap the existing one
+            variable_instance.delete()
+            continue
+
+        result.append({
+            'id': variable_instance.id,
+            'variable': variable_instance.variable,
+            'name': variable_instance.name,
+            'params': json.loads(variable_instance.params or '{}'),
+            'type': variable.param_type,
+        })
+    return result
+
+
+def available_variables():
+    result = []
+    for name, variable in VARIABLES.iteritems():
+        result.append({
+            'variable': name,
+            'name': variable.name,
+            'description': variable.description,
+            'paramsDef': variable.params_def.to_dict(),
+            'order': variable.display_order,
+            'type': variable.param_type,
+        })
+
+    result.sort(key=lambda t: t['order'])
+    return result
+
+
 def base_colors():
     current_lights = Light.objects.get_current()
     result = []
@@ -57,19 +94,3 @@ def configs():
             'name': config.name,
         })
     return result
-
-
-def variables():
-    # TODO: Make this more dynamic
-    return [
-        {
-            'variable': 'audio',
-            'name': 'Audio',
-            'type': 'float',
-        },
-        {
-            'variable': 'random',
-            'name': 'Random',
-            'type': 'float',
-        }
-    ]
