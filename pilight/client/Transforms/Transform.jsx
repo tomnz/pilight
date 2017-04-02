@@ -6,8 +6,8 @@ import {
     Table,
 } from 'react-bootstrap';
 
-import {ParamFactory} from './ParamFactory';
-import {Variable} from "./Params/Variable";
+import {Param} from '../Params/Index';
+import {Variable} from '../Params/Variable';
 
 import css from './Transform.scss';
 
@@ -88,8 +88,8 @@ class Transform extends React.Component {
                 }
 
                 let variables = null;
-                if (this.props.variables.hasOwnProperty(paramDef.type)) {
-                    variables = this.props.variables[paramDef.type];
+                if (this.props.variablesByType.hasOwnProperty(paramDef.type)) {
+                    variables = this.props.variablesByType[paramDef.type];
                 }
 
                 const value = this.state.params[name];
@@ -113,7 +113,7 @@ class Transform extends React.Component {
                     );
                 } else {
                     paramControl = (
-                        <ParamFactory
+                        <Param
                             onChange={this.onValueChange(name)}
                             origValue={origValue}
                             paramDef={paramDef}
@@ -192,7 +192,7 @@ Transform.propTypes = {
         params: PropTypes.any,
         variableParams: PropTypes.objectOf(
             PropTypes.shape({
-                variable: PropTypes.string.isRequired,
+                variableId: PropTypes.number,
                 multiply: PropTypes.number,
                 add: PropTypes.number,
             }).isRequired,
@@ -206,12 +206,11 @@ Transform.propTypes = {
             defaultValue: PropTypes.any,
         }),
     ).isRequired,
-    variables: PropTypes.objectOf(
+    variablesByType: PropTypes.objectOf(
         PropTypes.arrayOf(
             PropTypes.shape({
-                variable: PropTypes.string.isRequired,
+                id: PropTypes.number.isRequired,
                 name: PropTypes.string.isRequired,
-                type: PropTypes.string,
             }),
         ),
     ).isRequired,

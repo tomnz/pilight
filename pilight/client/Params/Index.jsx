@@ -1,14 +1,14 @@
 import React, {PropTypes} from 'react';
 
-import {Boolean} from './Params/Boolean';
-import {Color} from './Params/Color';
-import {Float} from './Params/Float';
-import {Long} from './Params/Long';
-import {Percent} from './Params/Percent';
-import {String} from './Params/String';
+import {Boolean} from './Boolean';
+import {Color} from './Color';
+import {Float} from './Float';
+import {Long} from './Long';
+import {Percent} from './Percent';
+import {String} from './String';
 
 
-class ParamFactory extends React.Component {
+class Param extends React.Component {
     render() {
         switch (this.props.paramDef.type) {
             case 'boolean':
@@ -73,7 +73,7 @@ class ParamFactory extends React.Component {
     }
 }
 
-ParamFactory.propTypes = {
+Param.propTypes = {
     onChange: PropTypes.func.isRequired,
     origValue: PropTypes.any.isRequired,
     paramDef: PropTypes.shape({
@@ -84,4 +84,4 @@ ParamFactory.propTypes = {
     value: PropTypes.any.isRequired,
 };
 
-export {ParamFactory};
+export {Param};

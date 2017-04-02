@@ -6,7 +6,8 @@ import {auth, setAuthRequired, setLoggedIn} from './auth';
 import {client, finishBootstrap, setConfigs, setError, startBootstrap} from './client';
 import {setBaseColors, lights} from './lights';
 import {palette, setColor} from './palette';
-import {transforms, setActiveTransforms, setAvailableTransforms, setVariables} from './transforms';
+import {transforms, setActiveTransforms, setAvailableTransforms} from './transforms';
+import {variables, setActiveVariables, setAvailableVariables} from './variables';
 
 
 export const bootstrapClientAsync = () => (dispatch) => {
@@ -27,7 +28,8 @@ export const bootstrapClientAsync = () => (dispatch) => {
 
             dispatch(setActiveTransforms(data.activeTransforms));
             dispatch(setAvailableTransforms(data.availableTransforms));
-            dispatch(setVariables(data.variables));
+            dispatch(setActiveVariables(data.activeVariables));
+            dispatch(setAvailableVariables(data.availableVariables));
             dispatch(setBaseColors(data.baseColors));
             dispatch(setColor(data.toolColor));
             dispatch(setConfigs(data.configs));
@@ -45,6 +47,7 @@ const rootReducer = combineReducers({
     lights: lights,
     palette: palette,
     transforms: transforms,
+    variables: variables,
 });
 
 export const store = createStore(

@@ -2,11 +2,11 @@ import time
 
 from django.conf import settings
 
-from home.models import Light, TransformInstance
+from home.models import Light, TransformInstance, VariableInstance
 from pilight.devices import client, noop, ws2801, ws281x
 from pilight.classes import PikaConnection, Color
 from pilight.light.transforms import TRANSFORMS
-from pilight.light.variables import AudioVariable, RandomVariable
+from pilight.light.variables import create_variable
 
 
 DEVICES = {
@@ -252,7 +252,7 @@ class LightDriver(object):
 
         # Update variables
         for variable in variables.itervalues():
-            variable.update(elapsed_time)
+            variable.tick_frame(elapsed_time)
 
         # Perform each transform step
         for transform in transforms:
@@ -282,12 +282,17 @@ class LightDriver(object):
 
         return current_transforms
 
-    @staticmethod
-    def get_variables():
-        return {
-            'audio': AudioVariable(),
-            'random': RandomVariable(),
-        }
+    def get_variables(self):
+        # Grab variable instances out of the database, and
+        # instantiate the corresponding classes
+        variable_instances = VariableInstance.objects.get_current()
+        current_variables = {}
+
+        for variable_instance in variable_instances:
+            variable_obj = create_variable(variable_instance, self.color_channels)
+            current_variables[variable_instance.id] = variable_obj
+
+        return current_variables
 
     @staticmethod
     def get_colors():

@@ -1,6 +1,6 @@
 import React, {PropTypes} from 'react';
 
-import {ColorPicker} from '../../Components/ColorPicker';
+import {ColorPicker} from '../Components/ColorPicker';
 
 
 const Color = ({onChange,  value}) => {

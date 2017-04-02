@@ -1,7 +1,7 @@
 import React, {PropTypes} from 'react';
 import {FormControl, FormGroup} from 'react-bootstrap';
 
-import {Slider} from '../../Components/Slider';
+import {Slider} from '../Components/Slider';
 
 
 const Percent = ({onChange, value}) => {

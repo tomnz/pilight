@@ -1,0 +1,27 @@
+.buttons {
+  display: inline-block;
+  float: right;
+}
+
+.paramName {
+  white-space: nowrap;
+}
+
+.paramDescription {
+  width: 99%;
+}
+
+.paramEditor {
+  white-space: nowrap;
+  text-align: right;
+}
+
+.nameEditor {
+  display: inline;
+  margin: 0;
+  width: 200px;
+}
+
+.variableCheckbox {
+  margin: 0;
+}

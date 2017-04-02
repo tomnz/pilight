@@ -19,6 +19,7 @@ import {LoginModal} from './Header/LoginModal';
 import {Palette} from './Palette/Index';
 import {Preview} from './Preview/Index';
 import {Transforms} from './Transforms/Index';
+import {Variables} from './Variables/Index';
 
 
 class App extends React.Component {
@@ -61,6 +62,7 @@ class App extends React.Component {
                 <Palette />
                 <Preview />
                 <Transforms />
+                <Variables />
             </div>
         );
     }

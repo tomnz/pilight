@@ -10,7 +10,7 @@ class Variable extends React.Component {
     onVariableChange = (event) => {
         this.props.onChange({
             ...this.props.variable,
-            variable: event.target.value,
+            variableId: parseInt(event.target.value),
         });
     };
 
@@ -29,20 +29,21 @@ class Variable extends React.Component {
     };
 
     render() {
-        const variableOptions = this.props.variables.map((variable) => {
+        const variableOptions = !!this.props.variables ? this.props.variables.map((variable) => {
             return (
-                <option key={variable.variable} value={variable.variable}>
+                <option key={variable.id} value={variable.id.toString()}>
                     {variable.name}
                 </option>
             );
-        });
+        }) : [];
         return (
             <div>
                 <FormControl
+                    bsSize="small"
                     className={css.textbox}
                     componentClass="select"
                     onChange={this.onVariableChange}
-                    value={this.props.variable.variable}
+                    value={!!this.props.variable.variableId ? this.props.variable.variableId.toString() : ""}
                 >
                     <option value="">None</option>
                     {variableOptions}
@@ -65,17 +66,16 @@ class Variable extends React.Component {
 Variable.propTypes = {
     onChange: PropTypes.func.isRequired,
     variable: PropTypes.shape({
-        variable: PropTypes.string.isRequired,
+        variableId: PropTypes.number,
         multiply: PropTypes.any,
         add: PropTypes.any,
     }).isRequired,
     variables: PropTypes.arrayOf(
         PropTypes.shape({
-            variable: PropTypes.string.isRequired,
+            id: PropTypes.number.isRequired,
             name: PropTypes.string.isRequired,
-            type: PropTypes.string,
         }),
-    ).isRequired,
+    ),
 };
 
 export {Variable};

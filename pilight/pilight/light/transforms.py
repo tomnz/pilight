@@ -2,9 +2,10 @@ import json
 import math
 import random
 
+from home.models import load_variable_params
 from pilight.classes import Color
 from pilight.light.params import BooleanParam, LongParam, FloatParam, PercentParam, \
-    ColorParam, StringParam, ParamsDef, params_from_dict
+    ColorParam, StringParam, ParamsDef, transform_params_from_dict
 
 
 class TransformBase(object):
@@ -17,9 +18,9 @@ class TransformBase(object):
     def __init__(self, transform_instance, variables):
         # Base classes should override this - and do something with params if need be
         self.transform_instance = transform_instance
-        self.params = params_from_dict(
+        self.params = transform_params_from_dict(
             json.loads(transform_instance.params or '{}'),
-            json.loads(transform_instance.variable_params or '{}'),
+            load_variable_params(transform_instance),
             self.params_def, variables)
 
         self.color_channel = None
