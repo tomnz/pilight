@@ -44,6 +44,7 @@ AUDIO_SECS = 0.03
 AUDIO_SAMPLES = int(RATE * AUDIO_SECS)
 PRIOR_WEIGHT = 0.7
 LONG_TERM_WEIGHT = 0.999
+LPF_FREQ = 200
 
 
 class AudioVariable(Variable):
@@ -81,7 +82,7 @@ class AudioVariable(Variable):
             except:
                 break
 
-            self.frames = np.concatenate((self.frames, np.array(struct.unpack("%dh" % (len(data) / SAMPLE_SIZE), data)) / MAX_y))
+            self.frames = np.concatenate((self.frames, np.array(struct.unpack('%dh' % (len(data) / SAMPLE_SIZE), data)) / MAX_y))
 
         if len(self.frames) < AUDIO_SAMPLES:
             self.val = 0.0
@@ -104,7 +105,7 @@ class AudioVariable(Variable):
         self.val = self.val * PRIOR_WEIGHT + new_val * (1 - PRIOR_WEIGHT)
 
         # Normalize for output
-        self.norm_val = max(0.0, min(1.0, ((self.val / self.long_term - 1.0) / 3)))
+        self.norm_val = max(0.0, min(1.0, ((self.val / self.long_term - 0.6) / 2.5)))
 
     def get_value(self):
         if not settings.ENABLE_AUDIO_VAR:
@@ -123,7 +124,7 @@ class AudioVariable(Variable):
     def determine_freqs(self):
         # Pre-compute which FFT values to include, based on their frequency
         for freq in np.fft.rfftfreq(AUDIO_SAMPLES, d=1.0 / RATE):
-            if freq < 120:
+            if freq < LPF_FREQ:
                 self.total_ffts += 1
             else:
                 break
