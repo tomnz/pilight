@@ -262,7 +262,7 @@ class LightDriver(object):
                 external_color = self.color_channels.get(transform.color_channel, None)
 
             # Tick the transform frame
-            transform.tick_frame(elapsed_time, len(colors), external_color)
+            transform.tick_frame(elapsed_time, len(colors))
 
             # Run the transform
             colors = transform.transform(elapsed_time, colors)
