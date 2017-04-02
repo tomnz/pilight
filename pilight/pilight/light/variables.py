@@ -7,6 +7,7 @@ if settings.ENABLE_AUDIO_VAR:
     import pyaudio
 
 from pilight.light.types import ParamTypes
+from pilight.classes import Color
 
 
 class Variable(object):
@@ -50,7 +51,7 @@ LPF_FREQ = 200
 class AudioVariable(Variable):
     param_type = ParamTypes.FLOAT
 
-    def __init__(self, ):
+    def __init__(self):
         super(AudioVariable, self).__init__()
 
         if not settings.ENABLE_AUDIO_VAR:
@@ -128,3 +129,26 @@ class AudioVariable(Variable):
                 self.total_ffts += 1
             else:
                 break
+
+
+class ColorChannelVariable(Variable):
+    param_type = ParamTypes.COLOR
+
+    def __init__(self, color_channel, color_channels=None):
+        super(ColorChannelVariable, self).__init__()
+        # TODO: Parameterize these
+        self.color_channel = color_channel
+        self.default_color = Color.get_default()
+
+        self.color_channels = color_channels
+
+    def get_value(self):
+        return self.color_channels.get(self.color_channel, self.default_color)
+
+
+VARIABLES = {
+    'colorchannel': ColorChannelVariable,
+}
+
+if settings.ENABLE_AUDIO_VAR:
+    VARIABLES['audio'] = AudioVariable

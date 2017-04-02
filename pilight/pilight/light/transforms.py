@@ -31,7 +31,7 @@ class TransformBase(object):
         """
         pass
 
-    def tick_frame(self, time, num_positions, color_param=None):
+    def tick_frame(self, time, num_positions):
         """
         Called once at the beginning of each frame - gives the transform
         an opportunity to update state. If the transform has set a
@@ -109,54 +109,30 @@ class LayerBase(TransformBase):
         pass
 
 
-class ExternalColorLayer(LayerBase):
-    name = 'External Color'
-    description = 'Designed to accept color updates from an external source - applying the given color ' + \
-                  'to all of the LEDs. Do not use unless you know what you are doing! Make sure color_channel ' + \
-                  'matches what the external source is providing.'
+class ColorLayer(LayerBase):
+    name = 'Color Layer'
+    description = 'Applies a single color to the lights as a layer.'
     params_def = ParamsDef(
-        color_channel=StringParam(
-            'Color Channel',
-            'unknown',
-            'Key for the color channel that the transform should read from',
-        ),
-        default_color=ColorParam(
-            'Default Color',
+        color=ColorParam(
+            'Color',
             Color.get_default(),
-            'Color to use when none has been provided for the channel',
+            'Color to apply to the lights',
         ),
         **LayerBase.params_def.params_def.copy())
     display_order = 300
 
-    def __init__(self, transform_instance, variables):
-        super(ExternalColorLayer, self).__init__(transform_instance, variables)
-
-        self.color_channel = self.params.color_channel
-        self.color = self.params.default_color
-
-    def tick_frame(self, time, num_positions, color_param=None):
-        if color_param:
-            self.color = color_param
-
     def get_colors(self, time, num_positions):
-        return [self.color] * num_positions
+        return [self.params.color] * num_positions
 
 
-class ExternalColorBurstLayer(LayerBase):
-    name = 'External Color Burst'
-    description = 'Designed to accept color updates from an external source - applying the given color ' + \
-                  'to all of the LEDs. Do not use unless you know what you are doing! Make sure color_channel ' + \
-                  'matches what the external source is providing. Adds a burst effect to the color.'
+class ColorBurstLayer(LayerBase):
+    name = 'Color Burst Layer'
+    description = 'Applies a burst pattern in the given color as a layer.'
     params_def = ParamsDef(
-        color_channel=StringParam(
-            'Color Channel',
-            'unknown',
-            'Key for the color channel that the transform should read from',
-        ),
-        default_color=ColorParam(
-            'Default Color',
+        color=ColorParam(
+            'Color',
             Color.get_default(),
-            'Color to use when none has been provided for the channel',
+            'Color to burst',
         ),
         burst_rate=FloatParam(
             'Burst Rate',
@@ -177,18 +153,13 @@ class ExternalColorBurstLayer(LayerBase):
     display_order = 301
 
     def __init__(self, transform_instance, variables):
-        super(ExternalColorBurstLayer, self).__init__(transform_instance, variables)
+        super(ColorBurstLayer, self).__init__(transform_instance, variables)
 
-        self.color_channel = self.params.color_channel
-        self.color = self.params.default_color
         self.sparks = {}
         self.brightnesses = []
         self.last_time = 0
 
-    def tick_frame(self, time, num_positions, color_param=None):
-        if color_param:
-            self.color = color_param
-
+    def tick_frame(self, time, num_positions):
         if self.last_time == 0:
             self.last_time = time
 
@@ -225,8 +196,9 @@ class ExternalColorBurstLayer(LayerBase):
     def get_colors(self, time, num_positions):
         # Apply the saved brightnesses
         result = []
+        base_color = self.params.color
         for idx in range(num_positions):
-            color = self.color.clone()
+            color = base_color.clone()
             color.a = self.brightnesses[idx]
             result.append(color)
 
@@ -265,7 +237,7 @@ class ColorFlashTransform(LayerBase):
         super(ColorFlashTransform, self).__init__(transform_instance, variables)
         self.color = Color.get_default()
 
-    def tick_frame(self, time, num_positions, color_param=None):
+    def tick_frame(self, time, num_positions):
         # Transform time/rate into a percentage for the current oscillation
         duration = self.params.duration
         progress = float(time) / float(duration) - int(time / duration)
@@ -364,7 +336,7 @@ class StrobeTransform(TransformBase):
         self.state_on = True
         self.frames = 0
 
-    def tick_frame(self, time, num_positions, color_param=None):
+    def tick_frame(self, time, num_positions):
         self.frames += 1
         if self.state_on:
             if self.frames > self.params.frames_on:
@@ -542,7 +514,7 @@ class BurstTransform(TransformBase):
         self.brightnesses = []
         self.last_time = 0
 
-    def tick_frame(self, time, num_positions, color_param=None):
+    def tick_frame(self, time, num_positions):
         if self.last_time == 0:
             self.last_time = time
 
@@ -625,7 +597,7 @@ class NoiseTransform(TransformBase):
             colors.append(Color(random.random(), random.random(), random.random()))
         return colors
 
-    def tick_frame(self, time, num_positions, color_param=None):
+    def tick_frame(self, time, num_positions):
         # Do we need to initialize?
         if self.last_time == -1 or len(self.current_colors) != num_positions or len(self.next_colors) != num_positions:
             self.current_colors = self.get_random_colors(num_positions)
@@ -738,7 +710,7 @@ TRANSFORMS = {
     'noise': NoiseTransform,
     'burst': BurstTransform,
     'strobe': StrobeTransform,
-    'external': ExternalColorLayer,
-    'externalburst': ExternalColorBurstLayer,
+    'color': ColorLayer,
+    'colorburst': ColorBurstLayer,
     'crushcolor': CrushColorTransform,
 }
