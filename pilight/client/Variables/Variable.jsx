@@ -96,6 +96,7 @@ class Variable extends React.Component {
                 <tr>
                     <th colSpan={3}>
                         <FormControl
+                            bsSize="small"
                             className={css.nameEditor}
                             onChange={this.onNameChange}
                             value={this.state.name}

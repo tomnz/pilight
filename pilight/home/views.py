@@ -10,7 +10,7 @@ from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 from django.views.decorators.http import require_POST
 
 from home import client_queries, driver
-from home.models import Light, TransformInstance, Store, VariableInstance
+from home.models import Light, TransformInstance, Store, VariableInstance, save_variable_params
 from pilight.classes import Color
 from pilight.driver import LightDriver
 from pilight.light import params
@@ -358,14 +358,19 @@ def update_transform(request):
         if transform_instance:
             transform = TRANSFORMS.get(transform_instance.transform, None)
             if transform:
-                params_dict, variable_params_dict = params.transform_params_from_dict(
-                    req['params'],
+                variable_params = params.transform_variable_params_from_dict(
                     req.get('variableParams', {}),
+                    transform.params_def,
+                )
+                transform_params = params.transform_params_from_dict(
+                    req['params'],
+                    variable_params,
                     transform.params_def
-                ).to_dict()
+                )
 
-                transform_instance.params = json.dumps(params_dict)
-                transform_instance.variable_params = json.dumps(variable_params_dict)
+                transform_instance.params = json.dumps(transform_params.to_dict())
+                save_variable_params(transform_instance, transform_params)
+                variable_params_dict = {key: value.to_dict() for key, value in variable_params.iteritems()}
 
                 transform_instance.save()
                 result = {
@@ -373,7 +378,7 @@ def update_transform(request):
                     'transform': transform_instance.transform,
                     'name': transform.name,
                     'params': json.loads(transform_instance.params),
-                    'variableParams': json.loads(transform_instance.variable_params),
+                    'variableParams': variable_params_dict,
                     'order': transform_instance.order,
                 }
             else:
@@ -402,12 +407,13 @@ def add_transform(request):
             # one at the end
             num_transforms = TransformInstance.objects.get_current().count()
 
-            params_dict, variable_params_dict = params.transform_params_from_dict({}, {}, transform.params_def).to_dict()
+            params_dict = params.transform_params_from_dict(
+                {}, {}, transform.params_def
+            ).to_dict()
 
             transform_instance = TransformInstance()
             transform_instance.transform = transform_name
             transform_instance.params = json.dumps(params_dict)
-            transform_instance.variable_params = json.dumps(variable_params_dict)
             transform_instance.order = num_transforms
             transform_instance.save()
         else:
@@ -449,7 +455,7 @@ def add_variable(request):
             # If this is a singleton, make sure there aren't any others
             if variable.singleton:
                 num_existing = VariableInstance.objects.get_current().filter(variable=variable_name).count()
-                if num_existing >= 0:
+                if num_existing >= 1:
                     return fail_json('Can only add one %s variable at once' % variable.name)
 
             params_dict = params.variable_params_from_dict({}, variable.params_def).to_dict()
@@ -485,7 +491,11 @@ def delete_variable(request):
         return fail_json('No variable specified')
 
     driver.message_restart()
-    return success_json({'activeVariables': client_queries.active_variables()})
+    return success_json({
+        'activeVariables': client_queries.active_variables(),
+        # If we deleted a variable in use, it can impact active transforms
+        'activeTransforms': client_queries.active_transforms(),
+    })
 
 
 @require_POST

@@ -1,8 +1,9 @@
 from django.db import models
 from django.conf import settings
+
 from pilight.classes import Color
 from pilight.fields import ColorField
-import json
+from pilight.light import params
 
 
 # Stores metadata information about saved configurations
@@ -73,11 +74,8 @@ class TransformInstance(models.Model):
 
     transform = models.TextField(blank=False, null=False)
     order = models.IntegerField()
-
     # TODO: Switch these to a Postgres-specific JSONField
     params = models.TextField(blank=True, null=True)
-    variable_params = models.TextField(blank=True, null=True)
-
     store = models.ForeignKey(Store, blank=True, null=True)
 
     objects = TransformInstanceManager()
@@ -104,3 +102,52 @@ class VariableInstance(models.Model):
 
     def __unicode__(self):
         return self.variable
+
+
+class VariableParam(models.Model):
+    transform = models.ForeignKey(TransformInstance, on_delete=models.CASCADE)
+    variable = models.ForeignKey(VariableInstance, on_delete=models.CASCADE)
+    param = models.TextField()
+    multiply = models.FloatField(default=1.0)
+    add = models.FloatField(default=0.0)
+
+
+def save_variable_params(transform_instance, transform_params):
+    for name, variable in transform_params.variable_params.iteritems():
+        variable_instance = VariableInstance.objects.get_current().get(id=variable.variable_id)
+        if not variable_instance:
+            # Ignore? Definitely don't need to try to save a bogus ID
+            continue
+
+        existing = VariableParam.objects.filter(
+            transform=transform_instance,
+            variable=variable_instance,
+            param=name,
+        ).first()
+
+        if existing:
+            existing.multiply = variable.multiply
+            existing.add = variable.add
+            existing.save()
+        else:
+            new_variable = VariableParam(
+                transform=transform_instance,
+                variable=variable_instance,
+                param=name,
+                add=variable.add,
+                multiply=variable.multiply
+            )
+            new_variable.save()
+
+
+def load_variable_params(transform_instance):
+    variable_params = {}
+    for variable_param in VariableParam.objects.filter(transform=transform_instance):
+        variable_params[variable_param.param] = params.VariableParam(
+            variable_id=variable_param.variable.id,
+            multiply=variable_param.multiply,
+            add=variable_param.add,
+            get_value=lambda: 1.0,
+        )
+
+    return variable_params

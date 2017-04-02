@@ -39,6 +39,7 @@ class Variable extends React.Component {
         return (
             <div>
                 <FormControl
+                    bsSize="small"
                     className={css.textbox}
                     componentClass="select"
                     onChange={this.onVariableChange}

@@ -166,7 +166,6 @@ class TransformParams(object):
 
     def to_dict(self):
         params = {}
-        variable_params = {}
 
         for name, param in self.params_def.iteritems():
             if name in self.params:
@@ -174,10 +173,7 @@ class TransformParams(object):
             else:
                 params[name] = param.default
 
-        for name, variable_param in self.variable_params.iteritems():
-            variable_params[name] = variable_param.to_dict()
-
-        return params, variable_params
+        return params
 
 
 class VariableParams(object):
@@ -204,9 +200,8 @@ class VariableParams(object):
         return params
 
 
-def transform_params_from_dict(values, variable_values, params_def, variables=None):
+def transform_params_from_dict(values, variable_params, params_def, variables=None):
     params = {}
-    variable_params = {}
 
     for name, param in params_def.iteritems():
         if name in values:
@@ -214,21 +209,28 @@ def transform_params_from_dict(values, variable_values, params_def, variables=No
         else:
             params[name] = param.default
 
-        if name in variable_values:
-            variable_value = variable_values[name]
-            variable_id = variable_value.get('variableId', '')
-            if variables and variable_id in variables:
-                get_value = variables[variable_id].get_value
-            else:
-                get_value = lambda: 1.0
-
-            variable_params[name] = VariableParam(
-                variable_id,
-                get_value,
-                variable_value.get('multiply', 1.0),
-                variable_value.get('add', 0))
+        if name in variable_params:
+            variable_param = variable_params[name]
+            if variables and variable_param.variable_id in variables:
+                variable_param.get_value = variables[variable_param.variable_id].get_value
 
     return TransformParams(params_def, variable_params, **params)
+
+
+def transform_variable_params_from_dict(values, params_def):
+    variable_params = {}
+
+    for name, param in params_def.iteritems():
+        if name in values:
+            variable_value = values[name]
+            variable_params[name] = VariableParam(
+                variable_id=variable_value['variableId'],
+                get_value=lambda: 1.0,
+                multiply=variable_value.get('multiply', 1.0),
+                add=variable_value.get('add', 0.0),
+            )
+
+    return variable_params
 
 
 def variable_params_from_dict(values, params_def):

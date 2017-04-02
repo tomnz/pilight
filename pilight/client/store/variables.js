@@ -2,6 +2,7 @@ import {createAction, handleActions} from 'redux-actions';
 
 import {postObjectPromise} from './async';
 import {setError} from './client';
+import {setActiveTransforms} from './transforms';
 
 
 const SET_ACTIVE_VARIABLE = 'variables/SET_ACTIVE_VARIABLE';
@@ -32,6 +33,7 @@ export const deleteVariableAsync = (id) => (dispatch) => {
         {id: id},
         (data) => {
             dispatch(setActiveVariables(data.activeVariables));
+            dispatch(setActiveTransforms(data.activeTransforms));
         },
         (error) => { dispatch(setError(error)); },
     );

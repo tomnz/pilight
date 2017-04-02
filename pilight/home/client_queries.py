@@ -1,6 +1,6 @@
 import json
 
-from home.models import Light, TransformInstance, Store, VariableInstance
+from home.models import Light, TransformInstance, Store, VariableInstance, load_variable_params
 from pilight.light.transforms import TRANSFORMS
 from pilight.light.variables import VARIABLES
 
@@ -15,12 +15,15 @@ def active_transforms():
             transform_instance.delete()
             continue
 
+        variable_params = load_variable_params(transform_instance)
+        variable_params_dict = {key: value.to_dict() for key, value in variable_params.iteritems()}
+
         result.append({
             'id': transform_instance.id,
             'transform': transform_instance.transform,
             'name': transform.name,
             'params': json.loads(transform_instance.params or '{}'),
-            'variableParams': json.loads(transform_instance.variable_params or '{}'),
+            'variableParams': variable_params_dict,
             'order': transform_instance.order,
         })
     return result
