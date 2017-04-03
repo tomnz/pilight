@@ -426,13 +426,13 @@ class RotateHueTransform(TransformBase):
 
         for index, input_color in enumerate(input_colors):
             # Get color as HSV
-            h, s, v, a = input_color.to_hsv()
+            h, s, v, w, a = input_color.to_hsv()
 
             # Rotate H by given amount
             h = (h + progress * 360) % 360
 
             # Transform HSV back to RGB and return
-            input_colors[index] = Color.from_hsv(h, s, v, a)
+            input_colors[index] = Color.from_hsv(h, s, v, w, a)
 
         return input_colors
 
@@ -580,6 +580,11 @@ class NoiseTransform(TransformBase):
             'Red Strength',
             0.5,
             'Amount that the color will randomly vary by in red',
+        ),
+        white_strength=FloatParam(
+            'White Strength',
+            0.0,
+            'Amount that white will vary randomly by',
         ))
     display_order = 8
 
@@ -595,7 +600,7 @@ class NoiseTransform(TransformBase):
     def get_random_colors(length):
         colors = []
         for i in range(length):
-            colors.append(Color(random.random(), random.random(), random.random()))
+            colors.append(Color(random.random(), random.random(), random.random(), random.random()))
         return colors
 
     def tick_frame(self, time, num_positions):
@@ -621,10 +626,13 @@ class NoiseTransform(TransformBase):
             r_str = self.params.red_strength
             g_str = self.params.green_strength
             b_str = self.params.blue_strength
+            w_str = self.params.white_strength
 
             input_colors[index] = Color(color.r * (1 - r_str) + tween_color.r * r_str,
                                         color.g * (1 - g_str) + tween_color.g * g_str,
-                                        color.b * (1 - b_str) + tween_color.b * b_str)
+                                        color.b * (1 - b_str) + tween_color.b * b_str,
+                                        color.w * (1 - w_str) + tween_color.w * w_str,
+                                        color.a)
 
         return input_colors
 
@@ -696,6 +704,8 @@ class CrushColorTransform(TransformBase):
                 min(color.r * strength, red_max),
                 min(color.g * strength, green_max),
                 min(color.b * strength, blue_max),
+                # Don't impact white
+                color.w,
                 color.a)
 
         return input_colors

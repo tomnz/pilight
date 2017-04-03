@@ -68,10 +68,11 @@ class Color(object):
     """
 
     # Constructors
-    def __init__(self, r, g, b, a=1.0):
+    def __init__(self, r, g, b, w=0.0, a=1.0):
         self.r = r
         self.g = g
         self.b = b
+        self.w = w
         self.a = a
 
     # Serialize/deserialize
@@ -101,12 +102,13 @@ class Color(object):
             color_dict.get('r', 0.0),
             color_dict.get('g', 0.0),
             color_dict.get('b', 0.0),
+            color_dict.get('w', 0.0),
             color_dict.get('a', 1.0),
         )
 
     @staticmethod
     def get_default():
-        return Color(1.0, 1.0, 1.0, 1.0)
+        return Color(1.0, 1.0, 1.0, 0.0, 1.0)
 
     # Blending operations
     @staticmethod
@@ -128,7 +130,8 @@ class Color(object):
             return Color(
                 bg.r * (1 - fg_a) + fg.r * fg_a,
                 bg.g * (1 - fg_a) + fg.g * fg_a,
-                bg.b * (1 - fg_a) + fg.b * fg_a)
+                bg.b * (1 - fg_a) + fg.b * fg_a,
+                bg.w * (1 - fg_a) + fg.w * fg_a,)
 
         # Both channels have alpha
         a = fg_a + bg_a - fg_a * bg_a
@@ -154,23 +157,37 @@ class Color(object):
     # Operators
     def __add__(self, other):
         if getattr(self, 'a', 1.0) == 1.0 and getattr(other, 'a', 1.0) == 1.0:
-            return Color(self.r + other.r, self.g + other.g, self.b + other.b)
+            return Color(
+                self.r + other.r,
+                self.g + other.g,
+                self.b + other.b,
+                getattr(self, 'w', 0.0) + getattr(other, 'w', 0.0))
         else:
             return self.flatten_alpha() + other.flatten_alpha()
 
     def __mul__(self, other):
         # Don't multiply the alpha
-        return Color(self.r * other, self.g * other, self.b * other, getattr(self, 'a', 1.0))
+        return Color(
+            self.r * other,
+            self.g * other,
+            self.b * other,
+            getattr(self, 'w', 0.0) * other,
+            getattr(self, 'a', 1.0))
 
     def __rmul__(self, other):
         return self * other
 
     def __div__(self, other):
-        return Color(self.r / other, self.g / other, self.b / other, getattr(self, 'a', 1.0))
+        return Color(
+            self.r / other,
+            self.g / other,
+            self.b / other,
+            getattr(self, 'w', 0.0) / other,
+            getattr(self, 'a', 1.0))
 
     # Clone
     def clone(self):
-        return Color(self.r, self.g, self.b, self.a)
+        return Color(self.r, self.g, self.b, self.w, self.a)
 
     # Utility functions
     def safe_r(self):
@@ -191,6 +208,12 @@ class Color(object):
     def safe_corrected_b(self):
         return max(min(self.b * settings.LIGHTS_MULTIPLIER_B, 1), 0)
 
+    def safe_w(self):
+        return max(min(self.w, 1), 0)
+
+    def safe_corrected_w(self):
+        return max(min(self.w * settings.LIGHTS_MULTIPLIER_W, 1), 0)
+
     def safe_a(self):
         return max(min(getattr(self, 'a', 1.0), 1), 0)
 
@@ -203,7 +226,7 @@ class Color(object):
         }
 
     def as_safe(self):
-        return Color(self.safe_r(), self.safe_g(), self.safe_b(), self.safe_a())
+        return Color(self.safe_r(), self.safe_g(), self.safe_b(), self.safe_w(), self.safe_a())
 
     def flatten_alpha(self):
         flattened = self * getattr(self, 'a', 1.0)
@@ -237,6 +260,9 @@ class Color(object):
     def to_hsv(self):
         # Algorithm from:
         # http://www.cs.rit.edu/~ncs/color/t_convert.html
+        w = getattr(self, 'w', 0.0)
+        a = getattr(self, 'a', 1.0)
+
         safe_color = self.as_safe()
         min_val = min(safe_color.r, safe_color.g, safe_color.b)
         max_val = max(safe_color.r, safe_color.g, safe_color.b)
@@ -248,14 +274,14 @@ class Color(object):
             # Grayscale
             s = 0
             h = -1
-            return h, s, v, getattr(self, 'a', 1.0)
+            return h, s, v, w, a
 
         if max_val != 0:
             s = delta / max_val
         else:
             s = 0
             h = -1
-            return h, s, v, getattr(self, 'a', 1.0)
+            return h, s, v, w, a
 
         if safe_color.r == max_val:
             h = (safe_color.g - safe_color.b) / delta
@@ -268,14 +294,14 @@ class Color(object):
         if h < 0:
             h += 360
 
-        return h, s, v, getattr(self, 'a', 1.0)
+        return h, s, v, w, a
 
     @classmethod
-    def from_hsv(cls, h, s, v, a=1.0):
+    def from_hsv(cls, h, s, v, w=0.0, a=1.0):
         # Algorithm from:
         # http://www.cs.rit.edu/~ncs/color/t_convert.html
         if s == 0:
-            return Color(v, v, v, a)
+            return Color(v, v, v, w, a)
 
         h /= 60
         i = int(h)
@@ -285,14 +311,14 @@ class Color(object):
         t = v * (1 - s * (1 - f))
 
         if i == 0:
-            return Color(v, t, p, a)
+            return Color(v, t, p, w, a)
         elif i == 1:
-            return Color(q, v, p, a)
+            return Color(q, v, p, w, a)
         elif i == 2:
-            return Color(p, v, t, a)
+            return Color(p, v, t, w, a)
         elif i == 3:
-            return Color(p, q, v, a)
+            return Color(p, q, v, w, a)
         elif i == 4:
-            return Color(t, p, v, a)
+            return Color(t, p, v, w, a)
         else:
-            return Color(v, p, q, a)
+            return Color(v, p, q, w, a)

@@ -67,6 +67,7 @@ class ColorParam(Param):
             'r': value.r,
             'g': value.g,
             'b': value.b,
+            'w': value.w,
             'a': value.a,
         }
 
@@ -76,6 +77,7 @@ class ColorParam(Param):
             value.get('r', 1.0),
             value.get('g', 1.0),
             value.get('b', 1.0),
+            value.get('w', 1.0),
             value.get('a', 1.0),
         )
 
