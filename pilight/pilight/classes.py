@@ -187,7 +187,12 @@ class Color(object):
 
     # Clone
     def clone(self):
-        return Color(self.r, self.g, self.b, self.w, self.a)
+        return Color(
+            self.r,
+            self.g,
+            self.b,
+            getattr(self, 'w', 0.0),
+            getattr(self, 'a', 0.0))
 
     # Utility functions
     def safe_r(self):
