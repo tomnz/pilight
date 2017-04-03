@@ -227,6 +227,7 @@ class Color(object):
             'r': self.safe_r(),
             'g': self.safe_g(),
             'b': self.safe_b(),
+            'w': self.safe_w(),
             'a': self.safe_a(),
         }
 
