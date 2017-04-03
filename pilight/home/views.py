@@ -296,7 +296,7 @@ def fill_color(request):
     if 'color' in req:
         color = Color.from_dict(req['color'])
 
-        Light.objects.get_current().tick_frame(color=color)
+        Light.objects.get_current().update(color=color)
 
     else:
         return fail_json('Must specify color')

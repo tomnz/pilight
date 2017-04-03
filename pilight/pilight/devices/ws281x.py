@@ -28,7 +28,8 @@ class Device(base.DeviceBase):
         r = int(color.safe_corrected_r() * 255)
         g = int(color.safe_corrected_g() * 255)
         b = int(color.safe_corrected_b() * 255)
-        self.strip.setPixelColorRGB(index, r, g, b)
+        w = int(color.safe_corrected_w() * 255)
+        self.strip.setPixelColorRGB(index, r, g, b, w)
 
     def finish(self):
         self.strip.show()

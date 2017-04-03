@@ -25,7 +25,8 @@ class ColorPicker extends React.Component {
             r: rgb.r / 255,
             g: rgb.g / 255,
             b: rgb.b / 255,
-            a: rgb.a,
+            // Alpha as white
+            w: 1 - rgb.a,
         });
     };
 
@@ -34,8 +35,8 @@ class ColorPicker extends React.Component {
                 r: this.props.color.r * 255,
                 g: this.props.color.g * 255,
                 b: this.props.color.b * 255,
-                a: this.props.color.a,
-            } : {r: 0, g: 0, b: 0};
+                a: 1 - this.props.color.w,
+            } : {r: 0, g: 0, b: 0, a: 1};
         const colorString = `rgb(${Math.round(pickerColor.r)}, ${Math.round(pickerColor.g)}, ${Math.round(pickerColor.b)})`;
 
         return (
@@ -53,7 +54,7 @@ class ColorPicker extends React.Component {
                         <SketchPicker
                             color={pickerColor}
                             onChangeComplete={this.onChangeComplete}
-                            disableAlpha={true}
+                            disableAlpha={false}
                         />
                     </div> : null}
             </FormGroup>
