@@ -3,8 +3,10 @@ import {
     Button,
     Col,
     Grid,
+    OverlayTrigger,
     Row,
     Table,
+    Tooltip,
 } from 'react-bootstrap';
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
@@ -20,21 +22,30 @@ class Picker extends React.Component {
 
     render() {
         const availableRows = this.props.variables.map((variable) => {
-           return (
-               <tr key={variable.variable}>
-                   <td>{variable.name}</td>
-                   <td>{variable.description}</td>
-                   <td>
-                       <Button
-                           bsStyle="primary"
-                           bsSize="xs"
-                           onClick={this.addVariable(variable.variable)}
-                       >
-                           Add
-                       </Button>
-                   </td>
-               </tr>
-           );
+            const descriptionTooltip = (
+                <Tooltip id={variable.variable}>{variable.description}</Tooltip>
+            );
+            return (
+                <tr key={variable.variable}>
+                    <td>
+                        {variable.name}
+                        {' '}
+                        <OverlayTrigger placement="right" overlay={descriptionTooltip}>
+                            <Button bsSize="xs" className="visible-xs-inline-block">?</Button>
+                        </OverlayTrigger>
+                    </td>
+                    <td className="hidden-xs"><small>{variable.description}</small></td>
+                    <td>
+                        <Button
+                            bsStyle="primary"
+                            bsSize="xs"
+                            onClick={this.addVariable(variable.variable)}
+                        >
+                            Add
+                        </Button>
+                    </td>
+                </tr>
+            );
         });
 
         return (
@@ -49,14 +60,14 @@ class Picker extends React.Component {
                         </p>
                         <Table bordered striped condensed>
                             <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Description</th>
-                                    <th>&nbsp;</th>
-                                </tr>
+                            <tr>
+                                <th>Name</th>
+                                <th className="hidden-xs">Description</th>
+                                <th>&nbsp;</th>
+                            </tr>
                             </thead>
                             <tbody>
-                                {availableRows}
+                            {availableRows}
                             </tbody>
                         </Table>
                     </Col>

@@ -3,8 +3,10 @@ import {
     Button,
     Col,
     Grid,
+    OverlayTrigger,
     Row,
     Table,
+    Tooltip,
 } from 'react-bootstrap';
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
@@ -20,21 +22,32 @@ class Picker extends React.Component {
 
     render() {
         const availableRows = this.props.transforms.map((transform) => {
-           return (
-               <tr key={transform.transform}>
-                   <td>{transform.name}</td>
-                   <td>{transform.description}</td>
-                   <td>
-                       <Button
-                           bsStyle="primary"
-                           bsSize="xs"
-                           onClick={this.addTransform(transform.transform)}
-                       >
-                           Add
-                       </Button>
-                   </td>
-               </tr>
-           );
+            const descriptionTooltip = (
+                <Tooltip id={transform.transform}>{transform.description}</Tooltip>
+            );
+            return (
+                <tr key={transform.transform}>
+                    <td>
+                        {transform.name}
+                        {' '}
+                        <OverlayTrigger placement="right" overlay={descriptionTooltip}>
+                            <Button bsSize="xs" className="visible-xs-inline-block">?</Button>
+                        </OverlayTrigger>
+                    </td>
+                    <td className="hidden-xs">
+                        <small>{transform.description}</small>
+                    </td>
+                    <td>
+                        <Button
+                            bsStyle="primary"
+                            bsSize="xs"
+                            onClick={this.addTransform(transform.transform)}
+                        >
+                            Add
+                        </Button>
+                    </td>
+                </tr>
+            );
         });
 
         return (
@@ -49,14 +62,14 @@ class Picker extends React.Component {
                         </p>
                         <Table bordered striped condensed>
                             <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Description</th>
-                                    <th>&nbsp;</th>
-                                </tr>
+                            <tr>
+                                <th>Name</th>
+                                <th className="hidden-xs">Description</th>
+                                <th>&nbsp;</th>
+                            </tr>
                             </thead>
                             <tbody>
-                                {availableRows}
+                            {availableRows}
                             </tbody>
                         </Table>
                     </Col>
