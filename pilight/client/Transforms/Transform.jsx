@@ -6,6 +6,8 @@ import {
     Table,
 } from 'react-bootstrap';
 
+import * as types from '../types';
+
 import {Param} from '../Params/Index';
 import {Variable} from '../Params/Variable';
 
@@ -185,27 +187,8 @@ class Transform extends React.Component {
 }
 
 Transform.propTypes = {
-    transform: PropTypes.shape({
-        id: PropTypes.number.isRequired,
-        transform: PropTypes.string.isRequired,
-        name: PropTypes.string.isRequired,
-        params: PropTypes.any,
-        variableParams: PropTypes.objectOf(
-            PropTypes.shape({
-                variableId: PropTypes.number,
-                multiply: PropTypes.number,
-                add: PropTypes.number,
-            }).isRequired,
-        ),
-    }).isRequired,
-    paramsDef: PropTypes.objectOf(
-        PropTypes.shape({
-            type: PropTypes.string.isRequired,
-            name: PropTypes.string,
-            description: PropTypes.string,
-            defaultValue: PropTypes.any,
-        }),
-    ).isRequired,
+    transform: types.ActiveTransform.isRequired,
+    paramsDef: PropTypes.objectOf(types.ParamDef).isRequired,
     variablesByType: PropTypes.objectOf(
         PropTypes.arrayOf(
             PropTypes.shape({

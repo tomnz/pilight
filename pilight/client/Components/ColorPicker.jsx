@@ -3,6 +3,8 @@ import {Button, FormGroup} from 'react-bootstrap';
 import {SketchPicker} from 'react-color';
 import {connect} from 'react-redux';
 
+import * as types from '../types';
+
 import css from './ColorPicker.scss';
 
 
@@ -64,11 +66,7 @@ class ColorPicker extends React.Component {
 
 ColorPicker.propTypes = {
     bsSize: PropTypes.string,
-    color: PropTypes.shape({
-        r: PropTypes.number,
-        g: PropTypes.number,
-        b: PropTypes.number,
-    }).isRequired,
+    color: types.Color.isRequired,
     onChange: PropTypes.func,
 };
 

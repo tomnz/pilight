@@ -17,6 +17,7 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 
 import {fillAsync, setColor, setOpacity, setRadius, setTool} from '../store/palette';
+import * as types from '../types';
 
 import {ColorPicker} from '../Components/ColorPicker';
 import {Slider} from '../Components/Slider';
@@ -96,18 +97,13 @@ class Palette extends React.Component {
 }
 
 Palette.propTypes = {
-    color: PropTypes.shape({
-        r: PropTypes.number,
-        g: PropTypes.number,
-        b: PropTypes.number,
-        a: PropTypes.number,
-    }),
-    fillAsync: PropTypes.func,
-    opacity: PropTypes.number,
-    radius: PropTypes.number,
-    setOpacity: PropTypes.func,
-    setRadius: PropTypes.func,
-    setTool: PropTypes.func,
+    color: types.Color.isRequired,
+    fillAsync: PropTypes.func.isRequired,
+    opacity: PropTypes.number.isRequired,
+    radius: PropTypes.number.isRequired,
+    setOpacity: PropTypes.func.isRequired,
+    setRadius: PropTypes.func.isRequired,
+    setTool: PropTypes.func.isRequired,
 };
 
 const mapStateToProps = (state) => {

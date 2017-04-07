@@ -3,6 +3,8 @@ import {
     Button,
 } from 'react-bootstrap';
 
+import * as types from '../types';
+
 import css from './LightButton.scss';
 
 
@@ -21,11 +23,7 @@ export const LightButton = ({color, id, onClick}) => {
 };
 
 LightButton.propTypes = {
-    color: PropTypes.shape({
-        r: PropTypes.number,
-        g: PropTypes.number,
-        b: PropTypes.number,
-    }).isRequired,
+    color: types.Color.isRequired,
     id: PropTypes.number.isRequired,
-    onClick: PropTypes.func,
+    onClick: PropTypes.func.isRequired,
 };

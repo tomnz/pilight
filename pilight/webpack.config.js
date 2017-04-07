@@ -25,7 +25,7 @@ if (process.argv.indexOf('-p') !== -1) {
                     loader: 'babel-loader',
                     options: {
                         presets: [
-                            'es2015',
+                            ['es2015', {modules: false}],
                             'react',
                             'stage-0'
                         ],

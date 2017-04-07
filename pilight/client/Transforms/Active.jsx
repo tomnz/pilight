@@ -18,6 +18,7 @@ import {
     moveTransformUpAsync,
     updateTransformAsync,
 } from '../store/transforms';
+import * as types from '../types';
 
 import {Transform} from './Transform';
 
@@ -89,22 +90,11 @@ class Active extends React.Component {
 
 Active.propTypes = {
     transforms: PropTypes.arrayOf(
-        PropTypes.shape({
-            id: PropTypes.number.isRequired,
-            transform: PropTypes.string.isRequired,
-            name: PropTypes.string.isRequired,
-            params: PropTypes.any,
-        }).isRequired,
+        types.ActiveTransform.isRequired,
     ),
     paramsDefs: PropTypes.objectOf(
-        PropTypes.objectOf(
-            PropTypes.shape({
-                type: PropTypes.string.isRequired,
-                name: PropTypes.string,
-                description: PropTypes.string,
-            }),
-        ),
-    ).isRequired,
+        PropTypes.objectOf(types.ParamDef),
+    ),
     variablesByType: PropTypes.objectOf(
         PropTypes.arrayOf(
             PropTypes.shape({
@@ -112,7 +102,7 @@ Active.propTypes = {
                 name: PropTypes.string.isRequired,
             }),
         ),
-    ).isRequired,
+    ),
 };
 
 const mapStateToProps = (state) => {
