@@ -16,6 +16,7 @@ import {
     deleteVariableAsync,
     updateVariableAsync,
 } from '../store/variables';
+import * as types from '../types';
 
 import {Variable} from './Variable';
 
@@ -75,22 +76,9 @@ class Active extends React.Component {
 }
 
 Active.propTypes = {
-    variables: PropTypes.arrayOf(
-        PropTypes.shape({
-            id: PropTypes.number.isRequired,
-            variable: PropTypes.string.isRequired,
-            name: PropTypes.string.isRequired,
-            params: PropTypes.any,
-        }).isRequired,
-    ),
+    variables: PropTypes.arrayOf(types.ActiveVariable),
     paramsDefs: PropTypes.objectOf(
-        PropTypes.objectOf(
-            PropTypes.shape({
-                type: PropTypes.string.isRequired,
-                name: PropTypes.string,
-                description: PropTypes.string,
-            }),
-        ),
+        PropTypes.objectOf(types.ParamDef),
     ).isRequired,
 };
 

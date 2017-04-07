@@ -10,6 +10,7 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 
 import {addTransformAsync} from '../store/transforms';
+import * as types from '../types';
 
 
 class Picker extends React.Component {
@@ -66,20 +67,7 @@ class Picker extends React.Component {
 }
 
 Picker.propTypes = {
-    transforms: PropTypes.arrayOf(
-        PropTypes.shape({
-            transform: PropTypes.string.isRequired,
-            name: PropTypes.string.isRequired,
-            description: PropTypes.string,
-            paramsDef: PropTypes.objectOf(
-                PropTypes.shape({
-                    type: PropTypes.string.isRequired,
-                    name: PropTypes.string,
-                    description: PropTypes.string,
-                }),
-            ),
-        }).isRequired,
-    ),
+    transforms: PropTypes.arrayOf(types.AvailableTransform),
 };
 
 const mapStateToProps = (state) => {

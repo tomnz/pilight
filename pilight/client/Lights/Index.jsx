@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {PropTypes} from 'react';
 import {
     ButtonGroup,
     Col,
@@ -8,23 +8,33 @@ import {
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 
+import {clearPreview} from '../store/lights';
 import {applyToolAsync} from '../store/palette';
+import * as types from '../types';
 
 import {LightButton} from './LightButton';
+import {Preview} from './Preview/Index';
 
 import css from './Index.scss';
 
 
-class Preview extends React.Component {
+class Lights extends React.Component {
     applyToolAsync = (id) => () => {
         return this.props.applyToolAsync(id);
     };
 
     render() {
-        let id = 1;
-        const colors = !!this.props.previewFrame ? this.props.previewFrame : this.props.baseColors;
+        if (!!this.props.previewFrames) {
+            return (
+                <Preview
+                    clearPreview={this.props.clearPreview}
+                    previewFrames={this.props.previewFrames}
+                />
+            );
+        }
 
-        let lightButtons = colors.map((color) => {
+        let id = 1;
+        let lightButtons = this.props.baseColors.map((color) => {
             let key = id++;
             return (
                 <LightButton
@@ -64,20 +74,28 @@ class Preview extends React.Component {
     }
 }
 
+Lights.propTypes = {
+    baseColors: PropTypes.arrayOf(types.Color).isRequired,
+    previewFrames: PropTypes.arrayOf(
+        PropTypes.arrayOf(types.Color)
+    ),
+};
+
 const mapStateToProps = (state) => {
     const {lights} = state;
     return {
         baseColors: lights.baseColors,
-        previewFrame: lights.previewFrame,
+        previewFrames: lights.previewFrames,
     }
 };
 
 const mapDispatchToProps = (dispatch) => {
     return bindActionCreators({
         applyToolAsync,
+        clearPreview,
     }, dispatch);
 };
 
-const PreviewRedux = connect(mapStateToProps, mapDispatchToProps)(Preview);
+const LightsRedux = connect(mapStateToProps, mapDispatchToProps)(Lights);
 
-export {PreviewRedux as Preview};
+export {LightsRedux as Lights};

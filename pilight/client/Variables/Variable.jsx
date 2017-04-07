@@ -7,6 +7,7 @@ import {
     Table,
 } from 'react-bootstrap';
 
+import * as types from '../types';
 import {Param} from '../Params/Index';
 
 import css from './Variable.scss';
@@ -130,20 +131,8 @@ class Variable extends React.Component {
 }
 
 Variable.propTypes = {
-    variable: PropTypes.shape({
-        id: PropTypes.number.isRequired,
-        variable: PropTypes.string.isRequired,
-        name: PropTypes.string.isRequired,
-        params: PropTypes.any,
-    }).isRequired,
-    paramsDef: PropTypes.objectOf(
-        PropTypes.shape({
-            type: PropTypes.string.isRequired,
-            name: PropTypes.string,
-            description: PropTypes.string,
-            defaultValue: PropTypes.any,
-        }),
-    ).isRequired,
+    variable: types.ActiveVariable.isRequired,
+    paramsDef: PropTypes.objectOf(types.ParamDef).isRequired,
     onSave: PropTypes.func.isRequired,
     onDelete: PropTypes.func.isRequired,
 };

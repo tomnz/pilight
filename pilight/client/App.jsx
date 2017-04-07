@@ -16,8 +16,8 @@ import {bootstrapClientAsync} from './store/root';
 import {AlertBar} from './AlertBar';
 import {Header} from './Header/Index';
 import {LoginModal} from './Header/LoginModal';
+import {Lights} from './Lights/Index';
 import {Palette} from './Palette/Index';
-import {Preview} from './Preview/Index';
 import {Transforms} from './Transforms/Index';
 import {Variables} from './Variables/Index';
 
@@ -60,7 +60,7 @@ class App extends React.Component {
                 />
                 <Header />
                 <Palette />
-                <Preview />
+                <Lights />
                 <Transforms />
                 <Variables />
             </div>

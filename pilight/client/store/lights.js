@@ -6,29 +6,18 @@ import {setError} from './client';
 
 const CLEAR_PREVIEW = 'lights/CLEAR_PREVIEW';
 const SET_BASE_COLORS = 'lights/SET_BASE_COLORS';
-const SET_PREVIEW_FRAME = 'lights/SET_PREVIEW_FRAME';
+const SET_PREVIEW = 'lights/SET_PREVIEW';
 
-const clearPreview = createAction(CLEAR_PREVIEW);
+export const clearPreview = createAction(CLEAR_PREVIEW);
 export const setBaseColors = createAction(SET_BASE_COLORS);
-const setPreviewFrame = createAction(SET_PREVIEW_FRAME);
-
-const PREVIEW_FRAME_TIME = 50;
-function nextFrame(frames, dispatch) { return () => {
-    if (frames.length === 0) {
-        dispatch(clearPreview());
-        return;
-    }
-    // "Pop" the next frame from the list
-    dispatch(setPreviewFrame(frames.shift()));
-    setTimeout(nextFrame(frames, dispatch), PREVIEW_FRAME_TIME);
-}}
+const setPreview = createAction(SET_PREVIEW);
 
 export const doPreviewAsync = () => (dispatch) => {
     return postObjectPromise(
         `/api/light/preview/`,
         {},
         (data) => {
-            nextFrame(data.frames, dispatch)();
+            dispatch(setPreview(data.frames));
         },
         (error) => { dispatch(setError(error)); },
     )
@@ -38,11 +27,11 @@ export const doPreviewAsync = () => (dispatch) => {
 const INITIAL_STATE = {
     baseColors: [],
     numLights: 0,
-    previewFrame: null,
+    previewFrames: null,
 };
 
 export const lights = handleActions({
-    [CLEAR_PREVIEW]: (state) => ({...state, previewFrame: null}),
+    [CLEAR_PREVIEW]: (state) => ({...state, previewFrames: null}),
     [SET_BASE_COLORS]: (state, action) => ({...state, baseColors: action.payload}),
-    [SET_PREVIEW_FRAME]: (state, action) => ({...state, previewFrame: action.payload}),
+    [SET_PREVIEW]: (state, action) => ({...state, previewFrames: action.payload}),
 }, INITIAL_STATE);

@@ -214,10 +214,10 @@ class Color(object):
         return max(min(self.b * settings.LIGHTS_MULTIPLIER_B, 1), 0)
 
     def safe_w(self):
-        return max(min(self.w, 1), 0)
+        return max(min(getattr(self, 'w', 0.0), 1), 0)
 
     def safe_corrected_w(self):
-        return max(min(self.w * settings.LIGHTS_MULTIPLIER_W, 1), 0)
+        return max(min(getattr(self, 'w', 0.0) * settings.LIGHTS_MULTIPLIER_W, 1), 0)
 
     def safe_a(self):
         return max(min(getattr(self, 'a', 1.0), 1), 0)
