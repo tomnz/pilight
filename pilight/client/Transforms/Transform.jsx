@@ -3,7 +3,9 @@ import {
     Button,
     ButtonGroup,
     Checkbox,
+    OverlayTrigger,
     Table,
+    Tooltip,
 } from 'react-bootstrap';
 
 import * as types from '../types';
@@ -124,10 +126,20 @@ class Transform extends React.Component {
                     );
                 }
 
+                const descriptionTooltip = (
+                    <Tooltip id={paramDef.name}>{paramDef.description}</Tooltip>
+                );
+
                 paramRows.push(
                     <tr key={name}>
-                        <td className={css.paramName}>{paramDef.name}</td>
-                        <td className={css.paramDescription}>
+                        <td className={css.paramName}>
+                            {paramDef.name}
+                            {' '}
+                            <OverlayTrigger placement="right" overlay={descriptionTooltip}>
+                                <Button bsSize="xs" className="visible-xs-inline-block">?</Button>
+                            </OverlayTrigger>
+                        </td>
+                        <td className={`hidden-xs ${css.paramDescription}`}>
                             <small>{paramDef.description}</small>
                         </td>
                         <td>
