@@ -52,7 +52,7 @@ class Header extends React.Component {
             );
 
         return (
-            <Navbar inverse collapseOnSelect className={css.wrapper}>
+            <Navbar inverse collapseOnSelect fixedTop>
                 <Navbar.Header>
                     <Navbar.Brand>PiLight</Navbar.Brand>
                     <Navbar.Toggle />

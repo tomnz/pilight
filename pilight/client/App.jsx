@@ -3,7 +3,12 @@ import {
     Alert,
     Col,
     Grid,
+    Nav,
+    Navbar,
+    NavItem,
     Row,
+    Tab,
+    Tabs,
 } from 'react-bootstrap';
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
@@ -62,10 +67,26 @@ class App extends React.Component {
                 />
                 <Header />
                 <div className={css.bodyContainer}>
-                    <Palette />
-                    <Lights />
-                    <Transforms />
-                    <Variables />
+                    <Tab.Container id="subnav" defaultActiveKey="lights">
+                        <div>
+                            <Navbar staticTop>
+                                <Nav>
+                                    <NavItem eventKey="lights">Lights</NavItem>
+                                    <NavItem eventKey="variables">Variables</NavItem>
+                                </Nav>
+                            </Navbar>
+                            <Tab.Content animation>
+                                <Tab.Pane eventKey="lights">
+                                    <Palette />
+                                    <Lights />
+                                    <Transforms />
+                                </Tab.Pane>
+                                <Tab.Pane eventKey="variables">
+                                    <Variables />
+                                </Tab.Pane>
+                            </Tab.Content>
+                        </div>
+                    </Tab.Container>
                 </div>
             </div>
         );
