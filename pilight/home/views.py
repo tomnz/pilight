@@ -10,7 +10,7 @@ from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 from django.views.decorators.http import require_POST
 
 from home import client_queries, driver
-from home.models import Light, TransformInstance, Store, VariableInstance, save_variable_params
+from home.models import Config, Light, TransformInstance, VariableInstance, save_variable_params
 from pilight.classes import Color
 from pilight.driver import LightDriver
 from pilight.light import params
@@ -74,6 +74,7 @@ def bootstrap_client(request):
     tool_color /= len(current_lights)
 
     return success_json({
+        'numLights': settings.LIGHTS_NUM_LEDS,
         'baseColors': base_colors,
         'activeTransforms': client_queries.active_transforms(),
         'availableTransforms': client_queries.available_transforms(),
@@ -129,43 +130,43 @@ def save_config(request):
     req = json.loads(request.body)
 
     if 'configName' in req:
-        # First see if the store already exists
-        store_name = (req['configName'])[0:29]
-        stores = Store.objects.filter(name=store_name)
-        if len(stores) >= 1:
-            store = stores[0]
+        # First see if the config already exists
+        config_name = (req['configName'])[0:29]
+        configs = Config.objects.filter(name=config_name)
+        if len(configs) >= 1:
+            config = configs[0]
             # Remove existing lights/transforms
-            store.light_set.all().delete()
-            store.transforminstance_set.all().delete()
+            config.light_set.all().delete()
+            config.transforminstance_set.all().delete()
         else:
-            # Create new store
-            store = Store()
-            store.name = store_name
-            store.save()
+            # Create new config
+            config = Config()
+            config.name = config_name
+            config.save()
 
-        # Copy all of the current lights and transforms to the given store
+        # Copy all of the current lights and transforms to the given config
         current_lights = Light.objects.get_current()
         current_transforms = TransformInstance.objects.get_current()
 
-        store_lights = []
+        config_lights = []
         for light in current_lights:
             # By setting primary key to none, we ensure a copy of
             # the object is made
             light.pk = None
-            # Set the store to None so that it's part of the "current"
+            # Set the config to None so that it's part of the "current"
             # setup
-            light.store = store
-            store_lights.append(light)
+            light.config = config
+            config_lights.append(light)
 
-        Light.objects.bulk_create(store_lights)
+        Light.objects.bulk_create(config_lights)
 
-        store_transforms = []
+        config_transforms = []
         for transform_instance in current_transforms:
             transform_instance.pk = None
-            transform_instance.store = store
-            store_transforms.append(transform_instance)
+            transform_instance.config = config
+            config_transforms.append(transform_instance)
 
-        TransformInstance.objects.bulk_create(store_transforms)
+        TransformInstance.objects.bulk_create(config_transforms)
 
     else:
         return fail_json('Must specify a config name')
@@ -179,29 +180,29 @@ def load_config(request):
     req = json.loads(request.body)
 
     if 'id' in req:
-        store = Store.objects.get(id=req['id'])
-        if store:
-            # Found the store - load its lights and transforms
+        config = Config.objects.get(id=req['id'])
+        if config:
+            # Found the config - load its lights and transforms
             # First clear out existing "current" items
             Light.objects.get_current().delete()
             TransformInstance.objects.get_current().delete()
 
             new_lights = []
-            for light in store.light_set.all():
+            for light in config.light_set.all():
                 # By setting primary key to none, we ensure a copy of
                 # the object is made
                 light.pk = None
-                # Set the store to None so that it's part of the "current"
+                # Set the config to None so that it's part of the "current"
                 # setup
-                light.store = None
+                light.config = None
                 new_lights.append(light)
 
             Light.objects.bulk_create(new_lights)
 
             new_transforms = []
-            for transform_instance in store.transforminstance_set.all():
+            for transform_instance in config.transforminstance_set.all():
                 transform_instance.pk = None
-                transform_instance.store = None
+                transform_instance.config = None
                 new_transforms.append(transform_instance)
 
             TransformInstance.objects.bulk_create(new_transforms)
@@ -240,10 +241,10 @@ def apply_light_tool(request):
     req = json.loads(request.body)
 
     if 'tool' in req and \
-            'index' in req and \
-            'radius' in req and \
-            'opacity' in req and \
-            'color' in req:
+                    'index' in req and \
+                    'radius' in req and \
+                    'opacity' in req and \
+                    'color' in req:
 
         # Always "reset" the lights - will fill out the correct number if it's wrong
         Light.objects.reset()

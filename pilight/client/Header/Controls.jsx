@@ -27,12 +27,12 @@ import css from './Controls.scss';
 
 class Controls extends React.Component {
     state = {
-        storeName: '',
+        configName: '',
     };
 
     onConfigNameChange = (event) => {
         this.setState({
-            storeName: event.target.value,
+            configName: event.target.value,
         })
     };
 
@@ -41,7 +41,7 @@ class Controls extends React.Component {
     };
 
     saveConfig = () => {
-        this.props.saveConfigAsync(this.state.storeName);
+        this.props.saveConfigAsync(this.state.configName);
     };
 
     render() {
@@ -78,7 +78,7 @@ class Controls extends React.Component {
                                 onChange={this.onConfigNameChange}
                                 placeholder="Save as..."
                                 type="text"
-                                value={this.state.storeName}
+                                value={this.state.configName}
                             />
                             <InputGroup.Button>
                                 <Button bsSize="sm" bsStyle="success" onClick={this.saveConfig}>Save</Button>

@@ -1,6 +1,6 @@
 import json
 
-from home.models import Light, TransformInstance, Store, VariableInstance, load_variable_params
+from home.models import Config, Light, TransformInstance, VariableInstance, load_variable_params
 from pilight.light.transforms import TRANSFORMS
 from pilight.light.variables import VARIABLES
 
@@ -89,7 +89,7 @@ def base_colors():
 
 
 def configs():
-    configs_query = Store.objects.all().order_by('name')
+    configs_query = Config.objects.all().order_by('name')
     result = []
     for config in configs_query:
         result.append({

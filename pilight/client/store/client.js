@@ -9,12 +9,14 @@ const FINISH_BOOTSTRAP = 'client/FINISH_BOOTSTRAP';
 const HANDLE_RESPONSE = 'client/HANDLE_RESPONSE';
 const SET_CONFIGS = 'client/SET_CONFIGS';
 const SET_ERROR = 'client/SET_ERROR';
+const SET_NUM_LIGHTS = 'client/SET_NUM_LIGHTS';
 const START_BOOTSTRAP = 'client/START_BOOTSTRAP';
 
 export const clearError = createAction(CLEAR_ERROR);
 export const finishBootstrap = createAction(FINISH_BOOTSTRAP);
 export const setConfigs = createAction(SET_CONFIGS);
 export const setError = createAction(SET_ERROR);
+export const setNumLights = createAction(SET_NUM_LIGHTS);
 export const startBootstrap = createAction(START_BOOTSTRAP);
 
 
@@ -71,10 +73,11 @@ export const restartDriverAsync = () => (dispatch) => {
 
 
 const INITIAL_STATE = {
-    errorMessage: null,
-    configs: [],
     // Using a const string to avoid depending on async
     bootstrapStatus: 'PENDING',
+    configs: [],
+    errorMessage: null,
+    numLights: 0,
 };
 
 export const client = handleActions({
@@ -82,5 +85,6 @@ export const client = handleActions({
     [FINISH_BOOTSTRAP]: (state, action) => ({...state, bootstrapStatus: 'DONE'}),
     [SET_CONFIGS]: (state, action) => ({...state, configs: action.payload}),
     [SET_ERROR]: (state, action) => ({...state, errorMessage: action.payload}),
+    [SET_NUM_LIGHTS]: (state, action) => ({...state, numLights: action.payload}),
     [START_BOOTSTRAP]: (state, action) => ({...state, bootstrapStatus: 'PENDING'}),
 }, INITIAL_STATE);
