@@ -97,6 +97,18 @@ class AudioVariable(Variable):
             'Prior audio duration (secs) to sample from in determining frequency distribution (closer to 0 '
             'results in more responsive signal, but may feel choppy or less stable)',
         ),
+        ratio_cutoff=FloatParam(
+            'Ratio Cutoff',
+            0.5,
+            'Amount subtracted from the ratio between current and long term values. Acts as a threshold for '
+            'having a signal greater than zero. Higher cutoffs require more energetic audio to produce a signal.',
+        ),
+        ratio_multiplier=FloatParam(
+            'Ratio Multiplier',
+            0.4,
+            'Multiplier applied after subtracting the cutoff from the ratio. Determines how much audio energy is '
+            'required for the signal to reach the max (1.0). A higher multiplier increases the signal sensitivity.',
+        ),
     )
     param_type = ParamTypes.FLOAT
     singleton = True
@@ -157,7 +169,9 @@ class AudioVariable(Variable):
         self.val = self.val * self.params.short_term_weight + new_val * (1 - self.params.short_term_weight)
 
         # Normalize for output
-        self.norm_val = max(0.0, min(1.0, ((self.val / self.long_term - 0.6) / 2.5)))
+        self.norm_val = max(0.0, min(1.0, (
+            (self.val / self.long_term - self.params.ratio_cutoff) * self.params.ratio_multiplier
+        )))
 
     def get_value(self):
         if not settings.ENABLE_AUDIO_VAR:
