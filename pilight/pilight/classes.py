@@ -150,7 +150,7 @@ class Color(object):
     @staticmethod
     def blend_mult(a, b):
         if getattr(a, 'a', 1.0) == 1.0 and getattr(b, 'a', 1.0) == 1.0:
-            return Color(a.r * b.r, a.g * b.g, a.b * b.b)
+            return Color(a.r * b.r, a.g * b.g, a.b * b.b, getattr(a, 'w', 0.0) * getattr(b, 'w', 0.0))
         else:
             return Color.blend_mult(a.flatten_alpha(), b.flatten_alpha())
 
