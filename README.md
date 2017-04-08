@@ -6,6 +6,8 @@ Flexible LED controller designed to run on a Raspberry Pi, and drive LED strings
 * [Blog post](http://tom.net.nz/2013/10/pilight/) detailing hardware and installation of PiLight
 * [Demo video](http://www.youtube.com/watch?v=ohJMUAsssQw) showing the PiLight interface and lights running
 
+The software is tested compatible with most versions of the Raspberry Pi (A/B/2/3) - but this is a rich application that will take full use of available hardware - so a Pi 3 is recommended!
+
 
 Client/Server
 -------------
@@ -34,7 +36,6 @@ Install all prerequisites first:
 * [RabbitMQ](http://www.rabbitmq.com/download.html) (requires [Erlang](http://www.erlang.org/download.html))
 * [pip](https://pypi.python.org/pypi/pip/) strongly recommended to install extra Python dependencies
 
-For Raspbian or similar:
 
     sudo apt-get install python python-pip python-dev
     # At the time of writing, PostgreSQL was at 9.4 in the Raspbian repo
@@ -42,7 +43,7 @@ For Raspbian or similar:
     # Extra deps
     sudo apt-get install python-pyaudio python-numpy pulseaudio alsa-utils
 
-> Note: These instructions assume you're using a Raspberry Pi with Occidentalis for the most part - omit sudo if your flavor doesn't use it, for example. This is all tested working with a 512MB Raspberry Pi device, and Occidentalis v0.2.
+> Note: These instructions assume you're using a Raspberry Pi with Raspbian for the most part - omit sudo if your flavor doesn't use it, for example.
 
 Download the source to a desired location:
 
@@ -53,7 +54,7 @@ Install the Python dependencies:
     cd pilight
     sudo pip install -r requirements.txt
 
-> Note: If you get an error message about available space on the device, it's likely that your /tmp folder is too small. Run `sudo nano /etc/default/tmpfs`, change TMP_SIZE to 200M, then try `pip install -r requirements.txt` again. You may run into this when installing on a Raspberry Pi device.
+> Note: If you get an error message about available space on the device, it's likely that your /tmp folder is too small. Run `sudo nano /etc/default/tmpfs`, change TMP_SIZE to 200M, then try `pip install -r requirements.txt` again. You may run into this when installing on an older Raspberry Pi device.
 
 > Note: If setting up a server installation on Windows, with PostgreSQL, you may find it easier to install the `psycopg2` package from a binary installer instead of with pip. [Download the binary](http://www.stickpeople.com/projects/python/win-psycopg/) corresponding to your Python/PostgreSQL version.
 
@@ -78,6 +79,8 @@ Lights
 Depending on the type of LED you are trying to drive, you will need to install a helper library so that PiLight is able to talk to your lights. Follow the directions for your given driver type:
 
 ### WS2801
+
+Driving this chip requires a SPI device. The SPI driver is disabled by default on Raspbian, so you'll need to [enable it](https://www.raspberrypi.org/documentation/hardware/raspberrypi/spi/README.md).
 
 Install Adafruit's library:
 
@@ -135,43 +138,52 @@ Suggested config to use (important piece commented):
 
     # Crucial tabs:
     chdir $HOME/pilight/pilight
-    # --insecure is important if Django's DEBUG is set to False - allows serving
-    # static files
-    screen -t pl 2 sh -c 'python manage.py runserver --noreload --insecure 0.0.0.0:8000; exec bash'
-    screen -t pl-driver 3 sh -c 'sudo python manage.py lightdriver; exec bash'
+    # --insecure is important if Django's DEBUG is set to False - allows serving static files
+    screen -t pl 2 bash -c 'python manage.py runserver --noreload --insecure 0.0.0.0:8000; exec bash'
+    screen -t pl-driver 3 bash -c 'sudo python manage.py lightdriver; exec bash'
 
     chdir $HOME
     select 0
 
 This will open two extra tabs (2+3) for PiLight on startup - one for the web interface, and one for the light driver. The final step is to have screen run at startup. There are a few ways to do this, but crontab is likely the simplest. Run `crontab -e`, then enter a line like the following:
 
-    @reboot sleep 5 && screen -d -m -A
+    @reboot sleep 15 && screen -d -m -A
 
-This will open screen in a detached mode on startup. The delay is necessary due to other services starting up (you may need to increase it). If you SSH into the Pi later, you can view the opened processes by running `screen -R`. Navigate screens by Ctrl+A then the screen id (0 through 3 in the above example).
+This will open screen in a detached mode on startup. The delay is necessary due to other services starting up (you may need to increase it). If you SSH into the Pi later, you can view the opened processes by running `screen -R`. Navigate screens by Ctrl+A then the screen id (0 through 3 in the above example). To detach screen again, use Ctrl+A then Ctrl+D.
 
-Guide
------
+
+Usage Guide
+-----------
 
 ### Introduction
 
-PiLight is designed around a simple "Colors" + "Transformations" system. You specify both parts in the configuration interface.
+PiLight is designed around a simple "Colors" + "Transforms" system. You specify both parts in the configuration interface.
 
 * Colors define the "initial" or "base" states for each individual LED. Using the PiLight interface, you can "paint" colors onto the LEDs. Specify a tool (solid/smooth), tool radius and opacity, and a color. Then, click individual lights to start painting. The lights will refresh after each click.
-* Transformations get applied in real time when the light driver is running. They modify the base colors based on a variety of input parameters, and usually a "time" component. Typically they will produce an animation effect, such as flashing or scrolling. Transformations can be added to the "active" stack. Each transformation is applied in sequence, for each "frame" that gets sent to the LEDs. Multiple transformations of the same type can be stacked; for example, to have a slow flash, with faster small fluctuations.
-
-> Note: Currently parameters for transforms are not editable via nice controls. However, when adding a transform, sensible defaults will be applied, and you can edit the parameter string by hand. This should be fairly self-explanatory.
+* Transforms get applied in real time when the light driver is running. They modify the base colors based on a variety of input parameters, and usually a "time" component. Typically they will produce an animation effect, such as flashing or scrolling. Transforms can be added to the "active" stack. Each transform is applied in sequence, for each "frame" that gets sent to the LEDs. Multiple transforms of the same type can be stacked; for example, to have a slow flash, with faster small fluctuations. The order that transforms are applied in is important, so try moving them up and down to achieve different effects.
+* Some transforms operate as "layers", and can be used to insert colors that are different to the "base" colors. Use blend mode and opacity to combine these layers with other effects.
 
 You can view a 10-second preview of what the lights will look like after animations are applied (animated in-browser) by hitting the Preview button.
+
+### Variables
+
+In order to make the behavior more dynamic, you can introduce "Variables". These are designed to take external inputs and allow them to affect transforms. For example, you can hook up a microphone, and get a variable that tracks bass levels in a song. Or hook up an ADC and use a potentiometer to physically manipulate a value. Or use an API call to modify a color parameter dynamically.
+
+To use a variable, you first need to add it. Then adjust its parameters as you see fit. Then, you have the ability to select the checkbox beside any compatible transform parameter, and select your new variable from the dropdown. If you have multiple variables of the same type (e.g. two ADC inputs), you can give them meaningful names.
+
+See below for more details on configuring the Audio variable.
 
 ### Running the light driver
 
 Changes in the configuration interface are instantly sent to the light driver if it's currently running. You can also use the buttons at the top right to control the driver:
 
-* Refresh will force the light driver to reload its configuration (if it's started), as well as refresh the configuration page for any changes
+* Restart will force the light driver to reload its configuration (if it's started)
 * Start will start the light driver so that it powers the lights and runs transforms
 * Stop will stop the light driver and power off the lights - then await a new Start command
 
 > Note: These buttons all have no effect if the driver is not running. Remember to start it with `python manage.py lightdriver`.
+
+> Note: There may be a slight delay between hitting Stop and the lights actually turning off. This is normal. The light driver polls for commands infrequently (this can be changed in the settings).
 
 ### Loading and saving
 
@@ -186,12 +198,11 @@ Updating
 Periodically you may want to update PiLight to get the latest features and bug fixes. Just run the following commands from the `pilight/pilight` directory:
 
     git pull
-    git update
     python manage.py migrate
 
 
-About Audio
------------
+Audio
+-----
 
 PiLight has builtin support for audio reactivity based on a microphone input. This is designed to pick up bass frequencies from music. It will adapt to volume changes over time, so shouldn't require any specific tweaking. To enable it:
 

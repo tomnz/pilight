@@ -176,11 +176,34 @@ def save_config(request):
 
 @require_POST
 @user_passes_test(auth_check)
+def delete_config(request):
+    req = json.loads(request.body)
+
+    if 'id' in req:
+        config = Config.objects.filter(id=req['id']).first()
+        if config:
+            # Found the config - delete its associated objects
+            Light.objects.filter(config=config).delete()
+            TransformInstance.objects.filter(config=config).delete()
+
+            # Finally, delete the config itself
+            config.delete()
+
+        else:
+            return fail_json('Invalid config specified')
+    else:
+        return fail_json('Must specify a config')
+
+    return success_json({'configs': client_queries.configs()})
+
+
+@require_POST
+@user_passes_test(auth_check)
 def load_config(request):
     req = json.loads(request.body)
 
     if 'id' in req:
-        config = Config.objects.get(id=req['id'])
+        config = Config.objects.filter(id=req['id']).first()
         if config:
             # Found the config - load its lights and transforms
             # First clear out existing "current" items

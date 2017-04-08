@@ -3,7 +3,10 @@ import {
     Button,
     Col,
     Grid,
-    Row
+    Nav,
+    Navbar,
+    NavItem,
+    Row,
 } from 'react-bootstrap';
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
@@ -36,14 +39,12 @@ class Header extends React.Component {
     render() {
         const authButton = this.props.loggedIn ? (
                 <Button
-                    bsSize="xs"
                     onClick={this.props.logoutAsync}
                 >
                     Logout
                 </Button>
             ) : (
                 <Button
-                    bsSize="xs"
                     onClick={this.showLogin}
                 >
                     Login
@@ -51,21 +52,23 @@ class Header extends React.Component {
             );
 
         return (
-            <Grid className={css.wrapper}>
-                <Row>
-                    <Col xs={12} md={6}>
-                        <h1>PiLight&nbsp;&nbsp;
+            <Navbar inverse collapseOnSelect className={css.wrapper}>
+                <Navbar.Header>
+                    <Navbar.Brand>PiLight</Navbar.Brand>
+                    <Navbar.Toggle />
+                </Navbar.Header>
+                <Navbar.Collapse>
+                    <Navbar.Form pullLeft>
                             {authButton}
-                        </h1>
-                    </Col>
+                    </Navbar.Form>
                     <Controls />
-                    <LoginModal
-                        close={this.closeLogin}
-                        loginAsync={this.props.loginAsync}
-                        visible={this.state.loginVisible}
-                    />
-                </Row>
-            </Grid>
+                </Navbar.Collapse>
+                <LoginModal
+                    close={this.closeLogin}
+                    loginAsync={this.props.loginAsync}
+                    visible={this.state.loginVisible}
+                />
+            </Navbar>
         );
     }
 }
