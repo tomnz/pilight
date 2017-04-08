@@ -681,10 +681,10 @@ class SpectrumFlowLayer(LayerBase):
             # Compute spectrum color
             if value < 0.5:
                 value *= 2.0
-                color = self.params.low_color * value + self.params.mid_color * (1.0 - value)
+                color = self.params.low_color * (1.0 - value) + self.params.mid_color * value
             else:
                 value = (value - 0.5) * 2.0
-                color = self.params.mid_color * value + self.params.high_color * (1.0 - value)
+                color = self.params.mid_color * (1.0 - value) + self.params.high_color * value
 
             for _ in range(self.params.sample_repeat):
                 self.colors.appendleft(color)
