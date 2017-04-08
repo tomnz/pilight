@@ -6,9 +6,8 @@ from pilight.fields import ColorField
 from pilight.light import params
 
 
-# Stores metadata information about saved configurations
-# TODO: Rename to "config"
-class Store(models.Model):
+class Config(models.Model):
+    """Stores metadata information about saved configurations"""
 
     name = models.CharField(max_length=30)
     description = models.TextField(blank=True, null=True)
@@ -17,12 +16,11 @@ class Store(models.Model):
         return self.name
 
 
-# Store base light values
 class LightManager(models.Manager):
     use_for_related_fields = True
 
     def get_current(self):
-        return self.filter(store=None).order_by('index')
+        return self.filter(config=None).order_by('index')
 
     def reset(self):
         current_lights = self.get_current()
@@ -40,16 +38,17 @@ class LightManager(models.Manager):
 
 
 class Light(models.Model):
+    """Stores base light values"""
 
     index = models.IntegerField()
     color = ColorField(blank=True, null=True)
-    store = models.ForeignKey(Store, blank=True, null=True)
+    config = models.ForeignKey(Config, blank=True, null=True)
 
     objects = LightManager()
 
     def __unicode__(self):
-        if self.store:
-            return u'%s - %s - %s' % (self.store.name, unicode(self.index), self.color_hex)
+        if self.config:
+            return u'%s - %s - %s' % (self.config.name, unicode(self.index), self.color_hex)
         else:
             return u'%s - %s' % (unicode(self.index), self.color_hex)
 
@@ -62,21 +61,21 @@ class Light(models.Model):
         return self.color.to_hex_web()
 
 
-# Stores information about a given transform instance
 class TransformInstanceManager(models.Manager):
     use_for_related_fields = True
 
     def get_current(self):
-        return self.filter(store=None).order_by('order')
+        return self.filter(config=None).order_by('order')
 
 
 class TransformInstance(models.Model):
+    """Stores information about a given transform instance"""
 
     transform = models.TextField(blank=False, null=False)
     order = models.IntegerField()
     # TODO: Switch these to a Postgres-specific JSONField
     params = models.TextField(blank=True, null=True)
-    store = models.ForeignKey(Store, blank=True, null=True)
+    config = models.ForeignKey(Config, blank=True, null=True)
 
     objects = TransformInstanceManager()
 
@@ -88,15 +87,17 @@ class VariableInstanceManager(models.Manager):
     use_for_related_fields = True
 
     def get_current(self):
-        return self.filter(store=None)
+        return self.filter(config=None)
 
 
 class VariableInstance(models.Model):
+    """Stores information about a given variable instance"""
+
     variable = models.TextField(blank=False, null=False)
     name = models.TextField(blank=True, null=True)
     # TODO: Switch to a Postgres-specific JSONField
     params = models.TextField(blank=True, null=True)
-    store = models.ForeignKey(Store, blank=True, null=True)
+    config = models.ForeignKey(Config, blank=True, null=True)
 
     objects = VariableInstanceManager()
 

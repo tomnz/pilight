@@ -3,7 +3,7 @@ import thunk from 'redux-thunk';
 
 import {setCsrfToken, fetchObjectPromise} from './async';
 import {auth, setAuthRequired, setLoggedIn} from './auth';
-import {client, finishBootstrap, setConfigs, setError, startBootstrap} from './client';
+import {client, finishBootstrap, setConfigs, setError, setNumLights, startBootstrap} from './client';
 import {setBaseColors, lights} from './lights';
 import {palette, setColor} from './palette';
 import {transforms, setActiveTransforms, setAvailableTransforms} from './transforms';
@@ -26,6 +26,7 @@ export const bootstrapClientAsync = () => (dispatch) => {
 
             setCsrfToken(data.csrfToken);
 
+            dispatch(setNumLights(data.numLights));
             dispatch(setActiveTransforms(data.activeTransforms));
             dispatch(setAvailableTransforms(data.availableTransforms));
             dispatch(setActiveVariables(data.activeVariables));
