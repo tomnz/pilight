@@ -16,7 +16,7 @@ export class Slider extends React.Component {
     };
 
     render() {
-        const label = !!this.props.label ? <ControlLabel className={css.label}>{this.props.label}</ControlLabel> : null;
+        const label = !!this.props.label && <ControlLabel className={css.label}>{this.props.label}</ControlLabel>;
         return (
             <FormGroup className={css.wrapper}>
                 {label}

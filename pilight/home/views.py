@@ -10,7 +10,7 @@ from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 from django.views.decorators.http import require_POST
 
 from home import client_queries, driver
-from home.models import Config, Light, TransformInstance, VariableInstance, save_variable_params
+from home.models import Config, Light, TransformInstance, VariableInstance, VariableParam, save_variable_params
 from pilight.classes import Color
 from pilight.driver import LightDriver
 from pilight.light import params
@@ -146,8 +146,6 @@ def save_config(request):
 
         # Copy all of the current lights and transforms to the given config
         current_lights = Light.objects.get_current()
-        current_transforms = TransformInstance.objects.get_current()
-
         config_lights = []
         for light in current_lights:
             # By setting primary key to none, we ensure a copy of
@@ -157,16 +155,20 @@ def save_config(request):
             # setup
             light.config = config
             config_lights.append(light)
-
         Light.objects.bulk_create(config_lights)
 
-        config_transforms = []
+        current_transforms = TransformInstance.objects.get_current()
         for transform_instance in current_transforms:
+            variable_params = transform_instance.variableparam_set.all()
+
             transform_instance.pk = None
             transform_instance.config = config
-            config_transforms.append(transform_instance)
+            transform_instance.save()
 
-        TransformInstance.objects.bulk_create(config_transforms)
+            for variable_param in variable_params:
+                variable_param.pk = None
+                variable_param.transform = transform_instance
+                variable_param.save()
 
     else:
         return fail_json('Must specify a config name')
@@ -222,13 +224,17 @@ def load_config(request):
 
             Light.objects.bulk_create(new_lights)
 
-            new_transforms = []
             for transform_instance in config.transforminstance_set.all():
+                variable_params = transform_instance.variableparam_set.all()
+
                 transform_instance.pk = None
                 transform_instance.config = None
-                new_transforms.append(transform_instance)
+                transform_instance.save()
 
-            TransformInstance.objects.bulk_create(new_transforms)
+                for variable_param in variable_params:
+                    variable_param.pk = None
+                    variable_param.transform = transform_instance
+                    variable_param.save()
 
         else:
             return fail_json('Invalid config specified')
