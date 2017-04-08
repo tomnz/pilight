@@ -99,13 +99,13 @@ class AudioVariable(Variable):
         ),
         ratio_cutoff=FloatParam(
             'Ratio Cutoff',
-            0.5,
+            0.7,
             'Amount subtracted from the ratio between current and long term values. Acts as a threshold for '
             'having a signal greater than zero. Higher cutoffs require more energetic audio to produce a signal.',
         ),
         ratio_multiplier=FloatParam(
             'Ratio Multiplier',
-            0.4,
+            0.6,
             'Multiplier applied after subtracting the cutoff from the ratio. Determines how much audio energy is '
             'required for the signal to reach the max (1.0). A higher multiplier increases the signal sensitivity.',
         ),
