@@ -21,6 +21,8 @@ import {Palette} from './Palette/Index';
 import {Transforms} from './Transforms/Index';
 import {Variables} from './Variables/Index';
 
+import css from './App.scss';
+
 
 class App extends React.Component {
     constructor(props) {
@@ -59,10 +61,12 @@ class App extends React.Component {
                     message={this.props.errorMessage}
                 />
                 <Header />
-                <Palette />
-                <Lights />
-                <Transforms />
-                <Variables />
+                <div className={css.bodyContainer}>
+                    <Palette />
+                    <Lights />
+                    <Transforms />
+                    <Variables />
+                </div>
             </div>
         );
     }

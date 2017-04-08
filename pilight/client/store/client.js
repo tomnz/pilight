@@ -31,6 +31,17 @@ export const saveConfigAsync = (configName) => (dispatch) => {
     );
 };
 
+export const deleteConfigAsync = (id) => (dispatch) => {
+    return postObjectPromise(
+        `/api/config/delete/`,
+        {id: id},
+        (data) => {
+            dispatch(setConfigs(data.configs));
+        },
+        (error) => { dispatch(setError(error)); },
+    );
+};
+
 export const loadConfigAsync = (id) => (dispatch) => {
     // The response from the server takes a second, so we immediately display loading
     // to make it feel snappy

@@ -25,6 +25,7 @@ urlpatterns = [
     url(r'^api/variable/update/?$', views.update_variable, name='update_variable'),
     url(r'^api/config/load/?$', views.load_config, name='load_config'),
     url(r'^api/config/save/?$', views.save_config, name='save_config'),
+    url(r'^api/config/delete/?$', views.delete_config, name='delete_config'),
     url(r'^api/channel/set/?$', views.update_color_channel, name='update_color_channel'),
 ]
 
