@@ -18,7 +18,7 @@ const String = ({onChange, origValue, value}) => {
         >
             <FormControl
                 bsSize="small"
-                className={css.textbox}
+                className={css.controlWidth}
                 onChange={onChangeEvent}
                 type="text"
                 value={value}

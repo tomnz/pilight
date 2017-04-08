@@ -40,7 +40,7 @@ class Variable extends React.Component {
             <div>
                 <FormControl
                     bsSize="small"
-                    className={css.textbox}
+                    className={css.controlWidth}
                     componentClass="select"
                     onChange={this.onVariableChange}
                     value={!!this.props.variable.variableId ? this.props.variable.variableId.toString() : ""}

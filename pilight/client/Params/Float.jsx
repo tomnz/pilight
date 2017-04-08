@@ -50,7 +50,7 @@ class Float extends React.Component {
             >
                 <FormControl
                     bsSize="small"
-                    className={css.textbox}
+                    className={css.controlWidth}
                     onChange={this.onChangeEvent}
                     type="text"
                     value={this.state.text}
