@@ -8,6 +8,8 @@ from pilight.classes import Color
 from pilight.light.params import BooleanParam, LongParam, FloatParam, PercentParam, \
     ColorParam, StringParam, ParamsDef, transform_params_from_dict
 
+TimedColor = collections.namedtuple('TimedColor', ('time', 'color'))
+
 
 class TransformBase(object):
     # Subclasses should override these values as appropriate
@@ -626,16 +628,10 @@ class SpectrumFlowLayer(LayerBase):
     description = 'Scrolls a color spectrum, based on the given value. Designed primarily to be used with an ' \
                   'audio variable.'
     params_def = ParamsDef(
-        sample_interval=FloatParam(
-            'Sample Interval',
-            0.0,
-            'Minimum time between samples. If the frame time is longer than this value, then a single sample is '
-            'taken per frame. Increase this value to decrease scrolling speed.',
-        ),
-        sample_repeat=LongParam(
-            'Sample Repeat',
-            1,
-            'Number of times to repeat each sample. Increase this value to increase effective scrolling speed.',
+        duration=FloatParam(
+            'Duration',
+            3.0,
+            'Duration of a full scroll (secs)',
         ),
         reverse=BooleanParam(
             'Reverse',
@@ -667,38 +663,56 @@ class SpectrumFlowLayer(LayerBase):
 
     def __init__(self, transform_instance, variables):
         super(SpectrumFlowLayer, self).__init__(transform_instance, variables)
-
-        self.last_time = 0
         self.colors = collections.deque()
+        self.display_colors = []
 
     def tick_frame(self, time, num_positions):
-        while len(self.colors) < num_positions:
-            self.colors.append(self.params.low_color)
+        duration = self.params.duration
 
-        if time - self.last_time > self.params.sample_interval:
-            value = min(1.0, max(0.0, self.params.value))
+        # Drop colors that are no longer relevant - look ahead by one
+        while len(self.colors) > 1 and time - self.colors[1].time > duration:
+            self.colors.pop()
 
-            # Compute spectrum color
-            if value < 0.5:
-                value *= 2.0
-                color = self.params.low_color * (1.0 - value) + self.params.mid_color * value
-            else:
-                value = (value - 0.5) * 2.0
-                color = self.params.mid_color * (1.0 - value) + self.params.high_color * value
+        # Compute spectrum color
+        value = min(1.0, max(0.0, self.params.value))
+        if value < 0.5:
+            value *= 2.0
+            color = self.params.low_color * (1.0 - value) + self.params.mid_color * value
+        else:
+            value = (value - 0.5) * 2.0
+            color = self.params.mid_color * (1.0 - value) + self.params.high_color * value
 
-            for _ in range(self.params.sample_repeat):
-                self.colors.appendleft(color)
-                self.colors.pop()
-
-            self.last_time = time
+        self.colors.appendleft(TimedColor(
+            time=time,
+            color=color,
+        ))
 
     def get_colors(self, time, num_positions):
-        colors = []
-        for color in self.colors:
-            colors.append(color.clone())
+        if len(self.colors) == 1:
+            return [self.colors[0].color.clone()] * num_positions
 
-        while len(colors) < num_positions:
-            colors.append(self.params.low_color)
+        colors = []
+        curr_color = self.colors[0]
+        next_color = self.colors[1]
+        next_index = 2
+
+        duration = self.params.duration
+        for i in range(num_positions):
+            light_time = time - i * duration / num_positions
+
+            # Walk input colors
+            while light_time <= next_color.time and next_index < len(self.colors):
+                curr_color = next_color
+                next_color = self.colors[next_index]
+                next_index += 1
+
+            # Interpolate between colors
+            progress = min(1.0, max(0.0, (
+                (curr_color.time - light_time) / (curr_color.time - next_color.time)
+            )))
+
+            color = curr_color.color * (1.0 - progress) + next_color.color * progress
+            colors.append(color)
 
         return colors
 
@@ -745,7 +759,7 @@ class StrobeTransform(TransformBase):
 
 class CrushColorTransform(TransformBase):
     name = 'Crush Color'
-    description = 'Crushes color and brightness according to the strength of the parameter. ' +\
+    description = 'Crushes color and brightness according to the strength of the parameter. ' + \
                   'Works best with a variable.'
     params_def = ParamsDef(
         strength=FloatParam(
