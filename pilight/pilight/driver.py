@@ -16,6 +16,9 @@ DEVICES = {
     'ws281x': ws281x.Device,
 }
 
+# How often to display FPS (in secs) when running in debug mode
+FPS_INTERVAL = 10.0
+
 
 class LightDriver(object):
 
@@ -36,42 +39,10 @@ class LightDriver(object):
             settings.LIGHTS_REPEAT,
         )
 
-    @staticmethod
-    def pop_message():
-        """
-        Grabs the latest message from Pika, if one is waiting
-        Returns the body of the message if present, otherwise None
-        """
-        channel = PikaConnection.get_channel()
-        if not channel:
-            return None
-
-        method, properties, body = channel.basic_get(settings.PIKA_QUEUE_NAME, no_ack=True)
-        if method:
-            return body
-        else:
-            return None
-
-    def process_color_message(self, msg):
-        """
-        Processes a raw color message into its parts, populating the
-        given channel with the given color
-        """
-        color_parts = msg.split('_')
-        if len(color_parts) != 3:
-            return
-
-        # We have the right number of parts - assume the message is
-        # ok... Worse case scenario we end up with a blank color for
-        # a bogus channel key. Some sanitation is done - channel is
-        # truncated to 30 chars to match the web side, and the color
-        # gets safely parsed by from_hex().
-        self.color_channels[(color_parts[1])[0:30]] = Color.from_hex(color_parts[2])
-
     def wait(self):
         """
         Main entry point that waits for a start signal before running
-        the actual light driver
+        the actual light driver.
         """
 
         # Basically run this loop forever until interrupted
@@ -118,38 +89,36 @@ class LightDriver(object):
                 self.start()
 
     def start(self):
-            print '   Starting'
+        """
+        Main driver entry point once a start signal has been received.
+        Takes care of variable lifetime, and restarts the inner loop
+        until a stop is requested.
+        """
+        print '   Starting'
 
-            # Init audio
-            current_variables = self.get_variables()
+        # Init variables - these stay "alive" through restarts
+        current_variables = self.get_variables()
 
-            restart = True
-            while restart:
-                # Actually run the light driver
-                # Note that run_lights can return true to request that it be restarted
-                restart = self.run_lights(current_variables)
+        restart = True
+        while restart:
+            # Actually run the light driver
+            # Note that run_lights can return true to request that it be restarted
+            restart = self.run_lights(current_variables)
 
-            # Clear the lights to black since we're no longer running
-            self.clear_lights()
+        # Clear the lights to black since we're no longer running
+        self.clear_lights()
 
-            # Close variables
-            for variable in current_variables.itervalues():
-                variable.close()
+        # Close variables
+        for variable in current_variables.itervalues():
+            variable.close()
 
-            # Reset start_time so that we start over on the next run
-            self.start_time = None
-
-    def set_colors(self, colors):
-        self.device.show_colors(colors)
-
-    def clear_lights(self):
-        black = [Color(0, 0, 0)] * settings.LIGHTS_NUM_LEDS
-        self.set_colors(black)
+        # Reset start_time so that we start over on the next run
+        self.start_time = None
 
     def run_lights(self, current_variables):
         """
-        Drives the actual lights in a continuous loop until receiving
-        a stop signal
+        Drives the actual lights in a continuous loop until a new signal is received.
+        Takes care of transform lifetime. Exits upon a stop or restart signal.
         """
 
         print '* Light driver running...'
@@ -161,7 +130,7 @@ class LightDriver(object):
         if not current_colors:
             return False
 
-        # Are we animating?
+        # Are we animating? (If not, we can operate at a much lower refresh rate).
         animating = False
         for transform in current_transforms:
             if transform.is_animated():
@@ -171,10 +140,10 @@ class LightDriver(object):
         # Run the simulation
         if not self.start_time:
             self.start_time = time.time()
-        last_message_check = time.time()
+        last_message_check = self.start_time
 
         frame_count = 0
-        last_fps = time.time()
+        last_fps_time = time.time()
         running = True
         while running:
             # Setup the current iteration
@@ -182,14 +151,14 @@ class LightDriver(object):
             elapsed_time = current_time - self.start_time
             frame_count += 1
 
-            if current_time - last_fps > 10.0 and settings.LIGHTS_DRIVER_DEBUG:
-                print '      FPS: %0.1f' % (float(frame_count) / (current_time - last_fps))
-                last_fps = current_time
+            # Display FPS when in debug mode
+            if settings.LIGHTS_DRIVER_DEBUG and current_time - last_fps_time > FPS_INTERVAL:
+                print '      FPS: %0.1f' % (float(frame_count) / (current_time - last_fps_time))
+                last_fps_time = current_time
                 frame_count = 0
 
-            # Check for messages only once couple of seconds
-            # Slight optimization to stop rabbitmq being hammered
-            # on Raspberry Pi devices
+            # Check for messages only once every so often...
+            # Slight optimization to stop rabbitmq getting hammered every frame
             if current_time - last_message_check > settings.LIGHTS_MESSAGE_CHECK_INTERVAL:
                 msg = self.pop_message()
                 last_message_check = current_time
@@ -207,7 +176,7 @@ class LightDriver(object):
             # The previous iteration has no effect on the current iteration
             colors = self.do_step(current_colors, elapsed_time, current_transforms, current_variables)
 
-            # Prepare the final data
+            # Send new colors to device
             self.set_colors(colors)
 
             # Rate limit
@@ -247,7 +216,18 @@ class LightDriver(object):
 
         return result
 
-    def do_step(self, start_colors, elapsed_time, transforms, variables):
+    def set_colors(self, colors):
+        """Passes the given colors down to the output device for display."""
+        self.device.show_colors(colors)
+
+    def clear_lights(self):
+        """Sets all of the lights to black. Useful when exiting."""
+        black = [Color(0, 0, 0)] * settings.LIGHTS_NUM_LEDS
+        self.set_colors(black)
+
+    @staticmethod
+    def do_step(start_colors, elapsed_time, transforms, variables):
+        # Some transforms mutate colors directly, so we always start with a cloned set of colors
         colors = [color.clone() for color in start_colors]
 
         # Update variables
@@ -256,11 +236,6 @@ class LightDriver(object):
 
         # Perform each transform step
         for transform in transforms:
-            # Does the transform subscribe to a color channel?
-            external_color = None
-            if transform.color_channel:
-                external_color = self.color_channels.get(transform.color_channel, None)
-
             # Tick the transform frame
             transform.tick_frame(elapsed_time, len(colors))
 
@@ -268,6 +243,52 @@ class LightDriver(object):
             colors = transform.transform(elapsed_time, colors)
 
         return colors
+
+    @staticmethod
+    def pop_message():
+        """
+        Grabs the latest message from Pika, if one is waiting.
+        Returns the body of the message if present, otherwise None.
+        """
+        channel = PikaConnection.get_channel()
+        if not channel:
+            return None
+
+        method, properties, body = channel.basic_get(settings.PIKA_QUEUE_NAME, no_ack=True)
+        if method:
+            return body
+        else:
+            return None
+
+    def process_color_message(self, msg):
+        """
+        Processes a raw color message into its parts, populating the
+        given channel with the given color
+        """
+        color_parts = msg.split('_')
+        if len(color_parts) != 3:
+            return
+
+        # We have the right number of parts - assume the message is
+        # ok... Worst case scenario we end up with a blank color for
+        # a bogus channel key. Some sanitation is done - channel is
+        # truncated to 30 chars to match the web side, and the color
+        # gets safely parsed by from_hex().
+        self.color_channels[(color_parts[1])[0:30]] = Color.from_hex(color_parts[2])
+
+    @staticmethod
+    def get_colors():
+        Light.objects.reset()
+        current_lights = list(Light.objects.get_current())
+        current_colors = []
+
+        if len(current_lights) != settings.LIGHTS_NUM_LEDS:
+            return None
+
+        for i in range(settings.LIGHTS_NUM_LEDS):
+            current_colors.append(current_lights[i].color)
+
+        return current_colors
 
     @staticmethod
     def get_transforms(variables):
@@ -289,21 +310,9 @@ class LightDriver(object):
         current_variables = {}
 
         for variable_instance in variable_instances:
+            # create_variable takes extra inputs to set up specialized vars, e.g.:
+            #   - color_channels is used to subscribe to color updates via the API
             variable_obj = create_variable(variable_instance, self.color_channels)
             current_variables[variable_instance.id] = variable_obj
 
         return current_variables
-
-    @staticmethod
-    def get_colors():
-        Light.objects.reset()
-        current_lights = list(Light.objects.get_current())
-        current_colors = []
-
-        if len(current_lights) != settings.LIGHTS_NUM_LEDS:
-            return None
-
-        for i in range(settings.LIGHTS_NUM_LEDS):
-            current_colors.append(current_lights[i].color)
-
-        return current_colors

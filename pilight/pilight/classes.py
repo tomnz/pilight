@@ -26,6 +26,7 @@ class PikaConnection(object):
             # Just start over in this case...
             PikaConnection.connection_obj = None
             PikaConnection.channel_obj = None
+
         if not PikaConnection.connection_obj:
             # Connect
             try:
@@ -48,6 +49,7 @@ class PikaConnection(object):
                     auto_delete=False,
                     durable=True
                 )
+
         if not PikaConnection.channel_obj:
             PikaConnection.channel_obj = PikaConnection.connection_obj.channel()
         return PikaConnection.channel_obj

@@ -167,11 +167,12 @@ class BurstTransform(TransformBase):
     def tick_frame(self, time, num_positions):
         if self.last_time == 0:
             self.last_time = time
+        burst_duration = float(self.params.burst_duration)
 
         # Advance existing sparks
         elapsed_time = time - self.last_time
         for i in self.sparks.keys():
-            self.sparks[i] += elapsed_time / float(self.params.burst_duration)
+            self.sparks[i] += elapsed_time / burst_duration
             if self.sparks[i] >= 1:
                 del self.sparks[i]
 
@@ -257,16 +258,19 @@ class ColorBurstLayer(LayerBase):
     def tick_frame(self, time, num_positions):
         if self.last_time == 0:
             self.last_time = time
+        burst_duration = self.params.burst_duration
+        burst_rate = self.params.burst_rate
+        burst_radius = self.params.burst_radius
 
         # Advance existing sparks
         elapsed_time = time - self.last_time
         for i in self.sparks.keys():
-            self.sparks[i] += elapsed_time / self.params.burst_duration
+            self.sparks[i] += elapsed_time / burst_duration
             if self.sparks[i] >= 1:
                 del self.sparks[i]
 
         # Determine probability of making a spark
-        chance = elapsed_time * self.params.burst_rate / num_positions
+        chance = elapsed_time * burst_rate / num_positions
 
         # Spawn new sparks
         for i in range(num_positions):
@@ -275,7 +279,7 @@ class ColorBurstLayer(LayerBase):
 
         # Determine brightnesses
         self.brightnesses = [0] * num_positions
-        radius = self.params.burst_radius
+        radius = burst_radius
         for index, progress in self.sparks.iteritems():
             spark_strength = 1 - abs((progress - 0.5) * 2)
             min_index = int(max(0, index - radius))
@@ -523,14 +527,13 @@ class NoiseTransform(TransformBase):
         self.progress = (float(time) - float(self.last_time)) / self.params.duration
 
     def transform(self, time, input_colors):
+        r_str = self.params.red_strength
+        g_str = self.params.green_strength
+        b_str = self.params.blue_strength
+        w_str = self.params.white_strength
 
         for index, color in enumerate(input_colors):
             tween_color = self.next_colors[index] * self.progress + self.current_colors[index] * (1 - self.progress)
-
-            r_str = self.params.red_strength
-            g_str = self.params.green_strength
-            b_str = self.params.blue_strength
-            w_str = self.params.white_strength
 
             input_colors[index] = Color(color.r * (1 - r_str) + tween_color.r * r_str,
                                         color.g * (1 - g_str) + tween_color.g * g_str,
