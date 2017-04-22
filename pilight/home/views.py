@@ -382,7 +382,6 @@ def delete_transform(request):
 def update_transform(request):
     req = json.loads(request.body)
 
-    result = None
     if 'id' in req and 'params' in req:
         transform_instance = TransformInstance.objects.get(id=req['id'])
         if transform_instance:

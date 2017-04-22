@@ -117,6 +117,12 @@ class VariableParam(models.Model):
 
 
 def save_variable_params(transform_instance, transform_params):
+    existing_ids = {
+        variable_param.id
+        for variable_param
+        in VariableParam.objects.filter(transform=transform_instance)
+    }
+
     for name, variable in transform_params.variable_params.iteritems():
         variable_instance = VariableInstance.objects.get_current().get(id=variable.variable_id)
         if not variable_instance:
@@ -133,6 +139,8 @@ def save_variable_params(transform_instance, transform_params):
             existing.multiply = variable.multiply
             existing.add = variable.add
             existing.save()
+
+            existing_ids.remove(existing.id)
         else:
             new_variable = VariableParam(
                 transform=transform_instance,
@@ -142,6 +150,9 @@ def save_variable_params(transform_instance, transform_params):
                 multiply=variable.multiply
             )
             new_variable.save()
+
+    # Remove any that don't exist any longer
+    VariableParam.objects.filter(id__in=existing_ids).delete()
 
 
 def load_variable_params(transform_instance):
