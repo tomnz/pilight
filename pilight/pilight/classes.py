@@ -330,3 +330,31 @@ class Color(object):
             return Color(t, p, v, w, a)
         else:
             return Color(v, p, q, w, a)
+
+
+def scale_colors(colors, new_len):
+    """
+    Linearly rescales the input color array to the new length, linearly interpolating between the two
+    nearest source colors. For extreme downscaling, results may be unsatisfactory.
+    
+    :param list[Color] colors:
+    :param int new_len: 
+    :rtype: list[Color]
+    """
+
+    old_len = float(len(colors)) - 1
+    result = []
+
+    for index in range(new_len):
+        old_index = float(index) * old_len / (new_len - 1)
+
+        if old_index.is_integer():
+            result.append(colors[int(old_index)])
+            continue
+
+        # Between two colors - interpolate
+        progress = old_index % 1
+        new_color = colors[int(old_index)] * (1 - progress) + colors[int(old_index) + 1] * progress
+        result.append(new_color)
+
+    return result

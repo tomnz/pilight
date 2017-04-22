@@ -1,7 +1,7 @@
 from django.db import models
 from django.conf import settings
 
-from pilight.classes import Color
+from pilight.classes import Color, scale_colors
 from pilight.fields import ColorField
 from pilight.light import params
 
@@ -24,14 +24,17 @@ class LightManager(models.Manager):
 
     def reset(self):
         current_lights = self.get_current()
-        # If we have the wrong number of lights, just delete the existing and replace with defaults
+        # If we have the wrong number of lights, rescale to the expected number
         if len(current_lights) != settings.LIGHTS_NUM_LEDS:
+            old_colors = [light.color for light in current_lights]
             current_lights.delete()
+
+            new_colors = scale_colors(old_colors, settings.LIGHTS_NUM_LEDS)
             new_lights = []
-            for i in range(settings.LIGHTS_NUM_LEDS):
+            for i, color in enumerate(new_colors):
                 new_lights.append(Light(
                     index=i,
-                    color=Color.get_default(),
+                    color=color,
                 ))
 
             Light.objects.bulk_create(new_lights)
