@@ -15,7 +15,6 @@ import {bindActionCreators} from 'redux';
 
 import {
     loadConfigAsync,
-    restartDriverAsync,
     saveConfigAsync,
     startDriverAsync,
     stopDriverAsync,
@@ -50,13 +49,13 @@ class Controls extends React.Component {
                 <ButtonGroup>
                     <Button bsStyle="success" onClick={this.props.startDriverAsync}>Start</Button>
                     <Button bsStyle="danger" onClick={this.props.stopDriverAsync}>Stop</Button>
-                    <Button bsStyle="primary" onClick={this.props.restartDriverAsync}>Restart</Button>
-                    <Button
-                        bsStyle="info"
-                        disabled={this.props.previewActive}
-                        onClick={this.props.doPreviewAsync}
-                    >Preview</Button>
                 </ButtonGroup>
+                {' '}
+                <Button
+                    bsStyle="info"
+                    disabled={this.props.previewActive}
+                    onClick={this.props.doPreviewAsync}
+                >Preview</Button>
                 <Config
                     hide={this.hideConfig}
                     visible={this.state.configVisible}
@@ -76,7 +75,6 @@ Controls.propTypes = {
     doPreviewAsync: PropTypes.func.isRequired,
     loadConfigAsync: PropTypes.func.isRequired,
     previewActive: PropTypes.bool.isRequired,
-    restartDriverAsync: PropTypes.func.isRequired,
     saveConfigAsync: PropTypes.func.isRequired,
     startDriverAsync: PropTypes.func.isRequired,
     stopDriverAsync: PropTypes.func.isRequired,
@@ -94,7 +92,6 @@ const mapDispatchToProps = (dispatch) => {
     return bindActionCreators({
         doPreviewAsync,
         loadConfigAsync,
-        restartDriverAsync,
         saveConfigAsync,
         startDriverAsync,
         stopDriverAsync,

@@ -177,7 +177,6 @@ See below for more details on configuring the Audio variable.
 
 Changes in the configuration interface are instantly sent to the light driver if it's currently running. You can also use the buttons at the top right to control the driver:
 
-* Restart will force the light driver to reload its configuration (if it's started)
 * Start will start the light driver so that it powers the lights and runs transforms
 * Stop will stop the light driver and power off the lights - then await a new Start command
 

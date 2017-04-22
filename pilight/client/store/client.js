@@ -75,13 +75,6 @@ export const stopDriverAsync = () => (dispatch) => {
     );
 };
 
-export const restartDriverAsync = () => (dispatch) => {
-    return postObjectPromise(
-        `/api/driver/restart/`, {}, () => {},
-        (error) => { dispatch(setError(error)); },
-    );
-};
-
 
 const INITIAL_STATE = {
     // Using a const string to avoid depending on async
