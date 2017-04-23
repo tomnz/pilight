@@ -544,6 +544,41 @@ class NoiseTransform(TransformBase):
         return input_colors
 
 
+class PixelateTransform(TransformBase):
+    name = 'Pixelate'
+    description = 'Averages color in blocks of the given length, applying the same color to each light in the' \
+                  'block.'
+    params_def = ParamsDef(
+        block_size=LongParam(
+            'Block Size',
+            5,
+            'Number of lights per block',
+        ))
+    display_order = 12
+
+    def transform(self, time, input_colors):
+        result = []
+        block_size = self.params.block_size
+
+        next_color = Color(0, 0, 0)
+        num_colors = 0
+        for input_color in input_colors:
+            next_color += input_color
+            num_colors += 1
+
+            if num_colors == block_size:
+                next_color /= block_size
+                result.extend([next_color] * block_size)
+                next_color = Color(0, 0, 0)
+                num_colors = 0
+
+        if num_colors > 0:
+            next_color /= num_colors
+            result.extend([next_color] * num_colors)
+
+        return result
+
+
 class RotateHueTransform(TransformBase):
     name = 'Rotate Hue'
     description = 'Rotates hue through the full set of colors over the given time period.'
@@ -821,6 +856,7 @@ TRANSFORMS = {
     'flash': FlashTransform,
     'gaussian': GaussianBlurTransform,
     'noise': NoiseTransform,
+    'pixelate': PixelateTransform,
     'rotatehue': RotateHueTransform,
     'scroll': ScrollTransform,
     'spectrumflow': SpectrumFlowLayer,
