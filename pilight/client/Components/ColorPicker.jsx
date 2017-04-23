@@ -1,7 +1,7 @@
-import React, {PropTypes} from 'react';
+import PropTypes from 'prop-types';
+import React from 'react';
 import {Button, FormGroup} from 'react-bootstrap';
 import {SketchPicker} from 'react-color';
-import {connect} from 'react-redux';
 
 import * as types from '../types';
 
