@@ -109,15 +109,19 @@ class StringParam(Param):
 
 
 class VariableParam(object):
-    def __init__(self, variable_id, get_value, multiply=1.0, add=0):
+    def __init__(self, variable_id, get_value, multiply=1.0, add=0, convert=None):
         self.variable_id = variable_id
         self.get_value = get_value
         self.multiply = multiply
         self.add = add
+        self.convert = convert
 
     @property
     def value(self):
-        return self.get_value() * self.multiply + self.add
+        val = self.get_value() * self.multiply + self.add
+        if self.convert:
+            return self.convert(val)
+        return val
 
     def to_dict(self):
         return {
@@ -219,6 +223,12 @@ def transform_params_from_dict(values, variable_params, params_def, variables=No
     return TransformParams(params_def, variable_params, **params)
 
 
+PARAM_CONVERSIONS = {
+    ParamTypes.BOOLEAN: lambda value: bool(value),
+    ParamTypes.LONG: lambda value: long(round(value)),
+}
+
+
 def transform_variable_params_from_dict(values, params_def):
     variable_params = {}
 
@@ -230,6 +240,7 @@ def transform_variable_params_from_dict(values, params_def):
                 get_value=lambda: 1.0,
                 multiply=variable_value.get('multiply', 1.0),
                 add=variable_value.get('add', 0.0),
+                convert=PARAM_CONVERSIONS.get(param.param_type, None)
             )
 
     return variable_params

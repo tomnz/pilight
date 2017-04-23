@@ -4,12 +4,9 @@ import struct
 
 from django.conf import settings
 import numpy as np
-if settings.ENABLE_AUDIO_VAR:
-    import pyaudio
-
 from pilight.light.params import BooleanParam, LongParam, FloatParam, PercentParam, \
     ColorParam, StringParam, ParamsDef, variable_params_from_dict
-from pilight.light.types import ParamTypes
+from pilight.light.types import NUMBER_TYPES, ParamTypes
 from pilight.classes import Color
 
 
@@ -23,7 +20,7 @@ class Variable(object):
     description = ''
     params_def = ParamsDef()
     display_order = 100
-    param_type = None
+    param_types = set()
     singleton = False
 
     def __init__(self, variable_instance):
@@ -46,7 +43,7 @@ class RandomVariable(Variable):
     name = 'Random'
     description = 'Emits a random floating point value between 0 and 1 each frame.'
     display_order = 500
-    param_type = ParamTypes.FLOAT
+    param_types = NUMBER_TYPES
     singleton = True
 
     def __init__(self, variable_instance):
@@ -60,13 +57,16 @@ class RandomVariable(Variable):
         return self.value
 
 
-CHUNK = 1024
-FORMAT = pyaudio.paInt16
-CHANNELS = 1
-RATE = 44100
-SAMPLE_SIZE = pyaudio.get_sample_size(FORMAT)
-MAX_y = 2.0 ** (SAMPLE_SIZE * 8) - 1
-AUDIO_SECS = 0.03
+if settings.ENABLE_AUDIO_VAR:
+    import pyaudio
+
+    CHUNK = 1024
+    FORMAT = pyaudio.paInt16
+    CHANNELS = 1
+    RATE = 44100
+    SAMPLE_SIZE = pyaudio.get_sample_size(FORMAT)
+    MAX_y = 2.0 ** (SAMPLE_SIZE * 8) - 1
+    AUDIO_SECS = 0.03
 
 
 class AudioVariable(Variable):
@@ -110,7 +110,7 @@ class AudioVariable(Variable):
             'required for the signal to reach the max (1.0). A higher multiplier increases the signal sensitivity.',
         ),
     )
-    param_type = ParamTypes.FLOAT
+    param_types = NUMBER_TYPES
     singleton = True
 
     def __init__(self, variable_instance):
@@ -146,7 +146,8 @@ class AudioVariable(Variable):
             except:
                 break
 
-            self.frames = np.concatenate((self.frames, np.array(struct.unpack('%dh' % (len(data) / SAMPLE_SIZE), data)) / MAX_y))
+            self.frames = np.concatenate((self.frames, np.array(
+                struct.unpack('%dh' % (len(data) / SAMPLE_SIZE), data)) / MAX_y))
 
         if len(self.frames) < self.audio_samples:
             self.val = 0.0

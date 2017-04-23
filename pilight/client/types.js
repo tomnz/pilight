@@ -40,6 +40,7 @@ export const AvailableVariable = PropTypes.shape({
     name: PropTypes.string.isRequired,
     description: PropTypes.string,
     paramsDef: PropTypes.objectOf(ParamDef),
+    types: PropTypes.arrayOf(PropTypes.string),
 });
 
 export const ActiveVariable = PropTypes.shape({
@@ -47,4 +48,5 @@ export const ActiveVariable = PropTypes.shape({
     variable: PropTypes.string.isRequired,
     name: PropTypes.string.isRequired,
     params: PropTypes.any,
+    types: PropTypes.arrayOf(PropTypes.string),
 });

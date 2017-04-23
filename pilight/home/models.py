@@ -155,14 +155,20 @@ def save_variable_params(transform_instance, transform_params):
     VariableParam.objects.filter(id__in=existing_ids).delete()
 
 
-def load_variable_params(transform_instance):
+def load_variable_params(transform_instance, params_def):
     variable_params = {}
     for variable_param in VariableParam.objects.filter(transform=transform_instance):
+        param = getattr(params_def, variable_param.param, None)
+        if not param:
+            # We don't know about this param? Don't load it
+            continue
+
         variable_params[variable_param.param] = params.VariableParam(
             variable_id=variable_param.variable.id,
             multiply=variable_param.multiply,
             add=variable_param.add,
             get_value=lambda: 1.0,
+            convert=params.PARAM_CONVERSIONS.get(param.param_type, None),
         )
 
     return variable_params

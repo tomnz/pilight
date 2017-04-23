@@ -23,7 +23,7 @@ class TransformBase(object):
         self.transform_instance = transform_instance
         self.params = transform_params_from_dict(
             json.loads(transform_instance.params or '{}'),
-            load_variable_params(transform_instance),
+            load_variable_params(transform_instance, self.params_def),
             self.params_def, variables)
 
         self.color_channel = None

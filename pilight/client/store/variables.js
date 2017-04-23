@@ -62,12 +62,14 @@ export const variables = handleActions({
         // Map variables by type
         const newActiveByType = {};
         action.payload.forEach((variable) => {
-            if (!newActiveByType.hasOwnProperty(variable.type)) {
-                newActiveByType[variable.type] = [];
-            }
-            newActiveByType[variable.type].push({
-                id: variable.id,
-                name: variable.name,
+            variable.types.forEach((type) => {
+                if (!newActiveByType.hasOwnProperty(type)) {
+                    newActiveByType[type] = [];
+                }
+                newActiveByType[type].push({
+                    id: variable.id,
+                    name: variable.name,
+                });
             });
         });
         return {

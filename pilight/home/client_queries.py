@@ -15,7 +15,7 @@ def active_transforms():
             transform_instance.delete()
             continue
 
-        variable_params = load_variable_params(transform_instance)
+        variable_params = load_variable_params(transform_instance, transform.params_def)
         variable_params_dict = {key: value.to_dict() for key, value in variable_params.iteritems()}
 
         result.append({
@@ -59,7 +59,7 @@ def active_variables():
             'variable': variable_instance.variable,
             'name': variable_instance.name,
             'params': json.loads(variable_instance.params or '{}'),
-            'type': variable.param_type,
+            'types': list(variable.param_types),
         })
     return result
 
@@ -73,7 +73,7 @@ def available_variables():
             'description': variable.description,
             'paramsDef': variable.params_def.to_dict(),
             'order': variable.display_order,
-            'type': variable.param_type,
+            'types': list(variable.param_types),
         })
 
     result.sort(key=lambda t: t['order'])

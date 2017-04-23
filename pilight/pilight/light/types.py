@@ -5,3 +5,11 @@ class ParamTypes(object):
     COLOR = 'color'
     PERCENT = 'percent'
     STRING = 'string'
+
+
+NUMBER_TYPES = {
+    ParamTypes.BOOLEAN,
+    ParamTypes.LONG,
+    ParamTypes.FLOAT,
+    ParamTypes.PERCENT,
+}
