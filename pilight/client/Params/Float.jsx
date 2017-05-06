@@ -53,7 +53,7 @@ class Float extends React.Component {
                     bsSize="small"
                     className={css.controlWidth}
                     onChange={this.onChangeEvent}
-                    type="text"
+                    type="number"
                     value={this.state.text}
                 />
             </FormGroup>
