@@ -29,8 +29,8 @@ class AudioComputeProcess(multiprocessing.Process):
 
         self.audio_samples = int(RATE * audio_duration)
         self.val = 1.0
-        self.norm_val = 0.0
-        self.long_term = 0.0
+        self.norm_val = 1.0
+        self.long_term = 1.0
         self.total_ffts = 0
         self.determine_freqs(lpf_freq)
 
@@ -94,7 +94,7 @@ class AudioComputeProcess(multiprocessing.Process):
         )))
 
         # Output value to shared memory
-        self.shared_val.value = self.val
+        self.shared_val.value = self.norm_val
 
     def close(self):
         self.stream.stop_stream()
