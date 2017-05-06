@@ -100,6 +100,7 @@ class AudioComputeProcess(multiprocessing.Process):
         self.stream.stop_stream()
         self.stream.close()
         self.pyaudio.terminate()
+        print '    Closed audio device'
 
     def determine_freqs(self, lpf_freq):
         # Pre-compute which FFT values to include, based on their frequency
