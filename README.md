@@ -36,11 +36,14 @@ Install all prerequisites first:
 * [RabbitMQ](http://www.rabbitmq.com/download.html) (requires [Erlang](http://www.erlang.org/download.html))
 * [pip](https://pypi.python.org/pypi/pip/) strongly recommended to install extra Python dependencies
 
-
     sudo apt-get install python python-pip python-dev
-    # At the time of writing, PostgreSQL was at 9.4 in the Raspbian repo
+
+At the time of writing, PostgreSQL was at 9.4 in the Raspbian repo (need an explicit version for `postgresql-server-dev`):
+
     sudo apt-get install postgresql postgresql-server-dev-9.4 rabbitmq-server
-    # Extra deps
+
+Extra deps:
+
     sudo apt-get install python-pyaudio python-numpy pulseaudio alsa-utils
 
 > Note: These instructions assume you're using a Raspberry Pi with Raspbian for the most part - omit sudo if your flavor doesn't use it, for example.
@@ -210,7 +213,7 @@ PiLight has builtin support for audio reactivity based on a microphone input. Th
 
 > Note: You may experience some difficulties getting the microphone to be picked up correctly. Ensure you have set the given microphone as the default input source in both alsa and PulseAudio. For WS281X strips, you may also need to disable the onboard audio as per [the instructions](https://github.com/jgarff/rpi_ws281x#limitations). Finally, you may want to enable PulseAudio to run on startup - check out [this article](http://serendipity.ruwenzori.net/index.php/2015/06/01/sending-an-audio-stream-across-the-network-to-a-remote-raspberry-pi-with-pulseaudio-the-easy-way).
 
-> Note: There is some performance impact to using the audio variable, since it computes an FFT every frame.
+> Note: There is some performance impact to using the audio variable, since it needs to continually recompute FFTs. This is partially mitigated by running the processing on a separate CPU core, but for very high frame rates it may become a limiting factor. Ensure you're using a Pi 2/3, which have 4 cores available.
 
 
 Development
