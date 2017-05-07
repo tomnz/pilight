@@ -111,12 +111,15 @@ class AudioVariable(Variable):
             return
 
         self.exit_event = multiprocessing.Event()
-        self.val = multiprocessing.Value('d', 1.0)
+        self.shared_val = multiprocessing.Value('d', 1.0)
+        self.val = 1.0
+        self.long_term = 1.0
+        self.norm_val = 1.0
 
         # Initialize the audio process
         self.audio_compute_process = audio.AudioComputeProcess(
             exit_event=self.exit_event,
-            shared_val=self.val,
+            shared_val=self.shared_val,
             audio_duration=self.params.audio_duration,
             lpf_freq=self.params.lpf_freq,
             short_term_weight=self.params.short_term_weight,
@@ -127,11 +130,28 @@ class AudioVariable(Variable):
 
         self.audio_compute_process.start()
 
+    def tick_frame(self, time):
+        if not settings.ENABLE_AUDIO_VAR:
+            return 1.0
+
+        new_val = self.shared_val.value
+
+        # Keep track of a long-term moving average, in order to detect spikes above background noise
+        self.long_term = self.long_term * self.params.long_term_weight + new_val * (1 - self.params.long_term_weight)
+
+        # Smooth the value
+        self.val = self.val * self.params.short_term_weight + new_val * (1 - self.params.short_term_weight)
+
+        # Normalize for output to shared memory
+        self.norm_val = max(0.0, min(1.0, (
+            (self.val / self.long_term - self.params.ratio_cutoff) * self.params.ratio_multiplier
+        )))
+
     def get_value(self):
         if not settings.ENABLE_AUDIO_VAR:
             return 1.0
 
-        return self.val.value
+        return self.norm_val
 
     def close(self):
         if not settings.ENABLE_AUDIO_VAR or not self.audio_compute_process.is_alive():
