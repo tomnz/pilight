@@ -219,7 +219,7 @@ class LightDriver(object):
 
     def set_colors(self, colors):
         """Passes the given colors down to the output device for display."""
-        threading.Thread(target=self.device.show_colors, kwargs={colors: colors}).start()
+        threading.Thread(target=self.device.show_colors, kwargs={'colors': colors}).start()
 
     def clear_lights(self):
         """Sets all of the lights to black. Useful when exiting."""
