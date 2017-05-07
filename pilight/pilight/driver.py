@@ -234,7 +234,7 @@ class LightDriver(object):
 
     def close_device(self):
         # Signal close to the device, and wait
-        self.colors_pipe.send(None)
+        self.colors_pipe.send([])
         self.device.join()
 
     @staticmethod
