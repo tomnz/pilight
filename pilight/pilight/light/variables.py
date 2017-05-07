@@ -130,7 +130,7 @@ class AudioVariable(Variable):
 
         self.audio_compute_process.start()
 
-    def next(self):
+    def tick_frame(self, time):
         if not settings.ENABLE_AUDIO_VAR:
             return 1.0
 
