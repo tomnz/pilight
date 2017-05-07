@@ -211,6 +211,8 @@ class LightDriver(object):
         if not current_colors:
             return None
 
+        print len(current_colors)
+
         result = []
 
         for i in range(steps):

@@ -362,6 +362,75 @@ class ColorFlashTransform(LayerBase):
         return [self.color] * num_positions
 
 
+class FastBlur(TransformBase):
+    name = 'Fast Blur'
+    description = 'Applies a blur across the entire set of lights, with the given standard deviation. ' + \
+                  'This approximates a true Gaussian blur, but is much more efficient.'
+    params_def = ParamsDef(
+        standarddev=FloatParam(
+            'Standard Deviation',
+            1.0,
+            'Standard deviation to be applied',
+        ),
+        passes=LongParam(
+            'Passes',
+            2,
+            'Additional passes increase blur quality, but reduce performance (2 or 3 recommended)'
+        ))
+    display_order = 139
+
+    def __init__(self, transform_instance, variables):
+        super(FastBlur, self).__init__(transform_instance, variables)
+
+        self.boxes = []
+
+    def is_animated(self):
+        return False
+
+    def tick_frame(self, time, num_positions):
+        self.boxes = self.boxes_for_gauss(self.params.standarddev, self.params.passes)
+
+    # Adapted from: http://blog.ivank.net/fastest-gaussian-blur.html
+    def transform(self, time, input_colors):
+        # source channel, target channel, width, height, radius
+        result = input_colors
+        num_colors = len(result)
+
+        for box in self.boxes:
+            next_colors = []
+
+            r = min(int((box - 1) / 2), num_colors)
+            divisor = 1.0 / (2 * r + 1)
+
+            left_idx = -r-1
+            right_idx = r
+
+            val = Color(0, 0, 0)
+            for i in range(left_idx, right_idx):
+                val += result[i]
+
+            for _ in range(num_colors):
+                val += result[right_idx % num_colors] - result[left_idx % num_colors]
+                right_idx += 1
+                left_idx += 1
+                next_colors.append(val * divisor)
+
+            result = next_colors
+
+        return result
+
+    @staticmethod
+    def boxes_for_gauss(sd, n):
+        wl = math.floor(math.sqrt((12 * sd * sd / n) + 1))
+        if wl % 2 == 0:
+            wl -= 1
+
+        wu = wl + 2
+        m = int((12 * sd * sd - n * wl * wl - 4 * n * wl - 3 * n) / (-4 * wl - 4))
+
+        return [wl if i < m else wu for i in range(n)]
+
+
 class FlashTransform(TransformBase):
     name = 'Flash'
     description = 'Flashes all lights between two brightness percentages, over the given time period. ' + \
@@ -413,6 +482,7 @@ class FlashTransform(TransformBase):
         return input_colors
 
 
+# TODO: Remove? FastBlur is a good approximation, and significantly faster!
 class GaussianBlurTransform(TransformBase):
     name = 'Gaussian Blur'
     description = 'Applies a gaussian blur across the entire set of lights, with the given standard ' + \
@@ -853,6 +923,7 @@ TRANSFORMS = {
     'colorburst': ColorBurstLayer,
     'colorflash': ColorFlashTransform,
     'crushcolor': CrushColorTransform,
+    'fastblur': FastBlur,
     'flash': FlashTransform,
     'gaussian': GaussianBlurTransform,
     'noise': NoiseTransform,
