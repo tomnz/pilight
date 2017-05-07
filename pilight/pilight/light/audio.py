@@ -29,9 +29,6 @@ class AudioComputeProcess(multiprocessing.Process):
         self.ratio_multiplier = ratio_multiplier
 
         self.audio_samples = int(RATE * audio_duration)
-        self.val = 1.0
-        self.norm_val = 1.0
-        self.long_term = 1.0
         self.total_ffts = 0
         self.stream = None
         self.frames = None
@@ -88,18 +85,7 @@ class AudioComputeProcess(multiprocessing.Process):
         # Also note we truncate to the first n samples, where n was determined from the FFT frequencies
         fft = np.fft.fft(self.frames * np.blackman(self.audio_samples))[0:self.total_ffts]
         fftb = np.sqrt(fft.imag ** 2 + fft.real ** 2) / 5
-        new_val = np.max(fftb)
-
-        # Keep track of a long-term moving average, in order to detect spikes above background noise
-        self.long_term = self.long_term * self.long_term_weight + new_val * (1 - self.long_term_weight)
-
-        # Smooth the value
-        self.val = self.val * self.short_term_weight + new_val * (1 - self.short_term_weight)
-
-        # Normalize for output to shared memory
-        self.shared_val.value = max(0.0, min(1.0, (
-            (self.val / self.long_term - self.ratio_cutoff) * self.ratio_multiplier
-        )))
+        self.shared_val.value = np.max(fftb)
 
     def close(self):
         self.stream.stop_stream()
