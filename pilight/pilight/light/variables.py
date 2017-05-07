@@ -1,11 +1,10 @@
 import json
+import multiprocessing
 import random
-import struct
 
 from django.conf import settings
-import numpy as np
-from pilight.light.params import BooleanParam, LongParam, FloatParam, PercentParam, \
-    ColorParam, StringParam, ParamsDef, variable_params_from_dict
+
+from pilight.light.params import LongParam, FloatParam, ColorParam, StringParam, ParamsDef, variable_params_from_dict
 from pilight.light.types import NUMBER_TYPES, ParamTypes
 from pilight.classes import Color
 
@@ -58,15 +57,7 @@ class RandomVariable(Variable):
 
 
 if settings.ENABLE_AUDIO_VAR:
-    import pyaudio
-
-    CHUNK = 1024
-    FORMAT = pyaudio.paInt16
-    CHANNELS = 1
-    RATE = 44100
-    SAMPLE_SIZE = pyaudio.get_sample_size(FORMAT)
-    MAX_y = 2.0 ** (SAMPLE_SIZE * 8) - 1
-    AUDIO_SECS = 0.03
+    from pilight.light import audio
 
 
 class AudioVariable(Variable):
@@ -119,82 +110,36 @@ class AudioVariable(Variable):
         if not settings.ENABLE_AUDIO_VAR:
             return
 
-        # Initialize the audio
-        self.pyaudio = pyaudio.PyAudio()
+        self.exit_event = multiprocessing.Event()
+        self.val = multiprocessing.Value('d', 1.0)
 
-        self.stream = self.pyaudio.open(format=FORMAT,
-                                        channels=CHANNELS,
-                                        rate=RATE,
-                                        input=True,
-                                        frames_per_buffer=CHUNK)
+        # Initialize the audio process
+        self.audio_compute_process = audio.AudioComputeProcess(
+            exit_event=self.exit_event,
+            shared_val=self.val,
+            audio_duration=self.params.audio_duration,
+            lpf_freq=self.params.lpf_freq,
+            short_term_weight=self.params.short_term_weight,
+            long_term_weight=self.params.long_term_weight,
+            ratio_cutoff=self.params.ratio_cutoff,
+            ratio_multiplier=self.params.ratio_multiplier,
+        )
 
-        self.audio_samples = int(RATE * self.params.audio_duration)
-        self.frames = np.array([0])
-        self.val = 0.0
-        self.norm_val = 0.0
-        self.long_term = 0.0
-        self.total_ffts = 0
-        self.determine_freqs()
-
-    def tick_frame(self, time):
-        if not settings.ENABLE_AUDIO_VAR:
-            return
-
-        while self.stream.get_read_available() >= CHUNK:
-            try:
-                data = self.stream.read(CHUNK)
-            except:
-                break
-
-            self.frames = np.concatenate((self.frames, np.array(
-                struct.unpack('%dh' % (len(data) / SAMPLE_SIZE), data)) / MAX_y))
-
-        if len(self.frames) < self.audio_samples:
-            self.val = 0.0
-            return
-
-        # Truncate sample
-        self.frames = self.frames[-self.audio_samples:]
-
-        # Compute FFT over sample
-        # Note the use of a Blackman filter to remove FFT jitter from rough ends of sample
-        # Also note we truncate to the first n samples, where n was determined from the FFT frequencies
-        fft = np.fft.fft(self.frames * np.blackman(self.audio_samples))[0:self.total_ffts]
-        fftb = np.sqrt(fft.imag ** 2 + fft.real ** 2) / 5
-        new_val = np.max(fftb)
-
-        # Keep track of a long-term moving average, in order to detect spikes above background noise
-        self.long_term = self.long_term * self.params.long_term_weight + new_val * (1 - self.params.long_term_weight)
-
-        # Smooth the value
-        self.val = self.val * self.params.short_term_weight + new_val * (1 - self.params.short_term_weight)
-
-        # Normalize for output
-        self.norm_val = max(0.0, min(1.0, (
-            (self.val / self.long_term - self.params.ratio_cutoff) * self.params.ratio_multiplier
-        )))
+        self.audio_compute_process.start()
 
     def get_value(self):
         if not settings.ENABLE_AUDIO_VAR:
             return 1.0
 
-        return self.norm_val
+        return self.val.value
 
     def close(self):
-        if not settings.ENABLE_AUDIO_VAR:
+        if not settings.ENABLE_AUDIO_VAR or not self.audio_compute_process.is_alive():
             return
 
-        self.stream.stop_stream()
-        self.stream.close()
-        self.pyaudio.terminate()
-
-    def determine_freqs(self):
-        # Pre-compute which FFT values to include, based on their frequency
-        for freq in np.fft.rfftfreq(self.audio_samples, d=1.0 / RATE):
-            if freq < self.params.lpf_freq:
-                self.total_ffts += 1
-            else:
-                break
+        # Signal the process to exit
+        self.exit_event.set()
+        self.audio_compute_process.join()
 
 
 class ColorChannelVariable(Variable):
