@@ -24,11 +24,13 @@ class DeviceBase(multiprocessing.Process):
             while True:
                 colors = self.colors_pipe.recv()
                 if not colors:
+                    print '    Closed light device'
                     return
 
                 self.show_colors(colors)
 
         except KeyboardInterrupt:
+            print '    Closed light device'
             return
 
     def show_colors(self, colors):
