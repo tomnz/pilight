@@ -1,5 +1,4 @@
 import multiprocessing
-import threading
 import time
 
 from django.conf import settings
@@ -234,7 +233,7 @@ class LightDriver(object):
 
     def close_device(self):
         # Signal close to the device, and wait
-        self.colors_pipe.send([])
+        self.colors_pipe.send(None)
         self.device.join()
 
     @staticmethod
