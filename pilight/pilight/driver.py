@@ -232,6 +232,11 @@ class LightDriver(object):
         black = [Color(0, 0, 0)] * settings.LIGHTS_NUM_LEDS
         self.set_colors(black)
 
+    def close_device(self):
+        # Signal close to the device, and wait
+        self.colors_pipe.send(None)
+        self.device.join()
+
     @staticmethod
     def do_step(start_colors, elapsed_time, transforms, variables):
         # Some transforms mutate colors directly, so we always start with a cloned set of colors
