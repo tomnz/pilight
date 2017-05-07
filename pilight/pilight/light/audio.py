@@ -1,9 +1,10 @@
 import multiprocessing
 import struct
+import time
 
+from django.conf import settings
 import numpy as np
 import pyaudio
-
 
 CHUNK = 1024
 FORMAT = pyaudio.paInt16
@@ -32,11 +33,11 @@ class AudioComputeProcess(multiprocessing.Process):
         self.norm_val = 1.0
         self.long_term = 1.0
         self.total_ffts = 0
-        self.determine_freqs(lpf_freq)
-
+        self.stream = None
         self.frames = None
         self.pyaudio = None
-        self.stream = None
+
+        self.determine_freqs(lpf_freq)
 
     def run(self):
         try:
@@ -51,7 +52,15 @@ class AudioComputeProcess(multiprocessing.Process):
                                             frames_per_buffer=CHUNK)
 
             while not self.exit_event.is_set():
+                current_time = time.time()
                 self.do_fft()
+
+                # Throttle to configured light update interval - extra computation beyond this rate
+                # is wasted
+                sleep_time = settings.LIGHTS_UPDATE_INTERVAL - (time.time() - current_time)
+                if sleep_time > 0:
+                    print sleep_time
+                    time.sleep(sleep_time)
 
             self.close()
 
