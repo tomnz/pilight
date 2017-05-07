@@ -1,13 +1,35 @@
 import abc
+import multiprocessing
 
 
-class DeviceBase(object):
+class DeviceBase(multiprocessing.Process):
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, num_leds, scale, repeat):
+    def __init__(self, colors_pipe, num_leds, scale, repeat):
+        super(DeviceBase, self).__init__()
+
+        self.strip = None
+        self.colors_pipe = colors_pipe
         self.num_leds = num_leds
         self.scale = scale
         self.repeat = repeat
+
+    @abc.abstractmethod
+    def init(self):
+        pass
+
+    def run(self):
+        self.init()
+        try:
+            while True:
+                colors = self.colors_pipe.recv()
+                if not colors:
+                    return
+
+                self.show_colors(colors)
+
+        except KeyboardInterrupt:
+            return
 
     def show_colors(self, colors):
         for r in range(self.repeat):

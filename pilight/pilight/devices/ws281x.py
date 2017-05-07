@@ -4,14 +4,12 @@ from pilight.devices import base
 
 
 class Device(base.DeviceBase):
-    def __init__(self, num_leds, scale, repeat):
-        super(Device, self).__init__(num_leds, scale, repeat)
-
+    def init(self):
         import neopixel
         strip_type = getattr(neopixel.ws, settings.WS281X_STRIP)
 
         self.strip = neopixel.Adafruit_NeoPixel(
-            num=num_leds * scale * repeat,
+            num=self.num_leds * self.scale * self.repeat,
             pin=settings.WS281X_LED_PIN,
             freq_hz=settings.WS281X_FREQ_HZ,
             dma=settings.WS281X_DMA,
