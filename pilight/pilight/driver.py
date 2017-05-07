@@ -1,3 +1,4 @@
+import threading
 import time
 
 from django.conf import settings
@@ -218,7 +219,7 @@ class LightDriver(object):
 
     def set_colors(self, colors):
         """Passes the given colors down to the output device for display."""
-        self.device.show_colors(colors)
+        threading.Thread(target=self.device.show_colors, kwargs={colors: colors}).start()
 
     def clear_lights(self):
         """Sets all of the lights to black. Useful when exiting."""
