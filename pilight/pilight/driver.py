@@ -1,3 +1,5 @@
+import multiprocessing
+import threading
 import time
 
 from django.conf import settings
@@ -33,11 +35,16 @@ class LightDriver(object):
         if settings.LIGHTS_DEVICE not in DEVICES:
             raise KeyError('Unknown device specified, please check your settings')
 
+        colors_recv, colors_send = multiprocessing.Pipe(duplex=False)
+        self.colors_pipe = colors_send
+
         self.device = DEVICES[settings.LIGHTS_DEVICE](
+            colors_recv,
             settings.LIGHTS_NUM_LEDS,
             settings.LIGHTS_SCALE,
             settings.LIGHTS_REPEAT,
         )
+        self.device.start()
 
     def wait(self):
         """
@@ -218,7 +225,7 @@ class LightDriver(object):
 
     def set_colors(self, colors):
         """Passes the given colors down to the output device for display."""
-        self.device.show_colors(colors)
+        self.colors_pipe.send(colors)
 
     def clear_lights(self):
         """Sets all of the lights to black. Useful when exiting."""
