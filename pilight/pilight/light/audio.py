@@ -59,7 +59,6 @@ class AudioComputeProcess(multiprocessing.Process):
                 # is wasted
                 sleep_time = settings.LIGHTS_UPDATE_INTERVAL - (time.time() - current_time)
                 if sleep_time > 0:
-                    print sleep_time
                     time.sleep(sleep_time)
 
             self.close()
@@ -97,13 +96,10 @@ class AudioComputeProcess(multiprocessing.Process):
         # Smooth the value
         self.val = self.val * self.short_term_weight + new_val * (1 - self.short_term_weight)
 
-        # Normalize for output
-        self.norm_val = max(0.0, min(1.0, (
+        # Normalize for output to shared memory
+        self.shared_val.value = max(0.0, min(1.0, (
             (self.val / self.long_term - self.ratio_cutoff) * self.ratio_multiplier
         )))
-
-        # Output value to shared memory
-        self.shared_val.value = self.norm_val
 
     def close(self):
         self.stream.stop_stream()
