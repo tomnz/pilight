@@ -3,6 +3,8 @@ import json
 import math
 import random
 
+from django.conf import settings
+
 from home.models import load_variable_params
 from pilight.classes import Color
 from pilight.light.params import BooleanParam, LongParam, FloatParam, PercentParam, \
@@ -775,6 +777,7 @@ class SpectrumFlowLayer(LayerBase):
         super(SpectrumFlowLayer, self).__init__(transform_instance, variables)
         self.colors = collections.deque()
         self.display_colors = []
+        self.last_time = 0
 
     def tick_frame(self, time, num_positions):
         duration = self.params.duration
@@ -782,6 +785,11 @@ class SpectrumFlowLayer(LayerBase):
         # Drop colors that are no longer relevant - look ahead by one
         while len(self.colors) > 1 and time - self.colors[1].time > duration:
             self.colors.pop()
+
+        # Don't update more frequently than the "interval" between two lights
+        min_update_time = float(self.params.duration) / settings.LIGHTS_NUM_LEDS
+        if len(self.colors) > 0 and time - self.last_time < min_update_time:
+            return
 
         # Compute spectrum color
         value = min(1.0, max(0.0, self.params.value))
@@ -796,6 +804,7 @@ class SpectrumFlowLayer(LayerBase):
             time=time,
             color=color,
         ))
+        self.last_time = time
 
     def get_colors(self, time, num_positions):
         if len(self.colors) == 1:
