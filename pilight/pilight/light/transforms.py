@@ -787,8 +787,8 @@ class SpectrumFlowLayer(LayerBase):
             self.colors.pop()
 
         # Don't update more frequently than the "interval" between two lights
-        min_update_time = self.params.duration / settings.LIGHTS_NUM_LEDS
-        if time - self.last_time < min_update_time:
+        min_update_time = float(self.params.duration) / settings.LIGHTS_NUM_LEDS
+        if len(self.colors) > 0 and time - self.last_time < min_update_time:
             return
 
         # Compute spectrum color
