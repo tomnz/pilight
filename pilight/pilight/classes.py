@@ -167,6 +167,17 @@ class Color(object):
         else:
             return self.flatten_alpha() + other.flatten_alpha()
 
+    def __sub__(self, other):
+        if getattr(self, 'a', 1.0) == 1.0 and getattr(other, 'a', 1.0) == 1.0:
+            return Color(
+                self.r - other.r,
+                self.g - other.g,
+                self.b - other.b,
+                getattr(self, 'w', 0.0) - getattr(other, 'w', 0.0),
+            )
+        else:
+            return self.flatten_alpha() - other.flatten_alpha()
+
     def __mul__(self, other):
         # Don't multiply the alpha
         return Color(
