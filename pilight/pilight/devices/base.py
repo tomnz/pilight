@@ -20,16 +20,19 @@ class DeviceBase(multiprocessing.Process):
 
     def run(self):
         self.init()
-        try:
-            while True:
+        while True:
+            try:
                 colors = self.colors_pipe.recv()
                 if not colors:
+                    print '    Closed light device'
                     return
 
                 self.show_colors(colors)
 
-        except KeyboardInterrupt:
-            return
+            except KeyboardInterrupt:
+                # Ignore a terminate signal - it's handled in the main process, and
+                # we still have cleanup work to do with the lights
+                continue
 
     def show_colors(self, colors):
         for r in range(self.repeat):

@@ -12,7 +12,7 @@ class Device(base.DeviceBase):
         self.strip.show()
 
     def set_color(self, index, color):
-        self.strip.set_pixel(index, color.to_raw_corrected())
+        self.strip.set_pixel_rgb(index, color[0], color[1], color[2])
 
     def finish(self):
         self.strip.show()

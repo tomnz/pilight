@@ -20,14 +20,7 @@ class Device(base.DeviceBase):
         self.strip.begin()
 
     def set_color(self, index, color):
-        if color.a != 1.0:
-            color = color.flatten_alpha()
-
-        r = int(color.safe_corrected_r() * 255)
-        g = int(color.safe_corrected_g() * 255)
-        b = int(color.safe_corrected_b() * 255)
-        w = int(color.safe_corrected_w() * 255)
-        self.strip.setPixelColorRGB(index, r, g, b, w)
+        self.strip.setPixelColorRGB(index, color[0], color[1], color[2], color[3])
 
     def finish(self):
         self.strip.show()

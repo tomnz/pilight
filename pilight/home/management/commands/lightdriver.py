@@ -60,6 +60,7 @@ class Command(BaseCommand):
             finally:
                 # Clean up resources
                 driver.clear_lights()
+                driver.close_device()
 
                 # Only release lock if it was ours to begin with (i.e. don't release if
                 # someone else already had it and we were forced to run)
