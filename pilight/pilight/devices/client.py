@@ -1,4 +1,5 @@
 import base64
+import struct
 
 from django.conf import settings
 
@@ -49,7 +50,11 @@ class Device(base.DeviceBase):
     def to_data(self, colors):
         raw_data = bytearray(settings.LIGHTS_NUM_LEDS * 3)
         pos = 0
-        for light in colors:
-            raw_data[pos * 3:] = light.to_raw_corrected()
+        for color in colors:
+            raw_data[pos * 3:] = (
+                struct.pack('B', color[0]),
+                struct.pack('B', color[1]),
+                struct.pack('B', color[2]),
+            )
             pos += 1
         return raw_data

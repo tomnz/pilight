@@ -224,7 +224,19 @@ class LightDriver(object):
 
     def set_colors(self, colors):
         """Passes the given colors down to the output device for display."""
-        self.colors_pipe.send(colors)
+        send_colors = []
+        for color in colors:
+            if color.a != 1.0:
+                color = color.flatten_alpha()
+
+            send_colors.append((
+                int(color.safe_corrected_r() * 255),
+                int(color.safe_corrected_g() * 255),
+                int(color.safe_corrected_b() * 255),
+                int(color.safe_corrected_w() * 255),
+            ))
+
+        self.colors_pipe.send(send_colors)
 
     def clear_lights(self):
         """Sets all of the lights to black. Useful when exiting."""
