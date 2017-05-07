@@ -390,9 +390,11 @@ class FastBlur(TransformBase):
     def tick_frame(self, time, num_positions):
         self.boxes = self.boxes_for_gauss(self.params.standarddev, self.params.passes)
 
-    # Adapted from: http://blog.ivank.net/fastest-gaussian-blur.html
+    # Adapted from:
+    #   http://blog.ivank.net/fastest-gaussian-blur.html
+    #   http://elynxsdk.free.fr/ext-docs/Blur/Fast_box_blur.pdf
+    # Performs several box filter passes to approximate a Gaussian blur
     def transform(self, time, input_colors):
-        # source channel, target channel, width, height, radius
         result = input_colors
         num_colors = len(result)
 
