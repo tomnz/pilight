@@ -56,6 +56,59 @@ class RandomVariable(Variable):
         return self.value
 
 
+adc = None
+if settings.ENABLE_ADC:
+    import Adafruit_GPIO.SPI as SPI
+    import Adafruit_MCP3008
+    adc = Adafruit_MCP3008.MCP3008(spi=SPI.SpiDev(0, 0))
+
+
+class AnalogVariable(Variable):
+    name = 'Analog'
+    description = 'Reads analog signals from attached analog devices such as switches or pots.'
+    display_order = 3
+    params_def = ParamsDef(
+        channel=LongParam(
+            'Analog Channel',
+            0,
+            'Channel to read from the ADC',
+        ),
+        min_raw=LongParam(
+            'Min Value',
+            0,
+            'Minimum ADC value (scales to 0)',
+        ),
+        max_raw=LongParam(
+            'Max Value',
+            1023,
+            'Maximum ADC value (scales to 1)',
+        ),
+    )
+    param_types = NUMBER_TYPES
+
+    def __init__(self, variable_instance):
+        super(AnalogVariable, self).__init__(variable_instance)
+
+        self.val = 1.0
+        if not settings.ENABLE_ADC:
+            return
+
+    def tick_frame(self, time):
+        if not settings.ENABLE_ADC:
+            return
+
+        min_raw = float(self.params.min_raw)
+        max_raw = float(self.params.max_raw)
+
+        self.val = min(1.0, max(0.0, float(adc.read_adc(self.params.channel) - min_raw) / (max_raw - min_raw)))
+
+    def get_value(self):
+        if not settings.ENABLE_ADC:
+            return 1.0
+
+        return self.val
+
+
 if settings.ENABLE_AUDIO_VAR:
     from pilight.light import audio
 
@@ -198,6 +251,9 @@ VARIABLES = {
     'colorchannel': ColorChannelVariable,
     'random': RandomVariable,
 }
+
+if settings.ENABLE_ADC:
+    VARIABLES['analog'] = AnalogVariable
 
 if settings.ENABLE_AUDIO_VAR:
     VARIABLES['audio'] = AudioVariable
