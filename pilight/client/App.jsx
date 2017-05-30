@@ -24,6 +24,7 @@ import {Header} from './Header/Index';
 import {LoginModal} from './Header/LoginModal';
 import {Lights} from './Lights/Index';
 import {Palette} from './Palette/Index';
+import {Playlists} from './Playlists/Index';
 import {Transforms} from './Transforms/Index';
 import {Variables} from './Variables/Index';
 
@@ -73,6 +74,7 @@ class App extends React.Component {
                             <Navbar staticTop>
                                 <Nav>
                                     <NavItem eventKey="lights">Lights</NavItem>
+                                    <NavItem eventKey="playlists">Playlists</NavItem>
                                     <NavItem eventKey="variables">Variables</NavItem>
                                 </Nav>
                             </Navbar>
@@ -81,6 +83,9 @@ class App extends React.Component {
                                     <Palette />
                                     <Lights />
                                     <Transforms />
+                                </Tab.Pane>
+                                <Tab.Pane eventKey="playlists">
+                                    <Playlists />
                                 </Tab.Pane>
                                 <Tab.Pane eventKey="variables">
                                     <Variables />

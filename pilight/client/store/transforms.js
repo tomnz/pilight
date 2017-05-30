@@ -10,10 +10,8 @@ const SET_AVAILABLE_TRANSFORMS = 'transforms/SET_AVAILABLE_TRANSFORMS';
 
 export const setActiveTransforms = createAction(SET_ACTIVE_TRANSFORMS);
 export const setAvailableTransforms = createAction(SET_AVAILABLE_TRANSFORMS);
-export const setActiveTransform = createAction(SET_ACTIVE_TRANSFORM, (id, transform) => ({
-    id: id,
-    transform: transform,
-}));
+export const setActiveTransform = createAction(SET_ACTIVE_TRANSFORM, (id, transform) => ({id, transform}));
+
 
 export const addTransformAsync = (transform) => (dispatch) => {
     return postObjectPromise(

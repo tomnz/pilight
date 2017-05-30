@@ -3,9 +3,10 @@ import thunk from 'redux-thunk';
 
 import {setCsrfToken, fetchObjectPromise} from './async';
 import {auth, setAuthRequired, setLoggedIn} from './auth';
-import {client, finishBootstrap, setConfigs, setError, setNumLights, startBootstrap} from './client';
+import {client, finishBootstrap, setConfigs, setError, setNumLights, setPlaylists, startBootstrap} from './client';
 import {setBaseColors, lights} from './lights';
 import {palette, setColor} from './palette';
+import {playlist} from './playlist';
 import {transforms, setActiveTransforms, setAvailableTransforms} from './transforms';
 import {variables, setActiveVariables, setAvailableVariables} from './variables';
 
@@ -34,6 +35,7 @@ export const bootstrapClientAsync = () => (dispatch) => {
             dispatch(setBaseColors(data.baseColors));
             dispatch(setColor(data.toolColor));
             dispatch(setConfigs(data.configs));
+            dispatch(setPlaylists(data.playlists));
             dispatch(setLoggedIn(data.loggedIn));
 
             dispatch(finishBootstrap());
@@ -47,6 +49,7 @@ const rootReducer = combineReducers({
     client: client,
     lights: lights,
     palette: palette,
+    playlist: playlist,
     transforms: transforms,
     variables: variables,
 });

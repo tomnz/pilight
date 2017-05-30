@@ -11,7 +11,7 @@ class Variable extends React.Component {
     onVariableChange = (event) => {
         this.props.onChange({
             ...this.props.variable,
-            variableId: parseInt(event.target.value),
+            variableId: parseInt(event.target.value, 10),
         });
     };
 
@@ -30,7 +30,7 @@ class Variable extends React.Component {
     };
 
     render() {
-        const variableOptions = !!this.props.variables ? this.props.variables.map((variable) => {
+        const variableOptions = this.props.variables ? this.props.variables.map((variable) => {
             return (
                 <option key={variable.id} value={variable.id.toString()}>
                     {variable.name}
@@ -44,7 +44,7 @@ class Variable extends React.Component {
                     className={css.controlWidth}
                     componentClass="select"
                     onChange={this.onVariableChange}
-                    value={!!this.props.variable.variableId ? this.props.variable.variableId.toString() : ""}
+                    value={this.props.variable.variableId ? this.props.variable.variableId.toString() : ''}
                 >
                     <option value="">None</option>
                     {variableOptions}
