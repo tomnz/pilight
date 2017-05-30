@@ -78,6 +78,10 @@ LIGHTS_MULTIPLIER_W = 0.5
 # Set to True to enable the audio variable based on mic level
 ENABLE_AUDIO_VAR = False
 
+# Set to True to enable the MPC3008 ADC variable
+ENABLE_ADC = True
+
+
 #################
 # WS2801 settings
 
