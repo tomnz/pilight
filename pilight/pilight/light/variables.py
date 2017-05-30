@@ -100,7 +100,8 @@ class AnalogVariable(Variable):
         min_raw = float(self.params.min_raw)
         max_raw = float(self.params.max_raw)
 
-        self.val = min(1.0, max(0.0, float(adc.read_adc(self.params.channel) - min_raw) / (max_raw - min_raw)))
+        adc_val = float(adc.read_adc(int(self.params.channel)))
+        self.val = min(1.0, max(0.0, (adc_val - min_raw) / (max_raw - min_raw)))
 
     def get_value(self):
         if not settings.ENABLE_ADC:
