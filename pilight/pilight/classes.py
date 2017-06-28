@@ -359,7 +359,7 @@ def scale_colors(colors, new_len):
     for index in range(new_len):
         old_index = float(index) * old_len / (new_len - 1)
 
-        if old_index.is_integer():
+        if old_index % 1 < 0.001 and old_index < len(colors):
             result.append(colors[int(old_index)])
             continue
 
