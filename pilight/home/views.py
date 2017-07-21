@@ -10,7 +10,8 @@ from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 from django.views.decorators.http import require_POST
 
 from home import client_queries, driver
-from home.models import Config, Light, TransformInstance, VariableInstance, VariableParam, save_variable_params
+from home.models import Config, Light, TransformInstance, VariableInstance, Playlist, PlaylistConfig, \
+    save_variable_params
 from pilight.classes import Color
 from pilight.driver import LightDriver
 from pilight.light import params
@@ -81,6 +82,7 @@ def bootstrap_client(request):
         'activeVariables': client_queries.active_variables(),
         'availableVariables': client_queries.available_variables(),
         'configs': client_queries.configs(),
+        'playlists': client_queries.playlists(),
         'toolColor': tool_color.safe_dict(),
         'csrfToken': csrf.get_token(request),
         'loggedIn': request.user.is_authenticated(),
@@ -246,6 +248,91 @@ def load_config(request):
     return success_json({})
 
 
+def playlist_to_json(playlist):
+    configs = [
+        {
+            'id': config.id,
+            'configId': config.config.id,
+            'duration': config.duration,
+        }
+        for config in playlist.playlistconfig_set.all().order_by('order')
+    ]
+
+    return {
+        'id': playlist.id,
+        'name': playlist.name,
+        'description': playlist.description,
+        'configs': configs,
+    }
+
+
+@user_passes_test(auth_check)
+def get_playlist(request, playlist_id):
+    playlist = Playlist.objects.filter(id=playlist_id).first()
+    if playlist:
+        return success_json({'playlist': playlist_to_json(playlist)})
+    else:
+        return fail_json('Invalid playlist specified')
+
+
+@require_POST
+@user_passes_test(auth_check)
+def save_playlist(request):
+    req = json.loads(request.body)
+
+    if 'id' in req:
+        # Saving an existing playlist
+        playlist = Playlist.objects.filter(id=req['id']).first()
+
+        if not playlist:
+            return fail_json('Invalid playlist specified')
+
+    else:
+        # New playlist
+        playlist = Playlist()
+
+    playlist.name = req.get('name', '')
+    playlist.description = req.get('description', '')
+    playlist.base_duration_secs = req.get('durationSecs', 1.0)
+    playlist.save()
+    playlist.playlistconfig_set.all().delete()
+
+    for config_order, req_config in enumerate(req.get('configs', [])):
+        if 'configId' in req_config:
+            config = Config.objects.filter(id=req_config['configId']).first()
+            if not config:
+                continue
+
+            playlist_config = PlaylistConfig()
+            playlist_config.playlist = playlist
+            playlist_config.config = config
+            playlist_config.duration = req_config.get('duration', 1.0)
+            playlist_config.order = config_order
+            playlist_config.save()
+
+    return success_json({
+        'playlist': playlist_to_json(playlist),
+        'playlists': client_queries.playlists(),
+    })
+
+
+@require_POST
+@user_passes_test(auth_check)
+def delete_playlist(request):
+    req = json.loads(request.body)
+
+    if 'id' in req:
+        playlist = Playlist.objects.filter(id=req['id']).first()
+        if playlist:
+            playlist.delete()
+            return success_json({'playlists': client_queries.playlists()})
+
+        else:
+            return fail_json('Invalid playlist specified')
+    else:
+        return fail_json('Must specify a playlist')
+
+
 @require_POST
 @user_passes_test(auth_check)
 def preview(request):
@@ -264,9 +351,6 @@ def preview(request):
 @require_POST
 @user_passes_test(auth_check)
 def apply_light_tool(request):
-    """
-    Complex function that applies a "tool" across several lights
-    """
     req = json.loads(request.body)
 
     if 'tool' in req and \

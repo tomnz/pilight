@@ -1,4 +1,5 @@
-import {PropTypes} from 'react';
+import PropTypes from 'prop-types';
+
 
 export const Color = PropTypes.shape({
     r: PropTypes.number.isRequired,
@@ -49,4 +50,15 @@ export const ActiveVariable = PropTypes.shape({
     name: PropTypes.string.isRequired,
     params: PropTypes.any,
     types: PropTypes.arrayOf(PropTypes.string),
+});
+
+export const Playlist = PropTypes.shape({
+    id: PropTypes.number,
+    name: PropTypes.string,
+    description: PropTypes.string,
+    configs: PropTypes.arrayOf(PropTypes.shape({
+        id: PropTypes.number,
+        configId: PropTypes.number,
+        duration: PropTypes.number,
+    })),
 });

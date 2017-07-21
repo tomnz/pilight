@@ -16,6 +16,24 @@ class Config(models.Model):
         return self.name
 
 
+class Playlist(models.Model):
+    """Stores a set of configs to rotate through"""
+
+    name = models.TextField()
+    description = models.TextField(blank=True, null=True)
+    base_duration_secs = models.FloatField(default=30)
+
+    def __unicode__(self):
+        return self.name
+
+
+class PlaylistConfig(models.Model):
+    config = models.ForeignKey(Config, on_delete=models.CASCADE)
+    playlist = models.ForeignKey(Playlist, on_delete=models.CASCADE)
+    order = models.IntegerField()
+    duration = models.FloatField(default=1.0)
+
+
 class LightManager(models.Manager):
     use_for_related_fields = True
 

@@ -26,6 +26,9 @@ urlpatterns = [
     url(r'^api/config/load/?$', views.load_config, name='load_config'),
     url(r'^api/config/save/?$', views.save_config, name='save_config'),
     url(r'^api/config/delete/?$', views.delete_config, name='delete_config'),
+    url(r'^api/playlist/get/(?P<playlist_id>\d+)/?', views.get_playlist, name='get_playlist'),
+    url(r'^api/playlist/save/?', views.save_playlist, name='save_playlist'),
+    url(r'^api/playlist/delete/?', views.delete_playlist, name='delete_playlist'),
     url(r'^api/channel/set/?$', views.update_color_channel, name='update_color_channel'),
 ]
 

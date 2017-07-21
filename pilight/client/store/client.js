@@ -10,12 +10,14 @@ const HANDLE_RESPONSE = 'client/HANDLE_RESPONSE';
 const SET_CONFIGS = 'client/SET_CONFIGS';
 const SET_ERROR = 'client/SET_ERROR';
 const SET_NUM_LIGHTS = 'client/SET_NUM_LIGHTS';
+const SET_PLAYLISTS = 'client/SET_PLAYLISTS';
 const START_BOOTSTRAP = 'client/START_BOOTSTRAP';
 
 export const clearError = createAction(CLEAR_ERROR);
 export const finishBootstrap = createAction(FINISH_BOOTSTRAP);
 export const setConfigs = createAction(SET_CONFIGS);
 export const setError = createAction(SET_ERROR);
+export const setPlaylists = createAction(SET_PLAYLISTS);
 export const setNumLights = createAction(SET_NUM_LIGHTS);
 export const startBootstrap = createAction(START_BOOTSTRAP);
 
@@ -82,13 +84,15 @@ const INITIAL_STATE = {
     configs: [],
     errorMessage: null,
     numLights: 0,
+    playlists: [],
 };
 
 export const client = handleActions({
-    [CLEAR_ERROR]: (state, action) => ({...state, errorMessage: null}),
-    [FINISH_BOOTSTRAP]: (state, action) => ({...state, bootstrapStatus: 'DONE'}),
+    [CLEAR_ERROR]: (state) => ({...state, errorMessage: null}),
+    [FINISH_BOOTSTRAP]: (state) => ({...state, bootstrapStatus: 'DONE'}),
     [SET_CONFIGS]: (state, action) => ({...state, configs: action.payload}),
     [SET_ERROR]: (state, action) => ({...state, errorMessage: action.payload}),
     [SET_NUM_LIGHTS]: (state, action) => ({...state, numLights: action.payload}),
-    [START_BOOTSTRAP]: (state, action) => ({...state, bootstrapStatus: 'PENDING'}),
+    [SET_PLAYLISTS]: (state, action) => ({...state, playlists: action.payload}),
+    [START_BOOTSTRAP]: (state) => ({...state, bootstrapStatus: 'PENDING'}),
 }, INITIAL_STATE);

@@ -1,6 +1,6 @@
 import json
 
-from home.models import Config, Light, TransformInstance, VariableInstance, load_variable_params
+from home.models import Config, Light, Playlist, TransformInstance, VariableInstance, load_variable_params
 from pilight.light.transforms import TRANSFORMS
 from pilight.light.variables import VARIABLES
 
@@ -95,5 +95,17 @@ def configs():
         result.append({
             'id': config.id,
             'name': config.name,
+        })
+    return result
+
+
+def playlists():
+    playlists_query = Playlist.objects.all().order_by('name')
+    result = []
+    for playlist in playlists_query:
+        result.append({
+            'id': playlist.id,
+            'name': playlist.name,
+            'description': playlist.description,
         })
     return result
