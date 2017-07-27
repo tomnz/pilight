@@ -45,15 +45,21 @@ class LightManager(models.Manager):
         # If we have the wrong number of lights, rescale to the expected number
         if len(current_lights) != settings.LIGHTS_NUM_LEDS:
             old_colors = [light.color for light in current_lights]
-            current_lights.delete()
+            if old_colors:
+                current_lights.delete()
 
-            new_colors = scale_colors(old_colors, settings.LIGHTS_NUM_LEDS)
-            new_lights = []
-            for i, color in enumerate(new_colors):
-                new_lights.append(Light(
-                    index=i,
-                    color=color,
-                ))
+                new_colors = scale_colors(old_colors, settings.LIGHTS_NUM_LEDS)
+                new_lights = []
+                for i, color in enumerate(new_colors):
+                    new_lights.append(Light(
+                        index=i,
+                        color=color,
+                    ))
+            else:
+                new_lights = [
+                    Light(index=i, color=Color.get_default())
+                    for i in range(settings.LIGHTS_NUM_LEDS)
+                ]
 
             Light.objects.bulk_create(new_lights)
 

@@ -79,7 +79,7 @@ LIGHTS_MULTIPLIER_W = 0.5
 ENABLE_AUDIO_VAR = False
 
 # Set to True to enable the MPC3008 ADC variable
-ENABLE_ADC = True
+ENABLE_ADC = False
 
 
 #################
