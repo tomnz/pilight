@@ -50,7 +50,7 @@ Extra deps:
 
 Download the source to a desired location:
 
-    git clone https://github.com/TomNZ/PiLight.git
+    git clone https://github.com/TomNZ/pilight.git
 
 Install the Python dependencies:
 
