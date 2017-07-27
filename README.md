@@ -60,19 +60,31 @@ Install the Python dependencies:
 
 > Note: If setting up a server installation on Windows, with PostgreSQL, you may find it easier to install the `psycopg2` package from a binary installer instead of with pip. [Download the binary](http://www.stickpeople.com/projects/python/win-psycopg/) corresponding to your Python/PostgreSQL version.
 
-Create a new database in your DBMS (e.g. PostgreSQL) to use for PiLight.
+Create a new database in your DBMS (e.g. PostgreSQL) to use for PiLight. These commands will give you a basic functional setup:
 
-Copy the settings file and make required changes (particularly set up your output device, light parameters, and database instance):
+    # Create a new user/password - you'll need to enter it in settings later
+    sudo -u postgres createuser pilight --pwprompt
+    sudo -u postgres createdb pilight --owner pilight
+
+Copy the settings file and make required changes.
 
     cd pilight
     cp pilight/settings.py.default pilight/settings.py
 
 > Note: Be sure to edit your new `settings.py` file!
 
+* Configure your output device, light parameters, and database instance.
+* Turn on audio var or ADC support if you need it.
+* Django has a [security feature](https://docs.djangoproject.com/en/1.5/ref/settings/#allowed-hosts) where you must pre-specify all hosts that a given server expects to be accessed as. You should populate the `ALLOWED_HOSTS` setting according to the hostname that you gave your Pi. For example: `ALLOWED_HOSTS = ['raspberrypi.local']`.
+
+Follow the sections below to set up corresponding prerequisites for your selected inputs and LED strip type.
+
 Setup the database:
 
     python manage.py migrate
     python manage.py createcachetable pilight_cache
+
+Now you're ready to run! Head to the Launch section below.
 
 
 Lights
@@ -121,7 +133,7 @@ That's it! You should now be able to access the interface to control the lights 
 Starting Automatically
 ----------------------
 
-If running PiLight from a Raspberry Pi, it may be beneficial to have the server and light driver start automatically when the device boots. This saves having to connect a keyboard or SSH to your Pi whenever the power cycles. It's suggested that you do this by using screen. First, open your screen config:
+If running PiLight from a Raspberry Pi, it may be beneficial to have the server and light driver start automatically when the device boots. This saves having to connect a keyboard or SSH to your Pi whenever the power cycles. It's suggested that you do this by using `screen`. First, open your screen config:
 
     nano ~/.screenrc
 
@@ -173,7 +185,7 @@ In order to make the behavior more dynamic, you can introduce "Variables". These
 
 To use a variable, you first need to add it. Then adjust its parameters as you see fit. Then, you have the ability to select the checkbox beside any compatible transform parameter, and select your new variable from the dropdown. If you have multiple variables of the same type (e.g. two ADC inputs), you can give them meaningful names.
 
-See below for more details on configuring the Audio variable.
+See below for more details on configuring the Audio variable and ADC.
 
 ### Running the light driver
 
@@ -213,6 +225,16 @@ PiLight has builtin support for audio reactivity based on a microphone input. Th
 > Note: You may experience some difficulties getting the microphone to be picked up correctly. Ensure you have set the given microphone as the default input source in both alsa and PulseAudio. For WS281X strips, you may also need to disable the onboard audio as per [the instructions](https://github.com/jgarff/rpi_ws281x#limitations). Finally, you may want to enable PulseAudio to run on startup - check out [this article](http://serendipity.ruwenzori.net/index.php/2015/06/01/sending-an-audio-stream-across-the-network-to-a-remote-raspberry-pi-with-pulseaudio-the-easy-way).
 
 > Note: There is some performance impact to using the audio variable, since it needs to continually recompute FFTs. This is partially mitigated by running the processing on a separate CPU core, but for very high frame rates it may become a limiting factor. Ensure you're using a Pi 2/3, which have 4 cores available.
+
+
+ADC
+---
+
+Similar to the Audio variable, you can configure an Analog-to-Digital Converter (ADC) to use as an analog input device. The suggested IC is an MPC3008 (available from [Adafruit](https://www.adafruit.com/product/856)).
+
+Install Adafruit's GPIO driver (for SPI support) using [their instructions](https://github.com/adafruit/Adafruit_Python_GPIO).
+
+Enable the MPC3008 variable in your `settings.py`.
 
 
 Development
