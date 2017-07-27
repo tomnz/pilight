@@ -133,7 +133,11 @@ That's it! You should now be able to access the interface to control the lights 
 Starting Automatically
 ----------------------
 
-If running PiLight from a Raspberry Pi, it may be beneficial to have the server and light driver start automatically when the device boots. This saves having to connect a keyboard or SSH to your Pi whenever the power cycles. It's suggested that you do this by using `screen`. First, open your screen config:
+If running PiLight from a Raspberry Pi, it may be beneficial to have the server and light driver start automatically when the device boots. This saves having to connect a keyboard or SSH to your Pi whenever the power cycles. It's suggested that you do this by using `screen`.
+
+    sudo apt-get install screen
+
+Then, open your screen config:
 
     nano ~/.screenrc
 
