@@ -36,10 +36,9 @@ Install all prerequisites first:
 * [RabbitMQ](http://www.rabbitmq.com/download.html) (requires [Erlang](http://www.erlang.org/download.html))
 * [pip](https://pypi.python.org/pypi/pip/) strongly recommended to install extra Python dependencies
 
-    sudo apt-get install python python-pip python-dev
-
 At the time of writing, PostgreSQL was at 9.4 in the Raspbian repo (need an explicit version for `postgresql-server-dev`):
 
+    sudo apt-get install python python-pip python-dev
     sudo apt-get install postgresql postgresql-server-dev-9.4 rabbitmq-server
 
 Extra deps:
