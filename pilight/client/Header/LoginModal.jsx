@@ -11,7 +11,13 @@ import {
 } from 'react-bootstrap';
 
 
-class LoginModal extends React.Component {
+export class LoginModal extends React.Component {
+    static propTypes = {
+        close: PropTypes.func.isRequired,
+        loginAsync: PropTypes.func.isRequired,
+        visible: PropTypes.bool.isRequired,
+    };
+
     state = {
         username: '',
         password: '',
@@ -93,11 +99,3 @@ class LoginModal extends React.Component {
         );
     }
 }
-
-LoginModal.propTypes = {
-    close: PropTypes.func.isRequired,
-    loginAsync: PropTypes.func.isRequired,
-    visible: PropTypes.bool.isRequired,
-};
-
-export {LoginModal};

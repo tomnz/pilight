@@ -2,15 +2,10 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {
     Button,
-    ButtonGroup,
     Col,
-    ControlLabel,
     Form,
     FormGroup,
-    FormControl,
     Grid,
-    InputGroup,
-    Panel,
     Radio,
     Row,
 } from 'react-bootstrap';
@@ -25,6 +20,16 @@ import {Slider} from '../Components/Slider';
 
 
 class Palette extends React.Component {
+    static propTypes = {
+        color: types.Color.isRequired,
+        fillAsync: PropTypes.func.isRequired,
+        opacity: PropTypes.number.isRequired,
+        radius: PropTypes.number.isRequired,
+        setOpacity: PropTypes.func.isRequired,
+        setRadius: PropTypes.func.isRequired,
+        setTool: PropTypes.func.isRequired,
+    };
+
     setTool = (name) => () => {
         this.props.setTool(name);
     };
@@ -97,16 +102,6 @@ class Palette extends React.Component {
     }
 }
 
-Palette.propTypes = {
-    color: types.Color.isRequired,
-    fillAsync: PropTypes.func.isRequired,
-    opacity: PropTypes.number.isRequired,
-    radius: PropTypes.number.isRequired,
-    setOpacity: PropTypes.func.isRequired,
-    setRadius: PropTypes.func.isRequired,
-    setTool: PropTypes.func.isRequired,
-};
-
 const mapStateToProps = (state) => {
     const {palette} = state;
     return {
@@ -129,4 +124,4 @@ const mapDispatchToProps = (dispatch) => {
 
 const PaletteRedux = connect(mapStateToProps, mapDispatchToProps)(Palette);
 
-export {PaletteRedux as Palette};
+export default PaletteRedux;

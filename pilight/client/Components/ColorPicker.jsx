@@ -8,7 +8,13 @@ import * as types from '../types';
 import css from './ColorPicker.scss';
 
 
-class ColorPicker extends React.Component {
+export class ColorPicker extends React.Component {
+    static propTypes = {
+        bsSize: PropTypes.string,
+        color: types.Color.isRequired,
+        onChange: PropTypes.func,
+    };
+
     state = {
         displayColorPicker: false,
     };
@@ -63,11 +69,3 @@ class ColorPicker extends React.Component {
         )
     }
 }
-
-ColorPicker.propTypes = {
-    bsSize: PropTypes.string,
-    color: types.Color.isRequired,
-    onChange: PropTypes.func,
-};
-
-export {ColorPicker};

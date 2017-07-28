@@ -17,6 +17,11 @@ import * as types from '../types';
 
 
 class Picker extends React.Component {
+    static propTypes = {
+        addVariableAsync: PropTypes.func.isRequired,
+        variables: PropTypes.arrayOf(types.AvailableVariable),
+    };
+
     addVariable = (variable) => () => {
         this.props.addVariableAsync(variable);
     };
@@ -77,11 +82,6 @@ class Picker extends React.Component {
         );
     }
 }
-
-Picker.propTypes = {
-    addVariableAsync: PropTypes.func.isRequired,
-    variables: PropTypes.arrayOf(types.AvailableVariable),
-};
 
 const mapStateToProps = (state) => {
     const {variables} = state;

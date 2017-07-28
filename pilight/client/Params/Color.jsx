@@ -6,7 +6,7 @@ import * as types from '../types';
 import {ColorPicker} from '../Components/ColorPicker';
 
 
-const Color = ({onChange,  value}) => {
+export const Color = ({onChange,  value}) => {
     return (
         <ColorPicker
             bsSize="xsmall"
@@ -20,5 +20,3 @@ Color.propTypes = {
     onChange: PropTypes.func.isRequired,
     value: types.Color.isRequired,
 };
-
-export {Color};

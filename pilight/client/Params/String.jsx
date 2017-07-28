@@ -5,7 +5,7 @@ import {FormControl, FormGroup} from 'react-bootstrap';
 import css from './common.scss';
 
 
-const String = ({onChange, origValue, value}) => {
+export const String = ({onChange, origValue, value}) => {
     const onChangeEvent = (event) => {
         onChange(event.target.value);
     };
@@ -33,5 +33,3 @@ String.propTypes = {
     origValue: PropTypes.string.isRequired,
     value: PropTypes.string.isRequired,
 };
-
-export {String};

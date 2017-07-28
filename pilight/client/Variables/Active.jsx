@@ -1,12 +1,8 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import {
-    Button,
     Col,
-    FormControl,
-    FormGroup,
     Grid,
-    InputGroup,
     Row,
 } from 'react-bootstrap';
 import {connect} from 'react-redux';
@@ -23,6 +19,13 @@ import {Variable} from './Variable';
 
 
 class Active extends React.Component {
+    static propTypes = {
+        variables: PropTypes.arrayOf(types.ActiveVariable),
+        paramsDefs: PropTypes.objectOf(
+            PropTypes.objectOf(types.ParamDef),
+        ).isRequired,
+    };
+
     deleteVariable = (id) => () => {
         this.props.deleteVariableAsync(id);
     };
@@ -75,13 +78,6 @@ class Active extends React.Component {
         );
     }
 }
-
-Active.propTypes = {
-    variables: PropTypes.arrayOf(types.ActiveVariable),
-    paramsDefs: PropTypes.objectOf(
-        PropTypes.objectOf(types.ParamDef),
-    ).isRequired,
-};
 
 const mapStateToProps = (state) => {
     const {variables} = state;

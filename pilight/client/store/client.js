@@ -6,7 +6,6 @@ import {bootstrapClientAsync} from './root';
 
 const CLEAR_ERROR = 'client/CLEAR_ERROR';
 const FINISH_BOOTSTRAP = 'client/FINISH_BOOTSTRAP';
-const HANDLE_RESPONSE = 'client/HANDLE_RESPONSE';
 const SET_CONFIGS = 'client/SET_CONFIGS';
 const SET_ERROR = 'client/SET_ERROR';
 const SET_NUM_LIGHTS = 'client/SET_NUM_LIGHTS';

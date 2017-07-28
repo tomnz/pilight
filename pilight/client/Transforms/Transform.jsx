@@ -11,13 +11,31 @@ import {
 
 import * as types from '../types';
 
-import {Param} from '../Params/Index';
+import Param from '../Params';
 import {Variable} from '../Params/Variable';
 
 import css from './Transform.scss';
 
 
-class Transform extends React.Component {
+export class Transform extends React.Component {
+    static propTypes = {
+        transform: types.ActiveTransform.isRequired,
+        paramsDef: PropTypes.objectOf(types.ParamDef).isRequired,
+        variablesByType: PropTypes.objectOf(
+            PropTypes.arrayOf(
+                PropTypes.shape({
+                    id: PropTypes.number.isRequired,
+                    name: PropTypes.string.isRequired,
+                }),
+            ),
+        ).isRequired,
+        description: PropTypes.string,
+        moveDown: PropTypes.func.isRequired,
+        moveUp: PropTypes.func.isRequired,
+        onSave: PropTypes.func.isRequired,
+        onDelete: PropTypes.func.isRequired,
+    };
+
     constructor(props) {
         super(props);
         // Do a JSON.stringify/parse to force a deep clone
@@ -198,23 +216,3 @@ class Transform extends React.Component {
         )
     }
 }
-
-Transform.propTypes = {
-    transform: types.ActiveTransform.isRequired,
-    paramsDef: PropTypes.objectOf(types.ParamDef).isRequired,
-    variablesByType: PropTypes.objectOf(
-        PropTypes.arrayOf(
-            PropTypes.shape({
-                id: PropTypes.number.isRequired,
-                name: PropTypes.string.isRequired,
-            }),
-        ),
-    ).isRequired,
-    description: PropTypes.string,
-    moveDown: PropTypes.func.isRequired,
-    moveUp: PropTypes.func.isRequired,
-    onSave: PropTypes.func.isRequired,
-    onDelete: PropTypes.func.isRequired,
-};
-
-export {Transform};

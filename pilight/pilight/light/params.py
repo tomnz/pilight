@@ -37,11 +37,11 @@ class LongParam(Param):
 
     @staticmethod
     def to_dict_value(value):
-        return long(value)
+        return int(value)
 
     @staticmethod
     def from_dict_value(value):
-        return long(value)
+        return int(value)
 
 
 class FloatParam(Param):
@@ -225,7 +225,7 @@ def transform_params_from_dict(values, variable_params, params_def, variables=No
 
 PARAM_CONVERSIONS = {
     ParamTypes.BOOLEAN: lambda value: bool(value),
-    ParamTypes.LONG: lambda value: long(round(value)),
+    ParamTypes.LONG: lambda value: int(round(value)),
 }
 
 

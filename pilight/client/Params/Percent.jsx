@@ -1,11 +1,10 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import {FormControl, FormGroup} from 'react-bootstrap';
 
 import {Slider} from '../Components/Slider';
 
 
-const Percent = ({onChange, value}) => {
+export const Percent = ({onChange, value}) => {
     const onChangeEvent = (newValue) => {
         onChange(parseFloat(newValue) / 100.0);
     };
@@ -15,7 +14,7 @@ const Percent = ({onChange, value}) => {
             min={0}
             max={100}
             onChange={onChangeEvent}
-            value={parseInt(value * 100)}
+            value={parseInt(value * 100, 10)}
         />
     );
 };
@@ -24,5 +23,3 @@ Percent.propTypes = {
     onChange: PropTypes.func.isRequired,
     value: PropTypes.number.isRequired,
 };
-
-export {Percent};
