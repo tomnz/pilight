@@ -5,9 +5,15 @@ import {FormControl, FormGroup} from 'react-bootstrap';
 import css from './common.scss';
 
 
-const VALID_LONG = /^(-|\+)?[0-9]+?$/;
+const VALID_LONG = /^[-+]?[0-9]+?$/;
 
-class Long extends React.Component {
+export class Long extends React.Component {
+    static propTypes = {
+        onChange: PropTypes.func.isRequired,
+        value: PropTypes.number.isRequired,
+        origValue: PropTypes.number.isRequired,
+    };
+
     constructor(props) {
         super(props);
         this.state = {
@@ -38,7 +44,7 @@ class Long extends React.Component {
             return;
         }
 
-        this.props.onChange(parseInt(valueStr));
+        this.props.onChange(parseInt(valueStr, 10));
     };
 
     render() {
@@ -60,11 +66,3 @@ class Long extends React.Component {
         );
     }
 }
-
-Long.propTypes = {
-    onChange: PropTypes.func.isRequired,
-    value: PropTypes.number.isRequired,
-    origValue: PropTypes.number.isRequired,
-};
-
-export {Long};

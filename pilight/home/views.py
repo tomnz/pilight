@@ -338,8 +338,8 @@ def delete_playlist(request):
 def preview(request):
     # To do this, we call into the driver class to simulate running
     # the actual driver
-    driver = LightDriver(simulation=True)
-    frames = driver.run_simulation(0.05, 100)
+    light_driver = LightDriver(simulation=True)
+    frames = light_driver.run_simulation(0.05, 100)
     frame_dicts = []
 
     for frame in frames:
@@ -354,25 +354,25 @@ def apply_light_tool(request):
     req = json.loads(request.body)
 
     if 'tool' in req and \
-                    'index' in req and \
-                    'radius' in req and \
-                    'opacity' in req and \
-                    'color' in req:
+            'index' in req and \
+            'radius' in req and \
+            'opacity' in req and \
+            'color' in req:
 
         # Always "reset" the lights - will fill out the correct number if it's wrong
         Light.objects.reset()
         current_lights = list(Light.objects.get_current())
 
         tool = req['tool']
-        index = req['index']
+        light_index = req['index']
         radius = req['radius']
         opacity = float(req['opacity']) / 100
         color = Color.from_dict(req['color'])
 
         if tool == 'solid':
             # Apply the color at the given opacity and radius
-            min_idx = max(0, index - radius)
-            max_idx = min(len(current_lights), index + radius + 1)
+            min_idx = max(0, light_index - radius)
+            max_idx = min(len(current_lights), light_index + radius + 1)
 
             for i in range(min_idx, max_idx):
                 light = current_lights[i]
@@ -381,11 +381,11 @@ def apply_light_tool(request):
 
         elif tool == 'smooth':
             # Apply the color at the given opacity and radius, with falloff
-            min_idx = max(0, index - radius)
-            max_idx = min(len(current_lights), index + radius + 1)
+            min_idx = max(0, light_index - radius)
+            max_idx = min(len(current_lights), light_index + radius + 1)
 
             for i in range(min_idx, max_idx):
-                distance = abs(index - i)
+                distance = abs(light_index - i)
                 # TODO: Better falloff function
                 strength = (1.0 - (float(distance) / radius)) * opacity
 

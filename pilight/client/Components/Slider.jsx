@@ -10,6 +10,14 @@ import css from './Slider.scss';
 
 
 export class Slider extends React.Component {
+    static propTypes = {
+        label: PropTypes.string,
+        min: PropTypes.number.isRequired,
+        max: PropTypes.number.isRequired,
+        value: PropTypes.number.isRequired,
+        onChange: PropTypes.func,
+    };
+
     onChange = (event) => {
         if (!!this.props.onChange) {
             this.props.onChange(event.target.value);
@@ -31,11 +39,3 @@ export class Slider extends React.Component {
         );
     }
 }
-
-Slider.propTypes = {
-    label: PropTypes.string,
-    min: PropTypes.number.isRequired,
-    max: PropTypes.number.isRequired,
-    value: PropTypes.number.isRequired,
-    onChange: PropTypes.func,
-};

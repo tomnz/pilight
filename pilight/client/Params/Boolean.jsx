@@ -5,7 +5,7 @@ import {Checkbox} from 'react-bootstrap';
 import css from './common.scss';
 
 
-const Boolean = ({onChange,  value}) => {
+export const Boolean = ({onChange,  value}) => {
     const onChangeEvent = (event) => {
         onChange(event.target.checked);
     };
@@ -23,5 +23,3 @@ Boolean.propTypes = {
     onChange: PropTypes.func.isRequired,
     value: PropTypes.bool.isRequired,
 };
-
-export {Boolean};

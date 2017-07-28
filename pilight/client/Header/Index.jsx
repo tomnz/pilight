@@ -2,12 +2,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {
     Button,
-    Col,
-    Grid,
-    Nav,
     Navbar,
-    NavItem,
-    Row,
 } from 'react-bootstrap';
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
@@ -17,10 +12,14 @@ import {loginAsync, logoutAsync} from '../store/auth';
 import {Controls} from './Controls';
 import {LoginModal} from './LoginModal';
 
-import css from './Index.scss';
-
 
 class Header extends React.Component {
+    static propTypes = {
+        loggedIn: PropTypes.bool.isRequired,
+        loginAsync: PropTypes.func.isRequired,
+        logoutAsync: PropTypes.func.isRequired,
+    };
+
     state = {
         loginVisible: false,
     };
@@ -74,12 +73,6 @@ class Header extends React.Component {
     }
 }
 
-Header.propTypes = {
-    loggedIn: PropTypes.bool.isRequired,
-    loginAsync: PropTypes.func.isRequired,
-    logoutAsync: PropTypes.func.isRequired,
-};
-
 const mapStateToProps = (state) => {
     const {auth} = state;
     return {
@@ -96,4 +89,4 @@ const mapDispatchToProps = (dispatch) => {
 
 const HeaderRedux = connect(mapStateToProps, mapDispatchToProps)(Header);
 
-export {HeaderRedux as Header};
+export default HeaderRedux;

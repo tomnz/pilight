@@ -9,7 +9,18 @@ import {Percent} from './Percent';
 import {String} from './String';
 
 
-class Param extends React.Component {
+export default class Param extends React.Component {
+    static propTypes = {
+        onChange: PropTypes.func.isRequired,
+        origValue: PropTypes.any.isRequired,
+        paramDef: PropTypes.shape({
+            name: PropTypes.string.isRequired,
+            description: PropTypes.string,
+            type: PropTypes.string.isRequired,
+        }).isRequired,
+        value: PropTypes.any.isRequired,
+    };
+
     render() {
         switch (this.props.paramDef.type) {
             case 'boolean':
@@ -19,7 +30,6 @@ class Param extends React.Component {
                         value={this.props.value}
                     />
                 );
-                break;
             case 'color':
                 return (
                     <Color
@@ -27,7 +37,6 @@ class Param extends React.Component {
                         value={this.props.value}
                     />
                 );
-                break;
             case 'float':
                 return (
                     <Float
@@ -36,7 +45,6 @@ class Param extends React.Component {
                         value={this.props.value}
                     />
                 );
-                break;
             case 'long':
                 return (
                     <Long
@@ -45,7 +53,6 @@ class Param extends React.Component {
                         value={this.props.value}
                     />
                 );
-                break;
             case 'percent':
                 return (
                     <Percent
@@ -54,7 +61,6 @@ class Param extends React.Component {
                         value={this.props.value}
                     />
                 );
-                break;
             case 'string':
                 return (
                     <String
@@ -63,7 +69,6 @@ class Param extends React.Component {
                         value={this.props.value}
                     />
                 );
-                break;
             default:
                 return (
                     <div>
@@ -73,16 +78,3 @@ class Param extends React.Component {
         }
     }
 }
-
-Param.propTypes = {
-    onChange: PropTypes.func.isRequired,
-    origValue: PropTypes.any.isRequired,
-    paramDef: PropTypes.shape({
-        name: PropTypes.string.isRequired,
-        description: PropTypes.string,
-        type: PropTypes.string.isRequired,
-    }).isRequired,
-    value: PropTypes.any.isRequired,
-};
-
-export {Param};

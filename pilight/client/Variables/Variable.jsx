@@ -2,8 +2,6 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {
     Button,
-    ButtonGroup,
-    Checkbox,
     FormControl,
     OverlayTrigger,
     Table,
@@ -11,12 +9,19 @@ import {
 } from 'react-bootstrap';
 
 import * as types from '../types';
-import {Param} from '../Params/Index';
+import Param from '../Params';
 
 import css from './Variable.scss';
 
 
 class Variable extends React.Component {
+    static propTypes = {
+        variable: types.ActiveVariable.isRequired,
+        paramsDef: PropTypes.objectOf(types.ParamDef).isRequired,
+        onSave: PropTypes.func.isRequired,
+        onDelete: PropTypes.func.isRequired,
+    };
+
     constructor(props) {
         super(props);
         // Do a JSON.stringify/parse to force a deep clone
@@ -142,12 +147,5 @@ class Variable extends React.Component {
         )
     }
 }
-
-Variable.propTypes = {
-    variable: types.ActiveVariable.isRequired,
-    paramsDef: PropTypes.objectOf(types.ParamDef).isRequired,
-    onSave: PropTypes.func.isRequired,
-    onDelete: PropTypes.func.isRequired,
-};
 
 export {Variable};

@@ -47,6 +47,9 @@ class Device(base.DeviceBase):
 
         self.messages_since_last_queue_check += 1
 
+    def set_color(self, index, color):
+        pass
+
     def to_data(self, colors):
         raw_data = bytearray(settings.LIGHTS_NUM_LEDS * 3)
         pos = 0

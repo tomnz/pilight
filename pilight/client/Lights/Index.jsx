@@ -14,12 +14,19 @@ import {applyToolAsync} from '../store/palette';
 import * as types from '../types';
 
 import {LightButton} from './LightButton';
-import {Preview} from './Preview/Index';
+import Preview from './Preview';
 
 import css from './Index.scss';
 
 
 class Lights extends React.Component {
+    static propTypes = {
+        baseColors: PropTypes.arrayOf(types.Color).isRequired,
+        previewFrames: PropTypes.arrayOf(
+            PropTypes.arrayOf(types.Color)
+        ),
+    };
+
     applyToolAsync = (id) => () => {
         return this.props.applyToolAsync(id);
     };
@@ -75,13 +82,6 @@ class Lights extends React.Component {
     }
 }
 
-Lights.propTypes = {
-    baseColors: PropTypes.arrayOf(types.Color).isRequired,
-    previewFrames: PropTypes.arrayOf(
-        PropTypes.arrayOf(types.Color)
-    ),
-};
-
 const mapStateToProps = (state) => {
     const {lights} = state;
     return {
@@ -98,5 +98,4 @@ const mapDispatchToProps = (dispatch) => {
 };
 
 const LightsRedux = connect(mapStateToProps, mapDispatchToProps)(Lights);
-
-export {LightsRedux as Lights};
+export default LightsRedux;

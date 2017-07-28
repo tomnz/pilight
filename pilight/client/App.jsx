@@ -2,14 +2,10 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {
     Alert,
-    Col,
-    Grid,
     Nav,
     Navbar,
     NavItem,
-    Row,
     Tab,
-    Tabs,
 } from 'react-bootstrap';
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
@@ -20,18 +16,28 @@ import {clearError} from './store/client';
 import {bootstrapClientAsync} from './store/root';
 
 import {AlertBar} from './AlertBar';
-import {Header} from './Header/Index';
+import Header from './Header';
 import {LoginModal} from './Header/LoginModal';
-import {Lights} from './Lights/Index';
-import {Palette} from './Palette/Index';
-import {Playlists} from './Playlists/Index';
-import {Transforms} from './Transforms/Index';
-import {Variables} from './Variables/Index';
+import Lights from './Lights';
+import Palette from './Palette';
+import Playlists from './Playlists';
+import Transforms from './Transforms';
+import Variables from './Variables';
 
 import css from './App.scss';
 
 
 class App extends React.Component {
+    static propTypes = {
+        authRequired: PropTypes.bool,
+        bootstrapStatus: PropTypes.string.isRequired,
+        bootstrapClientAsync: PropTypes.func,
+        errorMessage: PropTypes.string,
+        clearError: PropTypes.func,
+        loggedIn: PropTypes.bool,
+        loginAsync: PropTypes.func,
+    };
+
     constructor(props) {
         super(props);
         props.bootstrapClientAsync();
@@ -98,16 +104,6 @@ class App extends React.Component {
         );
     }
 }
-
-App.propTypes = {
-    authRequired: PropTypes.bool,
-    bootstrapStatus: PropTypes.string.isRequired,
-    bootstrapClientAsync: PropTypes.func,
-    errorMessage: PropTypes.string,
-    clearError: PropTypes.func,
-    loggedIn: PropTypes.bool,
-    loginAsync: PropTypes.func,
-};
 
 const mapStateToProps = (state) => {
     const {auth, client} = state;

@@ -7,7 +7,22 @@ import {Float} from './Float';
 import css from './common.scss';
 
 
-class Variable extends React.Component {
+export class Variable extends React.Component {
+    static propTypes = {
+        onChange: PropTypes.func.isRequired,
+        variable: PropTypes.shape({
+            variableId: PropTypes.number,
+            multiply: PropTypes.any,
+            add: PropTypes.any,
+        }).isRequired,
+        variables: PropTypes.arrayOf(
+            PropTypes.shape({
+                id: PropTypes.number.isRequired,
+                name: PropTypes.string.isRequired,
+            }),
+        ),
+    };
+
     onVariableChange = (event) => {
         this.props.onChange({
             ...this.props.variable,
@@ -63,20 +78,3 @@ class Variable extends React.Component {
         );
     }
 }
-
-Variable.propTypes = {
-    onChange: PropTypes.func.isRequired,
-    variable: PropTypes.shape({
-        variableId: PropTypes.number,
-        multiply: PropTypes.any,
-        add: PropTypes.any,
-    }).isRequired,
-    variables: PropTypes.arrayOf(
-        PropTypes.shape({
-            id: PropTypes.number.isRequired,
-            name: PropTypes.string.isRequired,
-        }),
-    ),
-};
-
-export {Variable};

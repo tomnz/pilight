@@ -1,12 +1,8 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import {
-    Button,
     Col,
-    FormControl,
-    FormGroup,
     Grid,
-    InputGroup,
     Row,
 } from 'react-bootstrap';
 import {connect} from 'react-redux';
@@ -25,6 +21,23 @@ import {Transform} from './Transform';
 
 
 class Active extends React.Component {
+    static propTypes = {
+        transforms: PropTypes.arrayOf(
+            types.ActiveTransform.isRequired,
+        ),
+        paramsDefs: PropTypes.objectOf(
+            PropTypes.objectOf(types.ParamDef),
+        ),
+        variablesByType: PropTypes.objectOf(
+            PropTypes.arrayOf(
+                PropTypes.shape({
+                    id: PropTypes.number.isRequired,
+                    name: PropTypes.string.isRequired,
+                }),
+            ),
+        ),
+    };
+
     deleteTransform = (id) => () => {
         this.props.deleteTransformAsync(id);
     };
@@ -88,23 +101,6 @@ class Active extends React.Component {
         );
     }
 }
-
-Active.propTypes = {
-    transforms: PropTypes.arrayOf(
-        types.ActiveTransform.isRequired,
-    ),
-    paramsDefs: PropTypes.objectOf(
-        PropTypes.objectOf(types.ParamDef),
-    ),
-    variablesByType: PropTypes.objectOf(
-        PropTypes.arrayOf(
-            PropTypes.shape({
-                id: PropTypes.number.isRequired,
-                name: PropTypes.string.isRequired,
-            }),
-        ),
-    ),
-};
 
 const mapStateToProps = (state) => {
     const {transforms, variables} = state;

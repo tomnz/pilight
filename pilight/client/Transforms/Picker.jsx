@@ -17,6 +17,10 @@ import * as types from '../types';
 
 
 class Picker extends React.Component {
+    static propTypes = {
+        transforms: PropTypes.arrayOf(types.AvailableTransform),
+    };
+
     addTransform = (transform) => () => {
         this.props.addTransformAsync(transform);
     };
@@ -79,10 +83,6 @@ class Picker extends React.Component {
         );
     }
 }
-
-Picker.propTypes = {
-    transforms: PropTypes.arrayOf(types.AvailableTransform),
-};
 
 const mapStateToProps = (state) => {
     const {transforms} = state;

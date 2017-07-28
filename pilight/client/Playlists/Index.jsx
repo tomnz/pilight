@@ -109,4 +109,4 @@ const mapDispatchToProps = (dispatch) => {
 };
 
 const PlaylistsRedux = connect(mapStateToProps, mapDispatchToProps)(Playlists);
-export {PlaylistsRedux as Playlists};
+export default PlaylistsRedux;

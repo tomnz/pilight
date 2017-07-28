@@ -7,7 +7,7 @@ import css from './AlertBar.scss';
 
 export const AlertBar = ({message, style, onDismiss}) => {
     if (!message || message === "") {
-        return <div></div>;
+        return <div />;
     }
     return (
         <div className={css.topBar}>

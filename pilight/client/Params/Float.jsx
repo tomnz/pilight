@@ -5,9 +5,15 @@ import {FormControl, FormGroup} from 'react-bootstrap';
 import css from './common.scss';
 
 
-const VALID_FLOAT = /^(-|\+)?[0-9]+(\.[0-9]+)?$/;
+const VALID_FLOAT = /^[-+]?[0-9]+(\.[0-9]+)?$/;
 
-class Float extends React.Component {
+export class Float extends React.Component {
+    static propTypes = {
+        onChange: PropTypes.func.isRequired,
+        value: PropTypes.number.isRequired,
+        origValue: PropTypes.number.isRequired,
+    };
+
     constructor(props) {
         super(props);
         this.state = {
@@ -60,11 +66,3 @@ class Float extends React.Component {
         );
     }
 }
-
-Float.propTypes = {
-    onChange: PropTypes.func.isRequired,
-    value: PropTypes.number.isRequired,
-    origValue: PropTypes.number.isRequired,
-};
-
-export {Float};

@@ -2,17 +2,9 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {
     Button,
-    ButtonGroup,
-    Col,
-    DropdownButton,
     Form,
     FormControl,
-    FormGroup,
-    Grid,
-    InputGroup,
-    MenuItem,
     Modal,
-    Row,
     Table,
 } from 'react-bootstrap';
 import {connect} from 'react-redux';
@@ -28,6 +20,20 @@ import css from './Index.scss';
 
 
 class Config extends React.Component {
+    static propTypes = {
+        configs: PropTypes.arrayOf(
+            PropTypes.shape({
+                id: PropTypes.number.isRequired,
+                name: PropTypes.string.isRequired,
+            }).isRequired,
+        ).isRequired,
+        deleteConfigAsync: PropTypes.func.isRequired,
+        hide: PropTypes.func.isRequired,
+        loadConfigAsync: PropTypes.func.isRequired,
+        saveConfigAsync: PropTypes.func.isRequired,
+        visible: PropTypes.bool.isRequired,
+    };
+
     state = {
         configName: '',
     };
@@ -115,20 +121,6 @@ class Config extends React.Component {
     }
 }
 
-Config.propTypes = {
-    configs: PropTypes.arrayOf(
-        PropTypes.shape({
-            id: PropTypes.number.isRequired,
-            name: PropTypes.string.isRequired,
-        }).isRequired,
-    ).isRequired,
-    deleteConfigAsync: PropTypes.func.isRequired,
-    hide: PropTypes.func.isRequired,
-    loadConfigAsync: PropTypes.func.isRequired,
-    saveConfigAsync: PropTypes.func.isRequired,
-    visible: PropTypes.bool.isRequired,
-};
-
 const mapStateToProps = (state) => {
     const {client} = state;
     return {
@@ -146,4 +138,4 @@ const mapDispatchToProps = (dispatch) => {
 
 const ConfigRedux = connect(mapStateToProps, mapDispatchToProps)(Config);
 
-export {ConfigRedux as Config};
+export default ConfigRedux;

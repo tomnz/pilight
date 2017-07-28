@@ -3,13 +3,7 @@ import React from 'react';
 import {
     Button,
     ButtonGroup,
-    DropdownButton,
-    FormControl,
-    InputGroup,
-    MenuItem,
-    Nav,
     Navbar,
-    NavItem,
 } from 'react-bootstrap';
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
@@ -22,10 +16,25 @@ import {
 } from '../store/client';
 import {doPreviewAsync} from '../store/lights';
 
-import {Config} from './Config/Index';
+import Config from './Config';
 
 
 class Controls extends React.Component {
+    static propTypes = {
+        configs: PropTypes.arrayOf(
+            PropTypes.shape({
+                id: PropTypes.number.isRequired,
+                name: PropTypes.string.isRequired,
+            }).isRequired,
+        ).isRequired,
+        doPreviewAsync: PropTypes.func.isRequired,
+        loadConfigAsync: PropTypes.func.isRequired,
+        previewActive: PropTypes.bool.isRequired,
+        saveConfigAsync: PropTypes.func.isRequired,
+        startDriverAsync: PropTypes.func.isRequired,
+        stopDriverAsync: PropTypes.func.isRequired,
+    };
+
     state = {
         configVisible: false,
     };
@@ -66,26 +75,11 @@ class Controls extends React.Component {
     }
 }
 
-Controls.propTypes = {
-    configs: PropTypes.arrayOf(
-        PropTypes.shape({
-            id: PropTypes.number.isRequired,
-            name: PropTypes.string.isRequired,
-        }).isRequired,
-    ).isRequired,
-    doPreviewAsync: PropTypes.func.isRequired,
-    loadConfigAsync: PropTypes.func.isRequired,
-    previewActive: PropTypes.bool.isRequired,
-    saveConfigAsync: PropTypes.func.isRequired,
-    startDriverAsync: PropTypes.func.isRequired,
-    stopDriverAsync: PropTypes.func.isRequired,
-};
-
 const mapStateToProps = (state) => {
     const {client, lights} = state;
     return {
         configs: client.configs,
-        previewActive: !!lights.previewFrame,
+        previewActive: !!lights.previewFrames,
     }
 };
 

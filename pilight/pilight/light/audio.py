@@ -30,6 +30,7 @@ class AudioComputeProcess(multiprocessing.Process):
 
         self.audio_samples = int(RATE * audio_duration)
         self.total_ffts = 0
+        self.val = 0.0
         self.stream = None
         self.frames = None
         self.pyaudio = None

@@ -11,7 +11,14 @@ import css from './Index.scss';
 
 const PREVIEW_FRAME_TIME = 50;
 
-export class Preview extends React.Component {
+export default class Preview extends React.Component {
+    static propTypes = {
+        clearPreview: PropTypes.func.isRequired,
+        previewFrames: PropTypes.arrayOf(
+            PropTypes.arrayOf(types.Color),
+        ),
+    };
+
     constructor(props) {
         super(props);
         // Not using state so we can bypass React... Not great, but performs better.
@@ -86,10 +93,3 @@ export class Preview extends React.Component {
         );
     }
 }
-
-Preview.propTypes = {
-    clearPreview: PropTypes.func.isRequired,
-    previewFrames: PropTypes.arrayOf(
-        PropTypes.arrayOf(types.Color),
-    ),
-};
