@@ -236,7 +236,7 @@ ADC
 
 Similar to the Audio variable, you can configure an Analog-to-Digital Converter (ADC) to use as an analog input device. The suggested IC is an MPC3008 (available from [Adafruit](https://www.adafruit.com/product/856)).
 
-Install Adafruit's GPIO driver (for SPI support) using [their instructions](https://github.com/adafruit/Adafruit_Python_GPIO).
+Install Adafruit's GPIO driver (for SPI support) using [their instructions](https://github.com/adafruit/Adafruit_Python_GPIO). Also install the MCP3008 library using [Adafruit's instructions](https://github.com/adafruit/Adafruit_Python_MCP3008).
 
 Enable the MPC3008 variable in your `settings.py`.
 
