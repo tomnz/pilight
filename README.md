@@ -39,10 +39,12 @@ Install all prerequisites first:
 Install deps:
 
     sudo apt-get install python python-pip python-dev git \
-            postgresql postgresql-server-dev rabbitmq-server \
-            python-pyaudio python-numpy pulseaudio alsa-utils
+            postgresql rabbitmq-server python-pyaudio \
+            python-numpy pulseaudio alsa-utils
 
 > Note: These instructions assume you're using a Raspberry Pi with Raspbian for the most part - omit sudo if your flavor doesn't use it, for example.
+
+You'll also need to install `postgresql-server-dev-9.x`, with the specific version corresponding to your PostgreSQL install (use `psql -v`).
 
 Download the source to a desired location:
 
