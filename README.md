@@ -40,7 +40,7 @@ Install deps:
 
     sudo apt-get install python python-pip python-dev git \
             postgresql rabbitmq-server python-pyaudio \
-            python-numpy pulseaudio alsa-utils
+            python-numpy alsa-utils
 
 > Note: These instructions assume you're using a Raspberry Pi with Raspbian for the most part - omit sudo if your flavor doesn't use it, for example.
 
