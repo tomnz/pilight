@@ -36,14 +36,11 @@ Install all prerequisites first:
 * [RabbitMQ](http://www.rabbitmq.com/download.html) (requires [Erlang](http://www.erlang.org/download.html))
 * [pip](https://pypi.python.org/pypi/pip/) strongly recommended to install extra Python dependencies
 
-At the time of writing, PostgreSQL was at 9.4 in the Raspbian repo (need an explicit version for `postgresql-server-dev`):
+Install deps:
 
-    sudo apt-get install python python-pip python-dev
-    sudo apt-get install postgresql postgresql-server-dev-9.4 rabbitmq-server
-
-Extra deps:
-
-    sudo apt-get install python-pyaudio python-numpy pulseaudio alsa-utils
+    sudo apt-get install python python-pip python-dev git \
+            postgresql postgresql-server-dev rabbitmq-server \
+            python-pyaudio python-numpy pulseaudio alsa-utils
 
 > Note: These instructions assume you're using a Raspberry Pi with Raspbian for the most part - omit sudo if your flavor doesn't use it, for example.
 
