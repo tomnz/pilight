@@ -98,7 +98,7 @@ WS281X_LED_PIN = 18
 WS281X_FREQ_HZ = 800000
 
 # DMA channel to use for generating the signal
-WS281X_DMA = 5
+WS281X_DMA = 10
 
 # True to invert the signal (when using NPN transistor level shift)
 WS281X_INVERT = False
