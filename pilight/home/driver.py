@@ -1,3 +1,5 @@
+import json
+
 from django.conf import settings
 
 from pilight.classes import Color, PikaConnection
@@ -11,7 +13,7 @@ def publish_message(msg, first=True):
         # Connection failed to open - fail silently
         return
     try:
-        channel.basic_publish(exchange='', routing_key=settings.PIKA_QUEUE_NAME, body=msg)
+        channel.basic_publish(exchange='', routing_key=settings.PIKA_QUEUE_NAME, body=json.dumps(msg))
 
     # Current version of Pika can be a little unstable - catch ANY exception
     except:
@@ -29,15 +31,28 @@ def publish_message(msg, first=True):
 
 
 def message_start():
-    publish_message('start')
+    publish_message({
+        'command': 'start',
+    })
+
+
+def message_start_playlist(playlist_id):
+    publish_message({
+        'command': 'start',
+        'playlistId': playlist_id,
+    })
 
 
 def message_stop():
-    publish_message('stop')
+    publish_message({
+        'command': 'stop',
+    })
 
 
 def message_restart():
-    publish_message('restart')
+    publish_message({
+        'command': 'restart',
+    })
 
 
 def message_color_channel(channel, color):
@@ -49,4 +64,8 @@ def message_color_channel(channel, color):
     # messiness with buffer overruns or the like
     channel = str(channel)[0:30]
 
-    publish_message('color_%s_%s' % (channel, color.to_hex()))
+    publish_message({
+        'command': 'color',
+        'channel': channel,
+        'color': color.to_hex(),
+    })

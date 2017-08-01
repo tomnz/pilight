@@ -660,6 +660,19 @@ def start_driver(request):
 
 @require_POST
 @user_passes_test(auth_check)
+def start_driver_playlist(request):
+    req = json.loads(request.body)
+    if 'id' in req:
+        driver.message_stop()
+        driver.message_start_playlist(req['id'])
+        return success_json({})
+
+    else:
+        return fail_json('No playlist specified')
+
+
+@require_POST
+@user_passes_test(auth_check)
 def stop_driver(request):
     driver.message_stop()
     return success_json({})

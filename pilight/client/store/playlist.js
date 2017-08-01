@@ -79,6 +79,15 @@ export const deletePlaylistAsync = () => (dispatch, getState) => {
     );
 };
 
+export const startPlaylistAsync = (id) => (dispatch) => {
+    return postObjectPromise(
+        `/api/driver/start-playlist/`,
+        {id: id},
+        (data) => {},
+        (error) => { dispatch(setError(error)); },
+    );
+};
+
 
 const INITIAL_STATE = {
     status: Status.PENDING,
