@@ -15,6 +15,7 @@ const MOVE_CONFIG_UP = 'playlist/MOVE_CONFIG_UP';
 const SET_CONFIG = 'playlist/SET_CONFIG';
 const SET_CONFIG_DURATION = 'playlist/SET_CONFIG_DURATION';
 const SET_DESCRIPTION = 'playlist/SET_DESCRIPTION';
+const SET_DURATION = 'playlist/SET_DURATION';
 const SET_NAME = 'playlist/SET_NAME';
 
 
@@ -29,6 +30,7 @@ export const moveConfigUp = createAction(MOVE_CONFIG_UP);
 export const setConfig = createAction(SET_CONFIG, (index, configId) => ({index, configId}));
 export const setConfigDuration = createAction(SET_CONFIG_DURATION, (index, duration) => ({index, duration}));
 export const setDescription = createAction(SET_DESCRIPTION);
+export const setDuration = createAction(SET_DURATION);
 export const setName = createAction(SET_NAME);
 
 
@@ -101,6 +103,7 @@ export const playlist = handleActions({
         current: {
             name: '',
             description: '',
+            durationSecs: 30.0,
             configs: [],
         },
     }),
@@ -248,6 +251,19 @@ export const playlist = handleActions({
             current: {
                 ...state.current,
                 description: action.payload,
+            }
+        }
+    },
+    [SET_DURATION]: (state, action) => {
+        if (!state.current) {
+            return state;
+        }
+
+        return {
+            ...state,
+            current: {
+                ...state.current,
+                durationSecs: action.payload,
             }
         }
     },

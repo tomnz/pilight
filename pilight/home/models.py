@@ -34,6 +34,10 @@ class PlaylistConfig(models.Model):
     duration = models.FloatField(default=1.0)
 
 
+class LastPlayed(models.Model):
+    playlist = models.ForeignKey(Playlist, on_delete=models.CASCADE)
+
+
 class LightManager(models.Manager):
     use_for_related_fields = True
 

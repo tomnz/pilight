@@ -14,6 +14,7 @@ import {
     setConfig,
     setConfigDuration,
     setDescription,
+    setDuration,
     setName,
     startPlaylistAsync,
 } from '../store/playlist';
@@ -40,6 +41,7 @@ class Editor extends React.Component {
         setConfig: PropTypes.func.isRequired,
         setConfigDuration: PropTypes.func.isRequired,
         setDescription: PropTypes.func.isRequired,
+        setDuration: PropTypes.func.isRequired,
         setName: PropTypes.func.isRequired,
         startPlaylistAsync: PropTypes.func.isRequired,
     };
@@ -85,7 +87,7 @@ class Editor extends React.Component {
         const configRows = this.props.playlist.configs ? this.props.playlist.configs.map((config, index) => {
             return (
                 <tr key={[index, this.props.playlist.configs.length]}>
-                    <td>
+                    <td colSpan={2}>
                         <FormControl
                             bsSize="small"
                             componentClass="select"
@@ -142,6 +144,14 @@ class Editor extends React.Component {
                             />
                         </th>
                         <th>
+                            Duration
+                            <String
+                                onChange={this.props.setDuration}
+                                value={this.props.playlist.durationSecs}
+                                origValue={this.props.playlist.durationSecs}
+                            />
+                        </th>
+                        <th>
                             <Button onClick={this.props.savePlaylistAsync} bsStyle="success" bsSize="small">
                                 Save
                             </Button>
@@ -159,7 +169,7 @@ class Editor extends React.Component {
                 <tbody>
                     {configRows}
                     <tr>
-                        <td colSpan="3">
+                        <td colSpan={4}>
                             <Button
                                 bsSize="xsmall"
                                 bsStyle="primary"
@@ -193,6 +203,7 @@ const mapDispatchToProps = (dispatch) => {
         setConfig,
         setConfigDuration,
         setDescription,
+        setDuration,
         setName,
         startPlaylistAsync,
     }, dispatch);

@@ -3,6 +3,7 @@ import struct
 from django.conf import settings
 import pickle
 import pika
+from pika import exceptions
 
 
 class PikaConnection(object):
@@ -33,7 +34,7 @@ class PikaConnection(object):
                 PikaConnection.connection_obj = pika.BlockingConnection(
                     pika.ConnectionParameters(host=settings.PIKA_HOST_NAME, heartbeat_interval=60)
                 )
-            except pika.exceptions.AMQPConnectionError:
+            except exceptions.AMQPConnectionError:
                 # Connection failed - just silently return nothing
                 return None
 

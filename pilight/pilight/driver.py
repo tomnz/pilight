@@ -4,7 +4,7 @@ import time
 
 from django.conf import settings
 
-from home.models import Playlist, Config, Light, TransformInstance, VariableInstance
+from home.models import LastPlayed, Light, Playlist, TransformInstance, VariableInstance
 from pilight.devices import client, noop, ws2801, ws281x
 from pilight.classes import PikaConnection, Color
 from pilight.light.transforms import TRANSFORMS
@@ -55,11 +55,6 @@ class LightDriver(object):
         # Basically run this loop forever until interrupted
         running = True
 
-        # If we are configured to autostart, then just go crazy - we don't need Pika until
-        # the driver stops
-        if settings.AUTO_START:
-            self.start()
-
         # Purge all existing events
         channel = None
         while not channel:
@@ -68,6 +63,15 @@ class LightDriver(object):
                 print 'Failed to connect... Retrying in 30 seconds'
                 time.sleep(30)
         channel.queue_purge(settings.PIKA_QUEUE_NAME)
+
+        # If we are configured to autostart, then just go crazy - we don't need Pika until
+        # the driver stops
+        if settings.AUTO_START:
+            last_played = LastPlayed.objects.first()
+            if last_played:
+                self.start(last_played.playlist)
+            else:
+                self.start()
 
         while running:
             # Try to obtain the channel again
@@ -87,6 +91,7 @@ class LightDriver(object):
                 # Just break out after reading the first message
                 break
 
+            # Return any unread messages to the queue
             channel.cancel()
 
             # Note: right now we ignore 'restart' and 'stop' commands if they come in
@@ -99,6 +104,10 @@ class LightDriver(object):
                     playlist = Playlist.objects.filter(id=playlist_id).first()
                 else:
                     playlist = None
+
+                # Make a note of what we last played - used for autostarting the driver
+                LastPlayed.objects.all().delete()
+                LastPlayed(playlist=playlist).save()
 
                 self.start(playlist)
 

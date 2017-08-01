@@ -262,6 +262,7 @@ def playlist_to_json(playlist):
         'id': playlist.id,
         'name': playlist.name,
         'description': playlist.description,
+        'durationSecs': playlist.base_duration_secs,
         'configs': configs,
     }
 
@@ -293,7 +294,7 @@ def save_playlist(request):
 
     playlist.name = req.get('name', '')
     playlist.description = req.get('description', '')
-    playlist.base_duration_secs = req.get('durationSecs', 1.0)
+    playlist.base_duration_secs = req.get('durationSecs', 30.0)
     playlist.save()
     playlist.playlistconfig_set.all().delete()
 
