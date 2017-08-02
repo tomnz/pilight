@@ -157,7 +157,7 @@ Suggested config to use (important piece commented):
     chdir $HOME/pilight/pilight
     # --insecure is important if Django's DEBUG is set to False - allows serving static files
     screen -t pl 2 bash -c 'python manage.py runserver --noreload --insecure 0.0.0.0:8000; exec bash'
-    screen -t pl-driver 3 bash -c 'sudo python manage.py lightdriver; exec bash'
+    screen -t pl-driver 3 bash -c 'sudo python manage.py lightdriver --force-run; exec bash'
 
     chdir $HOME
     select 0
