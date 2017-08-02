@@ -262,6 +262,7 @@ def playlist_to_json(playlist):
         'id': playlist.id,
         'name': playlist.name,
         'description': playlist.description,
+        'durationSecs': playlist.base_duration_secs,
         'configs': configs,
     }
 
@@ -293,7 +294,7 @@ def save_playlist(request):
 
     playlist.name = req.get('name', '')
     playlist.description = req.get('description', '')
-    playlist.base_duration_secs = req.get('durationSecs', 1.0)
+    playlist.base_duration_secs = req.get('durationSecs', 30.0)
     playlist.save()
     playlist.playlistconfig_set.all().delete()
 
@@ -656,6 +657,19 @@ def update_variable(request):
 def start_driver(request):
     driver.message_start()
     return success_json({})
+
+
+@require_POST
+@user_passes_test(auth_check)
+def start_driver_playlist(request):
+    req = json.loads(request.body)
+    if 'id' in req:
+        driver.message_stop()
+        driver.message_start_playlist(req['id'])
+        return success_json({})
+
+    else:
+        return fail_json('No playlist specified')
 
 
 @require_POST

@@ -10,6 +10,7 @@ urlpatterns = [
     url(r'^$', views.index, name='index'),
     url(r'^api/?$', views.bootstrap_client, name='bootstrap_client'),
     url(r'^api/driver/start/?$', views.start_driver, name='start_driver'),
+    url(r'^api/driver/start-playlist/?$', views.start_driver_playlist, name='start_driver_playlist'),
     url(r'^api/driver/stop/?$', views.stop_driver, name='stop_driver'),
     url(r'^api/driver/restart/?$', views.restart_driver, name='restart_driver'),
     url(r'^api/light/base-colors/?$', views.get_base_colors, name='get_base_colors'),

@@ -34,14 +34,18 @@ class PlaylistConfig(models.Model):
     duration = models.FloatField(default=1.0)
 
 
+class LastPlayed(models.Model):
+    playlist = models.ForeignKey(Playlist, on_delete=models.CASCADE)
+
+
 class LightManager(models.Manager):
     use_for_related_fields = True
 
     def get_current(self):
         return self.filter(config=None).order_by('index')
 
-    def reset(self):
-        current_lights = self.get_current()
+    def reset(self, config=None):
+        current_lights = self.filter(config=config)
         # If we have the wrong number of lights, rescale to the expected number
         if len(current_lights) != settings.LIGHTS_NUM_LEDS:
             old_colors = [light.color for light in current_lights]
@@ -54,10 +58,11 @@ class LightManager(models.Manager):
                     new_lights.append(Light(
                         index=i,
                         color=color,
+                        config=config,
                     ))
             else:
                 new_lights = [
-                    Light(index=i, color=Color.get_default())
+                    Light(index=i, color=Color.get_default(), config=config)
                     for i in range(settings.LIGHTS_NUM_LEDS)
                 ]
 
