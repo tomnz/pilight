@@ -717,15 +717,21 @@ class ScrollTransform(TransformBase):
         self.last_time = time
 
         # Calculate offset to source from
-        self.offset += progress * total
+        if self.params.reverse:
+            self.offset -= progress * total
+        else:
+            self.offset += progress * total
+
         self.offset %= total
 
         colors = []
+        blend = self.params.blend
+
         for index, input_color in enumerate(input_colors):
             source_position = (int(self.offset) + index) % total
             percent = self.offset % 1
 
-            if percent == 0 or not self.params.blend:
+            if percent == 0 or not blend:
                 colors.append(input_colors[source_position])
                 continue
 
