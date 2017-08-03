@@ -341,22 +341,14 @@ class LightDriver(object):
     @staticmethod
     def get_colors(config=None):
         Light.objects.reset(config)
-        current_lights = list(Light.objects.filter(config=config))
-        current_colors = []
-
-        if len(current_lights) != settings.LIGHTS_NUM_LEDS:
-            return None
-
-        for i in range(settings.LIGHTS_NUM_LEDS):
-            current_colors.append(current_lights[i].color)
-
-        return current_colors
+        current_lights = Light.objects.filter(config=config).order_by('index')
+        return [light.color for light in current_lights]
 
     @staticmethod
     def get_transforms(variables, config=None):
         # Grab transform instances out of the database, and
         # instantiate the corresponding classes
-        transform_items = TransformInstance.objects.filter(config=config)
+        transform_items = TransformInstance.objects.filter(config=config).order_by('order')
         current_transforms = []
 
         for transform_item in transform_items:
