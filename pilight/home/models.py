@@ -35,7 +35,7 @@ class PlaylistConfig(models.Model):
 
 
 class LastPlayed(models.Model):
-    playlist = models.ForeignKey(Playlist, on_delete=models.CASCADE)
+    playlist = models.ForeignKey(Playlist, on_delete=models.CASCADE, null=True)
 
 
 class LightManager(models.Manager):
