@@ -76,7 +76,7 @@ class LayerBase(TransformBase):
         ),
         blend_mode=StringParam(
             'Blend Mode',
-            'multiply',
+            'normal',
             'Blend mode (valid: "multiply" or "normal")',
         ))
 
@@ -248,7 +248,7 @@ class ColorBurstLayer(LayerBase):
             'Falloff radius for sparks',
         ),
         **LayerBase.params_def.params_def.copy())
-    display_order = 301
+    display_order = 302
 
     def __init__(self, transform_instance, variables):
         super(ColorBurstLayer, self).__init__(transform_instance, variables)
@@ -537,7 +537,7 @@ class GaussianBlurTransform(TransformBase):
         return colors
 
 
-class NoiseTransform(TransformBase):
+class NoiseLayer(LayerBase):
     name = 'Noise'
     description = 'Introduces random variations to each light, each frame. Strength defines the ' + \
                   'maximum amount that the light can vary by in each of the base colors.'
@@ -567,22 +567,27 @@ class NoiseTransform(TransformBase):
             'White Strength',
             0.0,
             'Amount that white will vary randomly by',
-        ))
+        ),
+        **LayerBase.params_def.params_def.copy())
     display_order = 8
 
     def __init__(self, transform_instance, variables):
-        super(NoiseTransform, self).__init__(transform_instance, variables)
+        super(NoiseLayer, self).__init__(transform_instance, variables)
 
         self.last_time = -1
         self.progress = 0.0
         self.current_colors = []
         self.next_colors = []
 
-    @staticmethod
-    def get_random_colors(length):
+    def get_random_colors(self, length):
         colors = []
         for i in range(length):
-            colors.append(Color(random.random(), random.random(), random.random(), random.random()))
+            colors.append(Color(
+                1.0 - random.random() * self.params.red_strength,
+                1.0 - random.random() * self.params.green_strength,
+                1.0 - random.random() * self.params.blue_strength,
+                1.0 - random.random() * self.params.white_strength,
+            ))
         return colors
 
     def tick_frame(self, time, num_positions):
@@ -600,22 +605,12 @@ class NoiseTransform(TransformBase):
 
         self.progress = (float(time) - float(self.last_time)) / self.params.duration
 
-    def transform(self, time, input_colors):
-        r_str = self.params.red_strength
-        g_str = self.params.green_strength
-        b_str = self.params.blue_strength
-        w_str = self.params.white_strength
+    def get_colors(self, time, num_positions):
+        colors = []
+        for index in range(num_positions):
+            colors.append(self.next_colors[index] * self.progress + self.current_colors[index] * (1 - self.progress))
 
-        for index, color in enumerate(input_colors):
-            tween_color = self.next_colors[index] * self.progress + self.current_colors[index] * (1 - self.progress)
-
-            input_colors[index] = Color(color.r * (1 - r_str) + tween_color.r * r_str,
-                                        color.g * (1 - g_str) + tween_color.g * g_str,
-                                        color.b * (1 - b_str) + tween_color.b * b_str,
-                                        color.w * (1 - w_str) + tween_color.w * w_str,
-                                        color.a)
-
-        return input_colors
+        return colors
 
 
 class PixelateTransform(TransformBase):
@@ -651,6 +646,35 @@ class PixelateTransform(TransformBase):
             result.extend([next_color] * num_colors)
 
         return result
+
+
+class RainbowLayer(LayerBase):
+    name = 'Rainbow Layer'
+    description = 'Layer that displays a rainbow across the full set of lights.'
+    params_def = ParamsDef(
+        saturation=PercentParam(
+            'Saturation',
+            1.0,
+            'Saturation of the rainbow\'s color',
+        ),
+        **LayerBase.params_def.params_def.copy())
+    display_order = 301
+
+    def __init__(self, transform_instance, variables):
+        super(RainbowLayer, self).__init__(transform_instance, variables)
+        self.colors = []
+        self.last_saturation = 0
+
+    def tick_frame(self, time, num_positions):
+        if self.params.saturation != self.last_saturation or len(self.colors) != num_positions:
+            # Need to re-generate the rainbow colors
+            self.colors = []
+            for index in range(num_positions):
+                self.colors.append(Color.from_hsv(360.0 * float(index) / float(num_positions), self.params.saturation, 1.0))
+            self.last_saturation = self.params.saturation
+
+    def get_colors(self, time, num_positions):
+        return self.colors
 
 
 class RotateHueTransform(TransformBase):
@@ -943,8 +967,9 @@ TRANSFORMS = {
     'fastblur': FastBlur,
     'flash': FlashTransform,
     'gaussian': GaussianBlurTransform,
-    'noise': NoiseTransform,
+    'noise': NoiseLayer,
     'pixelate': PixelateTransform,
+    'rainbow': RainbowLayer,
     'rotatehue': RotateHueTransform,
     'scroll': ScrollTransform,
     'spectrumflow': SpectrumFlowLayer,
