@@ -217,14 +217,15 @@ class BurstTransform(TransformBase):
         self.brightnesses = [0.0] * num_positions
 
         for spark in self.sparks:
-            spark_strength = 1.0 - abs((spark.age - 0.5) * 2)
+            spark_strength = abs((spark.age - 0.5) * 2)
             min_index = int(spark.pos - spark.radius + 1)
             max_index = int(math.ceil(spark.pos + spark.radius))
 
             for index in range(min_index, max_index):
                 # TODO: Better falloff function
                 distance = abs(float(index) - float(spark.pos))
-                self.brightnesses[index % num_positions] += (1.0 - (distance / float(spark.radius))) * spark_strength
+                self.brightnesses[index % num_positions] += max(
+                    0.0, (1.0 - (distance / float(spark.radius))) - spark_strength)
 
         # Save this time for the next iteration
         self.last_time = time
@@ -322,14 +323,15 @@ class ColorBurstLayer(LayerBase):
         self.brightnesses = [0.0] * num_positions
 
         for spark in self.sparks:
-            spark_strength = 1.0 - abs((spark.age - 0.5) * 2)
+            spark_strength = abs((spark.age - 0.5) * 2)
             min_index = int(spark.pos - spark.radius + 1)
             max_index = int(math.ceil(spark.pos + spark.radius))
 
             for index in range(min_index, max_index):
                 # TODO: Better falloff function
                 distance = abs(float(index) - float(spark.pos))
-                self.brightnesses[index % num_positions] += (1.0 - (distance / float(spark.radius))) * spark_strength
+                self.brightnesses[index % num_positions] += max(
+                    0.0, (1.0 - (distance / float(spark.radius))) - spark_strength)
 
         # Save this time for the next iteration
         self.last_time = time
