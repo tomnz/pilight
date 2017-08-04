@@ -40,20 +40,16 @@ class Variable(object):
 
 class RandomVariable(Variable):
     name = 'Random'
-    description = 'Emits a random floating point value between 0 and 1 each frame.'
+    description = 'Emits a random floating point value between 0 and 1 each time it\'s accessed.'
     display_order = 500
     param_types = NUMBER_TYPES
     singleton = True
 
     def __init__(self, variable_instance):
         super(RandomVariable, self).__init__(variable_instance)
-        self.value = 0.0
-
-    def tick_frame(self, time):
-        self.value = random.random()
 
     def get_value(self):
-        return self.value
+        return random.random()
 
 
 adc = None
