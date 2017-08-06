@@ -344,7 +344,7 @@ def preview(request):
     frame_dicts = []
 
     for frame in frames:
-        frame_dicts.append([color.safe_dict() for color in frame])
+        frame_dicts.append([color.flatten_alpha().safe_dict() for color in frame])
 
     return success_json({'frames': frame_dicts})
 

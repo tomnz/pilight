@@ -154,8 +154,30 @@ class Color(object):
     def blend_mult(a, b):
         if getattr(a, 'a', 1.0) == 1.0 and getattr(b, 'a', 1.0) == 1.0:
             return Color(a.r * b.r, a.g * b.g, a.b * b.b, getattr(a, 'w', 0.0) * getattr(b, 'w', 0.0))
-        else:
-            return Color.blend_mult(a.flatten_alpha(), b.flatten_alpha())
+        return Color.blend_mult(a.flatten_alpha(), b.flatten_alpha())
+
+    @staticmethod
+    def blend_mult_alpha(bg, fg):
+        bg_a = getattr(bg, 'a', 1.0)
+        fg_a = getattr(fg, 'a', 1.0)
+        if fg_a == 1.0:
+            return Color(
+                bg.r * fg.r,
+                bg.g * fg.g,
+                bg.b * fg.b,
+                getattr(bg, 'w', 0.0) * getattr(fg, 'w', 0.0),
+                # Always retain the background alpha
+                bg_a,
+            )
+
+        return Color(
+            bg.r * (1.0 - fg_a) + bg.r * fg.r * fg_a,
+            bg.g * (1.0 - fg_a) + bg.g * fg.g * fg_a,
+            bg.b * (1.0 - fg_a) + bg.b * fg.b * fg_a,
+            getattr(bg, 'w', 0.0) * (1.0 - fg_a) + getattr(bg, 'w', 0.0) * getattr(fg, 'w', 0.0),
+            # Always retain the background alpha
+            bg_a,
+        )
 
     # Operators
     def __add__(self, other):

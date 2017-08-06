@@ -100,6 +100,8 @@ class LayerBase(TransformBase):
             if self.blend_mode == 'multiply':
                 # TODO: Actually implement multiplicative blending
                 color = Color.blend_mult(input_color, color)
+            elif self.blend_mode == 'alpha':
+                color = Color.blend_mult_alpha(input_color, color)
             else:
                 color = Color.blend_normal(input_color, color)
 
@@ -232,8 +234,9 @@ class BurstTransform(TransformBase):
 
     def transform(self, time, input_colors):
         # Apply the saved brightnesses
-        for index in range(len(input_colors)):
-            input_colors[index] *= self.brightnesses[index]
+        for index, color in enumerate(input_colors):
+            color.a = getattr(color, 'a', 1.0) * self.brightnesses[index]
+
         return input_colors
 
 
