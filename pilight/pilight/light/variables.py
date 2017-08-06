@@ -4,7 +4,8 @@ import random
 
 from django.conf import settings
 
-from pilight.light.params import LongParam, FloatParam, ColorParam, StringParam, ParamsDef, variable_params_from_dict
+from pilight.light.params import BooleanParam, LongParam, FloatParam, ColorParam, StringParam, ParamsDef,\
+    variable_params_from_dict
 from pilight.light.types import NUMBER_TYPES, ParamTypes
 from pilight.classes import Color
 
@@ -79,6 +80,11 @@ class AnalogVariable(Variable):
             1023,
             'Maximum ADC value (scales to 1)',
         ),
+        inverse=BooleanParam(
+            'Inverse',
+            False,
+            'Inverse the variable value',
+        ),
     )
     param_types = NUMBER_TYPES
 
@@ -102,6 +108,9 @@ class AnalogVariable(Variable):
     def get_value(self):
         if not settings.ENABLE_ADC:
             return 1.0
+
+        if self.params.inverse:
+            return 1.0 - self.val
 
         return self.val
 
