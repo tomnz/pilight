@@ -7,7 +7,7 @@ from django.conf import settings
 from home.models import LastPlayed, Light, Playlist, TransformInstance, VariableInstance
 from pilight.devices import client, noop, ws2801, ws281x
 from pilight.classes import PikaConnection, Color
-from pilight.light.transforms import TRANSFORMS
+from pilight.light.transforms import BrightnessTransform, TRANSFORMS
 from pilight.light.variables import create_variable
 
 
@@ -183,6 +183,10 @@ class LightDriver(object):
             self.start_time = time.time()
         last_message_check = self.start_time
 
+        # Awful hack to force brightness based on a variable, if present
+        # TODO: Formalize an actual mechanism for configuring global brightness
+        brightness_var = VariableInstance.objects.get_current().filter(name='Brightness').first()
+
         frame_count = 0
         last_fps_time = time.time()
         running = True
@@ -220,6 +224,13 @@ class LightDriver(object):
             # Note that we always start from the same base lights on each iteration
             # The previous iteration has no effect on the current iteration
             colors = self.do_step(current_colors, elapsed_time, current_transforms, current_variables)
+
+            # Awful hack to force brightness based on a variable, if present
+            # TODO: Formalize an actual mechanism for configuring global brightness
+            if brightness_var:
+                brightness = current_variables[brightness_var.id].get_value()
+                for index, color in enumerate(colors):
+                    colors[index] = color * brightness
 
             # Send new colors to device
             self.set_colors(colors)
