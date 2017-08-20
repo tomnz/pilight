@@ -16,7 +16,6 @@ import {
     setDescription,
     setDuration,
     setName,
-    startPlaylistAsync,
 } from '../store/playlist';
 import {Playlist as PlaylistType} from '../types';
 
@@ -196,7 +195,6 @@ const mapDispatchToProps = (dispatch) => {
         setDescription,
         setDuration,
         setName,
-        startPlaylistAsync,
     }, dispatch);
 };
 
