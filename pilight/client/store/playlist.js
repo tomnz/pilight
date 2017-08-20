@@ -14,6 +14,7 @@ const MOVE_CONFIG_DOWN = 'playlist/MOVE_CONFIG_DOWN';
 const MOVE_CONFIG_UP = 'playlist/MOVE_CONFIG_UP';
 const SET_CONFIG = 'playlist/SET_CONFIG';
 const SET_CONFIG_DURATION = 'playlist/SET_CONFIG_DURATION';
+const SET_CURRENT = 'client/SET_CURRENT';
 const SET_DESCRIPTION = 'playlist/SET_DESCRIPTION';
 const SET_DURATION = 'playlist/SET_DURATION';
 const SET_NAME = 'playlist/SET_NAME';
@@ -29,13 +30,18 @@ export const moveConfigDown = createAction(MOVE_CONFIG_DOWN);
 export const moveConfigUp = createAction(MOVE_CONFIG_UP);
 export const setConfig = createAction(SET_CONFIG, (index, configId) => ({index, configId}));
 export const setConfigDuration = createAction(SET_CONFIG_DURATION, (index, duration) => ({index, duration}));
+export const setCurrent = createAction(SET_CURRENT);
 export const setDescription = createAction(SET_DESCRIPTION);
 export const setDuration = createAction(SET_DURATION);
 export const setName = createAction(SET_NAME);
 
 
 export const getPlaylistAsync = (id) => (dispatch) => {
-    dispatch(resetPlaylist());
+    dispatch(setCurrent(id));
+    if (!id) {
+        return;
+    }
+
     return fetchObjectPromise(
         `/api/playlist/get/${id}/`,
         (data) => {
@@ -81,18 +87,10 @@ export const deletePlaylistAsync = () => (dispatch, getState) => {
     );
 };
 
-export const startPlaylistAsync = (id) => (dispatch) => {
-    return postObjectPromise(
-        `/api/driver/start-playlist/`,
-        {id: id},
-        (data) => {},
-        (error) => { dispatch(setError(error)); },
-    );
-};
-
 
 const INITIAL_STATE = {
     status: Status.PENDING,
+    currentId: null,
     current: null,
 };
 
@@ -100,6 +98,7 @@ export const playlist = handleActions({
     [NEW_PLAYLIST]: (state) => ({
         ...state,
         status: Status.DONE,
+        currentId: null,
         current: {
             name: '',
             description: '',
@@ -107,14 +106,22 @@ export const playlist = handleActions({
             configs: [],
         },
     }),
+    [SET_CURRENT]: (state, action) => ({
+        ...state,
+        status: Status.PENDING,
+        currentId: action.payload,
+        current: null,
+    }),
     [RESET_PLAYLIST]: (state) => ({
         ...state,
         status: Status.PENDING,
+        currentId: null,
         current: null,
     }),
     [SET_PLAYLIST]: (state, action) => ({
         ...state,
         status: Status.DONE,
+        currentId: action.payload.id,
         current: action.payload,
     }),
 

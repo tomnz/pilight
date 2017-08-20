@@ -6,7 +6,7 @@ import {auth, setAuthRequired, setLoggedIn} from './auth';
 import {client, finishBootstrap, setConfigs, setError, setNumLights, setPlaylists, startBootstrap} from './client';
 import {setBaseColors, lights} from './lights';
 import {palette, setColor} from './palette';
-import {playlist} from './playlist';
+import {getPlaylistAsync, playlist} from './playlist';
 import {transforms, setActiveTransforms, setAvailableTransforms} from './transforms';
 import {variables, setActiveVariables, setAvailableVariables} from './variables';
 
@@ -36,6 +36,7 @@ export const bootstrapClientAsync = () => (dispatch) => {
             dispatch(setColor(data.toolColor));
             dispatch(setConfigs(data.configs));
             dispatch(setPlaylists(data.playlists));
+            dispatch(getPlaylistAsync(data.lastPlayed));
             dispatch(setLoggedIn(data.loggedIn));
 
             dispatch(finishBootstrap());
