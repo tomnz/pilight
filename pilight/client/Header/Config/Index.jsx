@@ -32,11 +32,15 @@ class Config extends React.Component {
         loadConfigAsync: PropTypes.func.isRequired,
         saveConfigAsync: PropTypes.func.isRequired,
         visible: PropTypes.bool.isRequired,
+        selectedConfigName: PropTypes.string,
     };
 
-    state = {
-        configName: '',
-    };
+    constructor(props) {
+        super(props);
+        this.state = {
+            configName: props.selectedConfigName || '',
+        };
+    }
 
     onConfigNameChange = (event) => {
         this.setState({
@@ -125,6 +129,7 @@ const mapStateToProps = (state) => {
     const {client} = state;
     return {
         configs: client.configs,
+        selectedConfigName: client.selectedConfigName,
     }
 };
 
@@ -137,5 +142,4 @@ const mapDispatchToProps = (dispatch) => {
 };
 
 const ConfigRedux = connect(mapStateToProps, mapDispatchToProps)(Config);
-
 export default ConfigRedux;
