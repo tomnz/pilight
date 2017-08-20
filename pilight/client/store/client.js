@@ -62,9 +62,12 @@ export const loadConfigAsync = (id) => (dispatch) => {
     );
 };
 
-export const startDriverAsync = () => (dispatch) => {
+export const startDriverAsync = () => (dispatch, getState) => {
+    const {playlist} = getState();
+    const body = playlist.currentId ? {id: playlist.currentId} : {};
+
     return postObjectPromise(
-        `/api/driver/start/`, {}, () => {},
+        `/api/driver/start/`, body, () => {},
         (error) => { dispatch(setError(error)); },
     );
 };

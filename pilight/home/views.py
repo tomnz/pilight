@@ -10,7 +10,7 @@ from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 from django.views.decorators.http import require_POST
 
 from home import client_queries, driver
-from home.models import Config, Light, TransformInstance, VariableInstance, Playlist, PlaylistConfig, \
+from home.models import Config, LastPlayed, Light, TransformInstance, VariableInstance, Playlist, PlaylistConfig, \
     save_variable_params
 from pilight.classes import Color
 from pilight.driver import LightDriver
@@ -74,6 +74,8 @@ def bootstrap_client(request):
         base_colors.append(light.color.safe_dict())
     tool_color /= len(current_lights)
 
+    last_played = LastPlayed.objects.first()
+
     return success_json({
         'numLights': settings.LIGHTS_NUM_LEDS,
         'baseColors': base_colors,
@@ -83,6 +85,7 @@ def bootstrap_client(request):
         'availableVariables': client_queries.available_variables(),
         'configs': client_queries.configs(),
         'playlists': client_queries.playlists(),
+        'lastPlayed': last_played.playlist.id if last_played else None,
         'toolColor': tool_color.safe_dict(),
         'csrfToken': csrf.get_token(request),
         'loggedIn': request.user.is_authenticated(),
@@ -655,21 +658,15 @@ def update_variable(request):
 @require_POST
 @user_passes_test(auth_check)
 def start_driver(request):
-    driver.message_start()
-    return success_json({})
-
-
-@require_POST
-@user_passes_test(auth_check)
-def start_driver_playlist(request):
     req = json.loads(request.body)
     if 'id' in req:
         driver.message_stop()
         driver.message_start_playlist(req['id'])
-        return success_json({})
-
     else:
-        return fail_json('No playlist specified')
+        driver.message_stop()
+        driver.message_start()
+
+    return success_json({})
 
 
 @require_POST

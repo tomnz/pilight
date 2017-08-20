@@ -43,7 +43,6 @@ class Editor extends React.Component {
         setDescription: PropTypes.func.isRequired,
         setDuration: PropTypes.func.isRequired,
         setName: PropTypes.func.isRequired,
-        startPlaylistAsync: PropTypes.func.isRequired,
     };
 
     onConfigChange = (index) => (event) => {
@@ -69,10 +68,6 @@ class Editor extends React.Component {
 
     moveConfigUp = (index) => () => {
         this.props.moveConfigUp(index);
-    };
-
-    startPlaylist = (id) => () => {
-        this.props.startPlaylistAsync(id);
     };
 
     render() {
@@ -158,10 +153,6 @@ class Editor extends React.Component {
                             {' '}
                             <Button onClick={this.props.deletePlaylistAsync} bsStyle="danger" bsSize="small">
                                 Delete
-                            </Button>
-                            {' '}
-                            <Button onClick={this.startPlaylist(this.props.playlist.id)} bsStyle="success" bsSize="small">
-                                Play
                             </Button>
                         </th>
                     </tr>

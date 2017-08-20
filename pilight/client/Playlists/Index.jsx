@@ -4,7 +4,6 @@ import {
     Button,
     Col,
     Form,
-    FormControl,
     Grid,
     Panel,
     Row,
@@ -12,17 +11,14 @@ import {
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 
-import {getPlaylistAsync, newPlaylist, resetPlaylist} from '../store/playlist';
+import {newPlaylist} from '../store/playlist';
 import {Playlist as PlaylistType} from '../types';
 
 import {Editor} from './Editor';
 
-import css from './Index.scss';
 
-
-class Playlists extends React.Component {
+class Playlist extends React.Component {
     static propTypes = {
-        getPlaylistAsync: PropTypes.func.isRequired,
         currentPlaylist: PlaylistType,
         newPlaylist: PropTypes.func.isRequired,
         playlists: PropTypes.arrayOf(PropTypes.shape({
@@ -30,45 +26,15 @@ class Playlists extends React.Component {
             name: PropTypes.string,
             description: PropTypes.string,
         })),
-        resetPlaylist: PropTypes.func.isRequired,
-    };
-
-    onPlaylistSelect = (event) => {
-        const playlistId = event.target.value;
-        if (playlistId) {
-            this.props.getPlaylistAsync(parseInt(playlistId, 10));
-        } else {
-            this.props.resetPlaylist();
-        }
     };
 
     render() {
-        const playlistOptions = this.props.playlists ? this.props.playlists.map((playlist) => {
-            return (
-                <option key={playlist.id} value={playlist.id.toString()}>
-                    {playlist.name}
-                </option>
-            );
-        }) : [];
-
         return (
             <Grid>
                 <Row>
                     <Col>
                         <Panel>
                             <Form inline>
-                                <FormControl
-                                    bsSize="small"
-                                    className={css.controlWidth}
-                                    componentClass="select"
-                                    onChange={this.onPlaylistSelect}
-                                    value={this.props.currentPlaylist && this.props.currentPlaylist.id ?
-                                        this.props.currentPlaylist.id.toString() : ''}
-                                >
-                                    <option value="">Load</option>
-                                    {playlistOptions}
-                                </FormControl>
-                                {' '}
                                 <Button
                                     bsStyle="success"
                                     bsSize="small"
@@ -102,11 +68,9 @@ const mapStateToProps = (state) => {
 
 const mapDispatchToProps = (dispatch) => {
     return bindActionCreators({
-        getPlaylistAsync,
         newPlaylist,
-        resetPlaylist,
     }, dispatch);
 };
 
-const PlaylistsRedux = connect(mapStateToProps, mapDispatchToProps)(Playlists);
-export default PlaylistsRedux;
+const PlaylistRedux = connect(mapStateToProps, mapDispatchToProps)(Playlist);
+export default PlaylistRedux;
