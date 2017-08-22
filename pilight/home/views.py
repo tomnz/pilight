@@ -85,7 +85,7 @@ def bootstrap_client(request):
         'availableVariables': client_queries.available_variables(),
         'configs': client_queries.configs(),
         'playlists': client_queries.playlists(),
-        'lastPlayed': last_played.playlist.id if last_played else None,
+        'lastPlayed': last_played.playlist.id if last_played and last_played.playlist else None,
         'toolColor': tool_color.safe_dict(),
         'csrfToken': csrf.get_token(request),
         'loggedIn': request.user.is_authenticated(),
