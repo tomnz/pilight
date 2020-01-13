@@ -65,7 +65,6 @@ class LayerBase(TransformBase):
     def __init__(self, transform_instance, variables):
         super(LayerBase, self).__init__(transform_instance, variables)
 
-        self.opacity = self.params.opacity
         self.blend_mode = self.params.blend_mode
 
     params_def = ParamsDef(
@@ -87,12 +86,13 @@ class LayerBase(TransformBase):
         overridden by inherited classes - override get_color instead.
         """
 
+        opacity = self.params.opacity
         total = len(input_colors)
         colors = self.get_colors(time, total)
         for index, input_color in enumerate(input_colors):
             # Grab the color from the layer and apply the opacity
             color = colors[index].clone()
-            color.a *= self.opacity
+            color.a *= opacity
 
             # Perform blending with the given blend mode
             # Currently support "multiply" and "normal" modes - normal being the default

@@ -53,6 +53,26 @@ class RandomVariable(Variable):
         return random.random()
 
 
+class FixedVariable(Variable):
+    name = 'Fixed'
+    description = 'Emits a preset value.'
+    display_order = 501
+    param_types = NUMBER_TYPES
+    params_def = ParamsDef(
+        value=FloatParam(
+            'Value',
+            1.0,
+            'Value to emit',
+        ),
+    )
+
+    def __init__(self, variable_instance):
+        super(FixedVariable, self).__init__(variable_instance)
+
+    def get_value(self):
+        return self.params.value
+
+    
 adc = None
 if settings.ENABLE_ADC:
     import Adafruit_GPIO.SPI as SPI
@@ -256,6 +276,7 @@ class UnknownVariable(Variable):
 VARIABLES = {
     'colorchannel': ColorChannelVariable,
     'random': RandomVariable,
+    'fixed': FixedVariable,
 }
 
 if settings.ENABLE_ADC:
