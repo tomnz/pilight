@@ -14,12 +14,12 @@ Client/Server
 
 The instructions below describe the configuration of a "standalone" installation of PiLight, such as onto a Raspberry Pi. While the Raspberry Pi is perfectly capable of running the PiLight configuration interface, and producing color data for the LEDs, its processor can sometimes struggle with the workload, reducing "framerate" to <10 updates per second.
 
-For high-performance installations running complex animations, it's recommended to run PiLight on a more powerful server computer, and use the lightweight [PiLight Client](https://bitbucket.org/tomnz/pilight-client) as the only software running on the Raspberry Pi. Note that this is more work to set up, and completely optional.
+For high-performance installations running complex animations, it's recommended to run PiLight on a more powerful server computer, and use the lightweight [PiLight Client](https://github.com/tomnz/pilight-client) as the only software running on the Raspberry Pi. Note that this is more work to set up, and completely optional.
 
 If you intend to use this configuration, then pay attention to the following differences in installation:
 
 * Install PiLight (as per the instructions below) onto your intended server computer
-* Install [PiLight Client](https://bitbucket.org/tomnz/pilight-client) onto the Raspberry Pi, according to the instructions on that page
+* Install [PiLight Client](https://github.com/tomnz/pilight-client) onto the Raspberry Pi, according to the instructions on that page
 * Do NOT install the full PiLight software onto your Raspberry Pi
 * In the PiLight `settings.py` file, set `LIGHTS_DEVICE` to `'client'`
 * Make sure to open your RabbitMQ port (usually 5672) on your server computer, so that the Raspberry Pi can access it
@@ -31,29 +31,29 @@ Installation
 
 Install all prerequisites first:
 
-* [Python](http://www.python.org/download/) - 2.7 recommended
+* [Python](http://www.python.org/download/) - 3.4+ recommended
 * Database software - [PostgreSQL](http://www.postgresql.org/download/) recommended
 * [RabbitMQ](http://www.rabbitmq.com/download.html) (requires [Erlang](http://www.erlang.org/download.html))
 * [pip](https://pypi.python.org/pypi/pip/) strongly recommended to install extra Python dependencies
 
 Install deps:
 
-    sudo apt-get install python python-pip python-dev git \
+    sudo apt-get install python3 python3-pip python3-dev git \
             postgresql rabbitmq-server python-pyaudio \
             python-numpy alsa-utils
 
 > Note: These instructions assume you're using a Raspberry Pi with Raspbian for the most part - omit sudo if your flavor doesn't use it, for example.
 
-You'll also need to install `postgresql-server-dev-9.x`, with the specific version corresponding to your PostgreSQL install (use `psql -v`).
+You'll also need to install `postgresql-server-dev-x`, with the specific version corresponding to your PostgreSQL install (use `psql -v`).
 
 Download the source to a desired location:
 
-    git clone https://github.com/TomNZ/pilight.git
+    git clone https://github.com/tomnz/pilight.git
 
 Install the Python dependencies:
 
     cd pilight
-    sudo pip install -r requirements.txt
+    sudo pip3 install -r requirements.txt
 
 > Note: If you get an error message about available space on the device, it's likely that your /tmp folder is too small. Run `sudo nano /etc/default/tmpfs`, change TMP_SIZE to 200M, then try `pip install -r requirements.txt` again. You may run into this when installing on an older Raspberry Pi device.
 
@@ -65,7 +65,7 @@ Create a new database in your DBMS (e.g. PostgreSQL) to use for PiLight. These c
     sudo -u postgres createuser pilight --pwprompt
     sudo -u postgres createdb pilight --owner pilight
 
-Copy the settings file and make required changes.
+Copy the settings file and make required changes:
 
     cd pilight
     cp pilight/settings.py.default pilight/settings.py
@@ -73,15 +73,15 @@ Copy the settings file and make required changes.
 > Note: Be sure to edit your new `settings.py` file!
 
 * Configure your output device, light parameters, and database instance.
-* Turn on audio var or ADC support if you need it.
+* Turn on audio or analog support if you need it for variables.
 * Django has a [security feature](https://docs.djangoproject.com/en/1.5/ref/settings/#allowed-hosts) where you must pre-specify all hosts that a given server expects to be accessed as. You should populate the `ALLOWED_HOSTS` setting according to the hostname that you gave your Pi. For example: `ALLOWED_HOSTS = ['raspberrypi.local']`.
 
 Follow the sections below to set up corresponding prerequisites for your selected inputs and LED strip type.
 
 Setup the database:
 
-    python manage.py migrate
-    python manage.py createcachetable pilight_cache
+    python3 manage.py migrate
+    python3 manage.py createcachetable pilight_cache
 
 Now you're ready to run! Head to the Launch section below.
 
@@ -97,7 +97,7 @@ Driving this chip requires a SPI device. The SPI driver is disabled by default o
 
 Install Adafruit's library:
 
-    pip install adafruit-ws2801
+    pip3 install adafruit-ws2801
 
 Install Adafruit's GPIO driver (for SPI support) using [their instructions](https://github.com/adafruit/Adafruit_Python_GPIO).
 
@@ -118,11 +118,11 @@ Once you've gone through all the installation steps, you're ready to run PiLight
 
 First, ensure that RabbitMQ and your DBMS are running. Then, run the following commands in separate console windows (or use `screen`):
 
-    sudo python manage.py lightdriver
+    sudo python3 manage.py lightdriver
 
 And
 
-    python manage.py runserver --noreload 0.0.0.0:8000
+    python3 manage.py runserver --noreload 0.0.0.0:8000
 
 > Note: `lightdriver` and `runserver` are both blocking commands that run until stopped, which is why they must be in separate console windows. We bind `runserver` to 0.0.0.0:8000 so that it can be accessed from other devices on the network, not just localhost. This is useful for controlling PiLight from your phone or computer. `--noreload` reduces CPU usage by the web service significantly when idle. This is especially important when running in standalone mode.
 
@@ -156,8 +156,8 @@ Suggested config to use (important piece commented):
     # Crucial tabs:
     chdir $HOME/pilight/pilight
     # --insecure is important if Django's DEBUG is set to False - allows serving static files
-    screen -t pl 2 bash -c 'python manage.py runserver --noreload --insecure 0.0.0.0:8000; exec bash'
-    screen -t pl-driver 3 bash -c 'sudo python manage.py lightdriver --force-run; exec bash'
+    screen -t pl 2 bash -c 'python3 manage.py runserver --noreload --insecure 0.0.0.0:8000; exec bash'
+    screen -t pl-driver 3 bash -c 'sudo python3 manage.py lightdriver --force-run; exec bash'
 
     chdir $HOME
     select 0
@@ -188,7 +188,7 @@ In order to make the behavior more dynamic, you can introduce "Variables". These
 
 To use a variable, you first need to add it. Then adjust its parameters as you see fit. Then, you have the ability to select the checkbox beside any compatible transform parameter, and select your new variable from the dropdown. If you have multiple variables of the same type (e.g. two ADC inputs), you can give them meaningful names.
 
-See below for more details on configuring the Audio variable and ADC.
+See below for more details on configuring the Audio and Analog variables.
 
 ### Running the light driver
 
@@ -211,9 +211,11 @@ You can save the current configuration by typing a name in the text box at top r
 Updating
 --------
 
-Periodically you may want to update PiLight to get the latest features and bug fixes. Just run the following commands from the `pilight/pilight` directory:
+Periodically you may want to update PiLight to get the latest features and bug fixes. Just run the following commands from the `pilight` directory:
 
     git pull
+    sudo pip3 install -r requirements.txt
+    cd pilight
     python manage.py migrate
 
 
@@ -230,14 +232,14 @@ PiLight has builtin support for audio reactivity based on a microphone input. Th
 > Note: There is some performance impact to using the audio variable, since it needs to continually recompute FFTs. This is partially mitigated by running the processing on a separate CPU core, but for very high frame rates it may become a limiting factor. Ensure you're using a Pi 2/3, which have 4 cores available.
 
 
-ADC
----
+Analog
+------
 
 Similar to the Audio variable, you can configure an Analog-to-Digital Converter (ADC) to use as an analog input device. The suggested IC is an MPC3008 (available from [Adafruit](https://www.adafruit.com/product/856)).
 
 Install Adafruit's MCP3008 library:
 
-    sudo pip install adafruit-mcp3008
+    sudo pip3 install adafruit-mcp3008
 
 Enable the MPC3008 variable in your `settings.py`.
 
