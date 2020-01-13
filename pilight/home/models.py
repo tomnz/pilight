@@ -80,9 +80,9 @@ class Light(models.Model):
 
     def __unicode__(self):
         if self.config:
-            return u'%s - %s - %s' % (self.config.name, unicode(self.index), self.color_hex)
+            return '%s - %s - %s' % (self.config.name, str(self.index), self.color_hex)
         else:
-            return u'%s - %s' % (unicode(self.index), self.color_hex)
+            return '%s - %s' % (str(self.index), self.color_hex)
 
     @property
     def color_hex(self):
@@ -152,7 +152,7 @@ def save_variable_params(transform_instance, transform_params):
         in VariableParam.objects.filter(transform=transform_instance)
     }
 
-    for name, variable in transform_params.variable_params.iteritems():
+    for name, variable in transform_params.variable_params.items():
         variable_instance = VariableInstance.objects.get_current().get(id=variable.variable_id)
         if not variable_instance:
             # Ignore? Definitely don't need to try to save a bogus ID

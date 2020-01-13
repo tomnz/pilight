@@ -138,13 +138,13 @@ class ParamsDef(object):
     def __getattr__(self, item):
         return self.params_def[item]
 
-    def iteritems(self):
-        for key, value in self.params_def.iteritems():
+    def items(self):
+        for key, value in self.params_def.items():
             yield key, value
 
     def to_dict(self):
         result = {}
-        for name, param_def in self.params_def.iteritems():
+        for name, param_def in self.params_def.items():
             result[name] = {
                 'name': param_def.name,
                 'description': param_def.description,
@@ -166,14 +166,14 @@ class TransformParams(object):
 
         return self.params[item]
 
-    def iteritems(self):
-        for key, value in self.params.iteritems():
+    def items(self):
+        for key, value in self.params.items():
             yield key, value
 
     def to_dict(self):
         params = {}
 
-        for name, param in self.params_def.iteritems():
+        for name, param in self.params_def.items():
             if name in self.params:
                 params[name] = param.to_dict_value(self.params[name])
             else:
@@ -190,14 +190,14 @@ class VariableParams(object):
     def __getattr__(self, item):
         return self.params[item]
 
-    def iteritems(self):
-        for key, value in self.params.iteritems():
+    def items(self):
+        for key, value in self.params.items():
             yield key, value
 
     def to_dict(self):
         params = {}
 
-        for name, param in self.params_def.iteritems():
+        for name, param in self.params_def.items():
             if name in self.params:
                 params[name] = param.to_dict_value(self.params[name])
             else:
@@ -209,7 +209,7 @@ class VariableParams(object):
 def transform_params_from_dict(values, variable_params, params_def, variables=None):
     params = {}
 
-    for name, param in params_def.iteritems():
+    for name, param in params_def.items():
         if name in values:
             params[name] = param.from_dict_value(values[name])
         else:
@@ -232,7 +232,7 @@ PARAM_CONVERSIONS = {
 def transform_variable_params_from_dict(values, params_def):
     variable_params = {}
 
-    for name, param in params_def.iteritems():
+    for name, param in params_def.items():
         if name in values:
             variable_value = values[name]
             variable_params[name] = VariableParam(
@@ -249,7 +249,7 @@ def transform_variable_params_from_dict(values, params_def):
 def variable_params_from_dict(values, params_def):
     params = {}
 
-    for name, param in params_def.iteritems():
+    for name, param in params_def.items():
         if name in values:
             params[name] = param.from_dict_value(values[name])
         else:

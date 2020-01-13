@@ -60,7 +60,7 @@ class LightDriver(object):
         while not channel:
             channel = PikaConnection.get_channel()
             if not channel:
-                print 'Failed to connect... Retrying in 30 seconds'
+                print('Failed to connect... Retrying in 30 seconds')
                 time.sleep(30)
         channel.queue_purge(settings.PIKA_QUEUE_NAME)
 
@@ -79,13 +79,13 @@ class LightDriver(object):
             while not channel:
                 channel = PikaConnection.get_channel()
             if not channel:
-                print 'Failed to connect... Retrying in 30 seconds'
+                print('Failed to connect... Retrying in 30 seconds')
                 time.sleep(30)
 
             # First wait for a "start" or "restart" command
             # "consume" is a blocking method that will wait for the first message to come in
             body = None
-            print '* Light driver idle...'
+            print('* Light driver idle...')
             for method, properties, body in channel.consume(settings.PIKA_QUEUE_NAME):
                 channel.basic_ack(method.delivery_tag)
                 # Just break out after reading the first message
@@ -117,7 +117,7 @@ class LightDriver(object):
         Takes care of variable lifetime, and restarts the inner loop
         until a stop is requested.
         """
-        print '   Starting'
+        print('   Starting')
 
         # Init variables - these stay "alive" through restarts
         current_variables = self.get_variables()
@@ -150,7 +150,7 @@ class LightDriver(object):
         self.clear_lights()
 
         # Close variables
-        for variable in current_variables.itervalues():
+        for variable in current_variables.values():
             variable.close()
 
         # Reset start_time so that we start over on the next run
@@ -162,7 +162,7 @@ class LightDriver(object):
         Takes care of transform lifetime. Exits upon a stop or restart signal.
         """
 
-        print '* Light driver running config "{}"...'.format(config.name if config else 'current')
+        print('* Light driver running config "{}"...'.format(config.name if config else 'current'))
 
         # Grab the simulation parameters
         current_colors = self.get_colors(config)
@@ -201,7 +201,7 @@ class LightDriver(object):
 
             # Display FPS when in debug mode
             if settings.LIGHTS_DRIVER_DEBUG and current_time - last_fps_time > FPS_INTERVAL:
-                print '      FPS: %0.1f' % (float(frame_count) / (current_time - last_fps_time))
+                print('      FPS: %0.1f' % (float(frame_count) / (current_time - last_fps_time)))
                 last_fps_time = current_time
                 frame_count = 0
 
@@ -213,10 +213,10 @@ class LightDriver(object):
                 if msg:
                     command = msg.get('command', None)
                     if command == 'stop':
-                        print '    Stopping'
+                        print('    Stopping')
                         return False
                     elif command == 'restart':
-                        print '    Restarting'
+                        print('    Restarting')
                         return True
                     elif command == 'color':
                         self.process_color_message(msg)
@@ -267,7 +267,7 @@ class LightDriver(object):
             elapsed_time = time_step * i
             result.append(self.do_step(current_colors, elapsed_time, current_transforms, current_variables))
 
-        for variable in current_variables.itervalues():
+        for variable in current_variables.values():
             variable.close()
 
         return result
@@ -304,7 +304,7 @@ class LightDriver(object):
         colors = [color.clone() for color in start_colors]
 
         # Update variables
-        for variable in variables.itervalues():
+        for variable in variables.values():
             variable.tick_frame(elapsed_time)
 
         # Perform each transform step
@@ -327,7 +327,7 @@ class LightDriver(object):
         if not channel:
             return None
 
-        method, properties, body = channel.basic_get(settings.PIKA_QUEUE_NAME, no_ack=True)
+        method, properties, body = channel.basic_get(settings.PIKA_QUEUE_NAME, auto_ack=True)
         if method:
             if body:
                 return json.loads(body)

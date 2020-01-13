@@ -487,7 +487,7 @@ def update_transform(request):
 
                 transform_instance.params = json.dumps(transform_params.to_dict())
                 save_variable_params(transform_instance, transform_params)
-                variable_params_dict = {key: value.to_dict() for key, value in variable_params.iteritems()}
+                variable_params_dict = {key: value.to_dict() for key, value in variable_params.items()}
 
                 transform_instance.save()
                 result = {

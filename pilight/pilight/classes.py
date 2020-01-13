@@ -32,7 +32,7 @@ class PikaConnection(object):
             # Connect
             try:
                 PikaConnection.connection_obj = pika.BlockingConnection(
-                    pika.ConnectionParameters(host=settings.PIKA_HOST_NAME, heartbeat_interval=60)
+                    pika.ConnectionParameters(host=settings.PIKA_HOST_NAME, heartbeat=60)
                 )
             except exceptions.AMQPConnectionError:
                 # Connection failed - just silently return nothing
@@ -213,7 +213,7 @@ class Color(object):
     def __rmul__(self, other):
         return self * other
 
-    def __div__(self, other):
+    def __truediv__(self, other):
         return Color(
             self.r / other,
             self.g / other,

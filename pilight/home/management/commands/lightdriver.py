@@ -51,11 +51,11 @@ class Command(BaseCommand):
                 driver.wait()
             except KeyboardInterrupt:
                 # The user has interrupted execution - close our resources
-                print '* Cleaning up...'
+                print('* Cleaning up...')
             except:
                 # The catch-all here is bad, but manage.py commands usually don't print
                 # a stack trace, which is not very helpful for finding bugs
-                print 'Exception while running light driver!'
+                print('Exception while running light driver!')
                 traceback.print_exc(file=sys.stdout)
             finally:
                 # Clean up resources
@@ -67,8 +67,8 @@ class Command(BaseCommand):
                 if got_lock:
                     release_lock()
         else:
-            print ''
-            print 'Another driver appears to be running'
-            print 'Force light driver to run with --force-run'
-            print 'Clear the running flag with --clear-lock'
-            print 'Note that you WILL encounter issues if more than one driver runs at once'
+            print('')
+            print('Another driver appears to be running')
+            print('Force light driver to run with --force-run')
+            print('Clear the running flag with --clear-lock')
+            print('Note that you WILL encounter issues if more than one driver runs at once')

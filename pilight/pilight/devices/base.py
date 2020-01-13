@@ -2,9 +2,7 @@ import abc
 import multiprocessing
 
 
-class DeviceBase(multiprocessing.Process):
-    __metaclass__ = abc.ABCMeta
-
+class DeviceBase(multiprocessing.Process, metaclass=abc.ABCMeta):
     def __init__(self, colors_pipe, num_leds, scale, repeat):
         super(DeviceBase, self).__init__()
 
@@ -24,7 +22,7 @@ class DeviceBase(multiprocessing.Process):
             try:
                 colors = self.colors_pipe.recv()
                 if not colors:
-                    print '    Closed light device'
+                    print('    Closed light device')
                     return
 
                 self.show_colors(colors)

@@ -16,7 +16,7 @@ def active_transforms():
             continue
 
         variable_params = load_variable_params(transform_instance, transform.params_def)
-        variable_params_dict = {key: value.to_dict() for key, value in variable_params.iteritems()}
+        variable_params_dict = {key: value.to_dict() for key, value in variable_params.items()}
 
         result.append({
             'id': transform_instance.id,
@@ -31,7 +31,7 @@ def active_transforms():
 
 def available_transforms():
     result = []
-    for name, transform in TRANSFORMS.iteritems():
+    for name, transform in TRANSFORMS.items():
         result.append({
             'transform': name,
             'name': transform.name,
@@ -66,7 +66,7 @@ def active_variables():
 
 def available_variables():
     result = []
-    for name, variable in VARIABLES.iteritems():
+    for name, variable in VARIABLES.items():
         result.append({
             'variable': name,
             'name': variable.name,

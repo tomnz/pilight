@@ -10,14 +10,15 @@ from pilight.classes import Color, PikaConnection
 def publish_message(msg, first=True):
     channel = PikaConnection.get_channel()
     if not channel:
-        # Connection failed to open - fail silently
+        # Connection failed to open
+        print('Unable to connect to Pika channel')
         return
     try:
         channel.basic_publish(exchange='', routing_key=settings.PIKA_QUEUE_NAME, body=json.dumps(msg))
 
     # Current version of Pika can be a little unstable - catch ANY exception
     except:
-        print 'Pika channel publish failed - clearing objects to try again'
+        print('Pika channel publish failed - clearing objects to try again')
         # Force the channel to try reconnecting next time
         PikaConnection.clear_channel()
 

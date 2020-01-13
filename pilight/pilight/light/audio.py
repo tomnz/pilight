@@ -47,7 +47,8 @@ class AudioComputeProcess(multiprocessing.Process):
                                             channels=CHANNELS,
                                             rate=RATE,
                                             input=True,
-                                            frames_per_buffer=CHUNK)
+                                            frames_per_buffer=CHUNK,
+                                            as_loopback=True)
 
             while not self.exit_event.is_set():
                 current_time = time.time()
@@ -87,12 +88,13 @@ class AudioComputeProcess(multiprocessing.Process):
         fft = np.fft.fft(self.frames * np.blackman(self.audio_samples))[0:self.total_ffts]
         fftb = np.sqrt(fft.imag ** 2 + fft.real ** 2) / 5
         self.shared_val.value = np.max(fftb)
+        print('value: %.5f' % self.shared_val.value)
 
     def close(self):
         self.stream.stop_stream()
         self.stream.close()
         self.pyaudio.terminate()
-        print '    Closed audio device'
+        print('    Closed audio device')
 
     def determine_freqs(self, lpf_freq):
         # Pre-compute which FFT values to include, based on their frequency
