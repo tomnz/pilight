@@ -39,8 +39,8 @@ Install all prerequisites first:
 Install deps:
 
     sudo apt-get install python3 python3-pip python3-dev git \
-            postgresql rabbitmq-server python-pyaudio \
-            python-numpy alsa-utils
+            postgresql rabbitmq-server python3-pyaudio \
+            python3-numpy alsa-utils
 
 > Note: These instructions assume you're using a Raspberry Pi with Raspbian for the most part - omit sudo if your flavor doesn't use it, for example.
 

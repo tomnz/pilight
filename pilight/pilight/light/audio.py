@@ -12,7 +12,6 @@ CHANNELS = 1
 RATE = 44100
 SAMPLE_SIZE = pyaudio.get_sample_size(FORMAT)
 MAX_y = 2.0 ** (SAMPLE_SIZE * 8) - 1
-AUDIO_SECS = 0.03
 
 
 class AudioComputeProcess(multiprocessing.Process):
@@ -47,8 +46,7 @@ class AudioComputeProcess(multiprocessing.Process):
                                             channels=CHANNELS,
                                             rate=RATE,
                                             input=True,
-                                            frames_per_buffer=CHUNK,
-                                            as_loopback=True)
+                                            frames_per_buffer=CHUNK)
 
             while not self.exit_event.is_set():
                 current_time = time.time()
@@ -98,8 +96,8 @@ class AudioComputeProcess(multiprocessing.Process):
 
     def determine_freqs(self, lpf_freq):
         # Pre-compute which FFT values to include, based on their frequency
-        for freq in np.fft.rfftfreq(self.audio_samples, d=1.0 / RATE):
-            if freq < lpf_freq:
+        for freq in np.fft.fftfreq(self.audio_samples, d=1.0 / RATE):
+            if 0 < freq < lpf_freq:
                 self.total_ffts += 1
             else:
                 break
