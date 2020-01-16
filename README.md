@@ -106,7 +106,7 @@ In `settings.py`, change `LIGHTS_MICROCONTROLLER` to `ws2801`. Configure any oth
 
 ### WS281x (NeoPixel)
 
-Follow [Adafruit's instructions](https://learn.adafruit.com/neopixels-on-raspberry-pi/software) to build and install the Python library.
+Follow [Adafruit's instructions](https://learn.adafruit.com/neopixels-on-raspberry-pi/python-usage) to install the Python library.
 
 In `settings.py`, change `LIGHTS_MICROCONTROLLER` to `ws281x`. Configure any other related settings for WS281x.
 
