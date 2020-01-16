@@ -9,7 +9,8 @@ class Device(base.DeviceBase):
         self.strip = adafruit_ws2801.WS2801(
             board.SCLK,
             board.MOSI,
-            n=self.num_leds * self.scale * self.repeat)
+            n=self.num_leds * self.scale * self.repeat,
+            auto_write=False)
         self.strip.show()
 
     def set_color(self, index, color):
