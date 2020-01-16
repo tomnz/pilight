@@ -96,7 +96,7 @@ def bootstrap_client(request):
 @require_POST
 @csrf_exempt
 def login(request):
-    req = json.loads(request.body)
+    req = json.loads(request.body.decode('utf-8'))
 
     logged_in = False
     if 'username' in req and 'password' in req:
@@ -132,7 +132,7 @@ def get_base_colors(request):
 @require_POST
 @user_passes_test(auth_check)
 def save_config(request):
-    req = json.loads(request.body)
+    req = json.loads(request.body.decode('utf-8'))
 
     if 'configName' in req:
         # First see if the config already exists
@@ -184,7 +184,7 @@ def save_config(request):
 @require_POST
 @user_passes_test(auth_check)
 def delete_config(request):
-    req = json.loads(request.body)
+    req = json.loads(request.body.decode('utf-8'))
 
     if 'id' in req:
         config = Config.objects.filter(id=req['id']).first()
@@ -207,7 +207,7 @@ def delete_config(request):
 @require_POST
 @user_passes_test(auth_check)
 def load_config(request):
-    req = json.loads(request.body)
+    req = json.loads(request.body.decode('utf-8'))
 
     if 'id' in req:
         config = Config.objects.filter(id=req['id']).first()
@@ -282,7 +282,7 @@ def get_playlist(request, playlist_id):
 @require_POST
 @user_passes_test(auth_check)
 def save_playlist(request):
-    req = json.loads(request.body)
+    req = json.loads(request.body.decode('utf-8'))
 
     if 'id' in req:
         # Saving an existing playlist
@@ -323,7 +323,7 @@ def save_playlist(request):
 @require_POST
 @user_passes_test(auth_check)
 def delete_playlist(request):
-    req = json.loads(request.body)
+    req = json.loads(request.body.decode('utf-8'))
 
     if 'id' in req:
         playlist = Playlist.objects.filter(id=req['id']).first()
@@ -355,7 +355,7 @@ def preview(request):
 @require_POST
 @user_passes_test(auth_check)
 def apply_light_tool(request):
-    req = json.loads(request.body)
+    req = json.loads(request.body.decode('utf-8'))
 
     if 'tool' in req and \
             'index' in req and \
@@ -409,7 +409,7 @@ def apply_light_tool(request):
 @require_POST
 @user_passes_test(auth_check)
 def fill_color(request):
-    req = json.loads(request.body)
+    req = json.loads(request.body.decode('utf-8'))
 
     if 'color' in req:
         color = Color.from_dict(req['color'])
@@ -426,7 +426,7 @@ def fill_color(request):
 @require_POST
 @csrf_exempt
 def update_color_channel(request):
-    req = json.loads(request.body)
+    req = json.loads(request.body.decode('utf-8'))
 
     if 'color' in req and 'channel' in req:
         color = Color.from_hex(req['color'])
@@ -443,7 +443,7 @@ def update_color_channel(request):
 @require_POST
 @user_passes_test(auth_check)
 def delete_transform(request):
-    req = json.loads(request.body)
+    req = json.loads(request.body.decode('utf-8'))
 
     if 'id' in req:
         transform = TransformInstance.objects.get(id=req['id'])
@@ -468,7 +468,7 @@ def delete_transform(request):
 @require_POST
 @user_passes_test(auth_check)
 def update_transform(request):
-    req = json.loads(request.body)
+    req = json.loads(request.body.decode('utf-8'))
 
     if 'id' in req and 'params' in req:
         transform_instance = TransformInstance.objects.get(id=req['id'])
@@ -514,7 +514,7 @@ def update_transform(request):
 @require_POST
 @user_passes_test(auth_check)
 def add_transform(request):
-    req = json.loads(request.body)
+    req = json.loads(request.body.decode('utf-8'))
 
     if 'transform' in req:
         transform_name = req['transform']
@@ -545,7 +545,7 @@ def add_transform(request):
 @require_POST
 @user_passes_test(auth_check)
 def reorder_transforms(request):
-    req = json.loads(request.body)
+    req = json.loads(request.body.decode('utf-8'))
 
     if 'order' in req:
         for order, transform_id in enumerate(req['order']):
@@ -563,7 +563,7 @@ def reorder_transforms(request):
 @require_POST
 @user_passes_test(auth_check)
 def add_variable(request):
-    req = json.loads(request.body)
+    req = json.loads(request.body.decode('utf-8'))
 
     if 'variable' in req:
         variable_name = req['variable']
@@ -595,7 +595,7 @@ def add_variable(request):
 @require_POST
 @user_passes_test(auth_check)
 def delete_variable(request):
-    req = json.loads(request.body)
+    req = json.loads(request.body.decode('utf-8'))
 
     if 'id' in req:
         variable = VariableInstance.objects.get(id=req['id'])
@@ -618,7 +618,7 @@ def delete_variable(request):
 @require_POST
 @user_passes_test(auth_check)
 def update_variable(request):
-    req = json.loads(request.body)
+    req = json.loads(request.body.decode('utf-8'))
 
     if 'id' in req and 'params' in req:
         variable_instance = VariableInstance.objects.get(id=req['id'])
@@ -658,7 +658,7 @@ def update_variable(request):
 @require_POST
 @user_passes_test(auth_check)
 def start_driver(request):
-    req = json.loads(request.body)
+    req = json.loads(request.body.decode('utf-8'))
     if 'id' in req:
         driver.message_stop()
         driver.message_start_playlist(req['id'])
