@@ -1,5 +1,7 @@
-Django              ==1.11.27
-psycopg2            >=2.8
-pika                ==1.1.0
-django-bootstrap3   ==8.2.1
-django-picklefield  ==0.3.2
+Django                          ==1.11.27
+psycopg2                        >=2.8
+pika                            ==1.1.0
+django-bootstrap3               ==8.2.1
+django-picklefield              ==0.3.2
+adafruit-circuitpython-ws2801   ==0.9.5
+adafruit-circuitpython-neopixel ==4.0.0
