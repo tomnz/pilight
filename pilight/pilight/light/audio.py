@@ -86,7 +86,6 @@ class AudioComputeProcess(multiprocessing.Process):
         fft = np.fft.fft(self.frames * np.blackman(self.audio_samples))[0:self.total_ffts]
         fftb = np.sqrt(fft.imag ** 2 + fft.real ** 2) / 5
         self.shared_val.value = np.max(fftb)
-        print('value: %.5f' % self.shared_val.value)
 
     def close(self):
         self.stream.stop_stream()
@@ -96,7 +95,7 @@ class AudioComputeProcess(multiprocessing.Process):
 
     def determine_freqs(self, lpf_freq):
         # Pre-compute which FFT values to include, based on their frequency
-        for freq in np.fft.fftfreq(self.audio_samples, d=1.0 / RATE):
+        for freq in np.fft.rfftfreq(self.audio_samples, d=1.0 / RATE):
             if 0 < freq < lpf_freq:
                 self.total_ffts += 1
             else:
