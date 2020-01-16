@@ -96,7 +96,7 @@ class LightDriver(object):
 
             # Note: right now we ignore 'restart' and 'stop' commands if they come in
             # In future we may want to also handle a 'restart' command here
-            message = json.loads(body)
+            message = json.loads(body.decode('utf8'))
             if message['command'] == 'start':
                 # We received a start command!
                 playlist_id = message.get('playlistId', None)
@@ -330,7 +330,7 @@ class LightDriver(object):
         method, properties, body = channel.basic_get(settings.PIKA_QUEUE_NAME, auto_ack=True)
         if method:
             if body:
-                return json.loads(body)
+                return json.loads(body.decode('utf-8'))
             else:
                 return body
         else:
